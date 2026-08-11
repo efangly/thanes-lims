@@ -150,7 +150,7 @@ export function Button({
   const sizes = { md: "px-[15px] py-[9px] text-[13px]", sm: "px-[11px] py-1.5 text-[12px]" };
   return (
     <button
-      className={`inline-flex items-center gap-[7px] rounded-lg font-medium transition active:translate-y-px ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center gap-[7px] rounded-lg font-medium transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
@@ -327,7 +327,15 @@ export function Donut({ items }: { items: { label: string; color: string; value:
 }
 
 /* ---------- Bar chart (weekly workload) ---------- */
-export function BarChart({ data }: { data: { label: string; a: number; b: number }[] }) {
+export function BarChart({
+  data,
+  legendA = "เสร็จสิ้น",
+  legendB = "รอทวนสอบ",
+}: {
+  data: { label: string; a: number; b: number }[];
+  legendA?: string;
+  legendB?: string;
+}) {
   return (
     <>
       <div className="flex h-[150px] items-end gap-3.5 px-1.5 pt-2.5">
@@ -344,11 +352,11 @@ export function BarChart({ data }: { data: { label: string; a: number; b: number
       <div className="mt-3.5 flex gap-[18px] text-[12px] text-muted">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-[3px] bg-teal" />
-          เสร็จสิ้น
+          {legendA}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-[3px] bg-amber" />
-          รอทวนสอบ
+          {legendB}
         </span>
       </div>
     </>

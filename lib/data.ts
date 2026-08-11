@@ -3,6 +3,7 @@ export type Tag = { tone: TagTone; label: string };
 
 export type ModuleId =
   | "dashboard"
+  | "ai-chat"
   | "samples"
   | "equipment"
   | "environment"
@@ -12,6 +13,7 @@ export type ModuleId =
 
 export const MODULE_META: Record<ModuleId, { code: string; title: string }> = {
   dashboard: { code: "MODULE 00", title: "แดชบอร์ด" },
+  "ai-chat": { code: "AI ASSISTANT", title: "ผู้ช่วยอัจฉริยะ" },
   samples: { code: "MODULE 01", title: "การจัดการตัวอย่าง" },
   equipment: { code: "MODULE 02", title: "การจัดการเครื่องมือ" },
   environment: { code: "MODULE 03", title: "ควบคุมสภาพแวดล้อม" },
@@ -223,3 +225,56 @@ export const PURCHASE_ORDERS: PurchaseOrder[] = [
   { id: "PO-2569-0211", item: "Sodium Chloride NaCl", qty: "25 kg", vendor: "บจก. เคมีภัณฑ์ไทย", date: "29 มิ.ย. 2569", status: { tone: "green", label: "ได้รับแล้ว" } },
   { id: "PO-2569-0203", item: "UV-Vis Cuvettes", qty: "6 กล่อง", vendor: "บจก. แล็บซัพพลาย", date: "18 มิ.ย. 2569", status: { tone: "red", label: "ยกเลิก" } },
 ];
+
+/* ---------- ข้อมูลอ้างอิงสำหรับผู้ช่วย AI (โมดูล ai-chat) ---------- */
+
+/** ยอดรับตัวอย่าง 7 วันย้อนหลัง — ปิดท้ายที่ 12 รายการวันนี้ (เมื่อวาน 9 → มากกว่า 3) */
+export const AI_INTAKE_7D: { label: string; a: number; b: number }[] = [
+  { label: "15", a: 46, b: 12 },
+  { label: "16", a: 52, b: 18 },
+  { label: "17", a: 40, b: 10 },
+  { label: "18", a: 62, b: 22 },
+  { label: "19", a: 34, b: 8 },
+  { label: "20", a: 54, b: 16 },
+  { label: "21", a: 74, b: 34 },
+];
+
+export interface AiSampleRow {
+  id: string;
+  name: string;
+  custodian: string;
+  detail: string;
+  status: Tag;
+}
+
+/** 5 รายการที่ถูกตั้งสถานะเร่งด่วนของวันนี้ */
+export const AI_URGENT_SAMPLES: AiSampleRow[] = [
+  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", custodian: "พิมพ์ชนก", detail: "ครบกำหนด 11:30", status: { tone: "red", label: "เร่งด่วนมาก" } },
+  { id: "SMP-2569-04819", name: "น้ำเสียอุตสาหกรรม", custodian: "สมชาย", detail: "ครบกำหนด 13:00", status: { tone: "red", label: "เร่งด่วนมาก" } },
+  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", custodian: "วิภา", detail: "ครบกำหนด 15:00", status: { tone: "amber", label: "เร่งด่วน" } },
+  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", custodian: "พิมพ์ชนก", detail: "ครบกำหนด 16:20", status: { tone: "amber", label: "เร่งด่วน" } },
+  { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", custodian: "วิภา", detail: "ครบกำหนด 17:00", status: { tone: "amber", label: "เร่งด่วน" } },
+];
+
+/** ภาระงานเร่งด่วนต่อผู้ดูแล (ใช้สรุปเป็น KPI คู่กับตาราง) */
+export const AI_URGENT_BY_OWNER: { name: string; count: number }[] = [
+  { name: "พิมพ์ชนก", count: 2 },
+  { name: "วิภา", count: 2 },
+  { name: "สมชาย", count: 1 },
+];
+
+/** 4 ตัวอย่างใน Freezer-B ที่กำหนดจัดเก็บไม่เกิน -18°C จึงมีความเสี่ยงด้านความคงตัว */
+export const AI_AT_RISK_SAMPLES: AiSampleRow[] = [
+  { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", custodian: "วิภา", detail: "กำหนด ≤ -18°C · สัมผัส 3 ชม. 20 น.", status: { tone: "red", label: "เสี่ยงสูง" } },
+  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", custodian: "พิมพ์ชนก", detail: "กำหนด ≤ -18°C · สัมผัส 2 ชม. 45 น.", status: { tone: "red", label: "เสี่ยงสูง" } },
+  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", custodian: "พิมพ์ชนก", detail: "กำหนด ≤ -18°C · สัมผัส 1 ชม. 10 น.", status: { tone: "amber", label: "เฝ้าระวัง" } },
+  { id: "SMP-2569-04816", name: "ซีรั่ม – แผนกภูมิคุ้มกัน", custodian: "ธเนศ", detail: "กำหนด ≤ -18°C · สัมผัส 55 นาที", status: { tone: "amber", label: "เฝ้าระวัง" } },
+];
+
+/** อุณหภูมิ Freezer-B ย้อนหลัง 24 ชม. (°C) — ไต่ทะลุเกณฑ์ -18 มาจบที่ -11.2 ตรงกับ GAUGES */
+export const AI_FREEZER_TREND: number[] = [
+  -20.4, -20.2, -20.5, -20.1, -20.3, -19.9, -20.0, -19.6, -19.2, -18.6, -18.1,
+  -17.4, -16.5, -15.8, -14.9, -13.6, -12.4, -11.2,
+];
+
+export const AI_FREEZER_LIMIT = -18;

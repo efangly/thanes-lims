@@ -5,6 +5,7 @@ import type { ModuleId } from "@/lib/data";
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 import { DashboardView } from "@/components/modules/dashboard";
+import { AiChatView } from "@/components/modules/ai-chat";
 import { SamplesView } from "@/components/modules/samples";
 import { EquipmentView } from "@/components/modules/equipment";
 import { EnvironmentView } from "@/components/modules/environment";
@@ -23,6 +24,8 @@ export function LimsApp() {
     switch (active) {
       case "dashboard":
         return <DashboardView onNavigate={setActive} />;
+      case "ai-chat":
+        return <AiChatView />;
       case "samples":
         return <SamplesView />;
       case "equipment":

@@ -52,10 +52,10 @@ function ModuleCard({
   return (
     <button
       onClick={onClick}
-      className="group rounded-[10px] border border-line bg-panel p-[17px] text-left shadow-card transition hover:-translate-y-0.5 hover:border-teal hover:shadow-[0_8px_24px_rgba(13,27,42,0.1)]"
+      className="group rounded-[10px] border border-line bg-panel p-4.25 text-left shadow-card transition hover:-translate-y-0.5 hover:border-teal hover:shadow-[0_8px_24px_rgba(13,27,42,0.1)]"
     >
       <div className={`mb-3 grid h-10 w-10 place-items-center rounded-[9px] ${toneBg[tone]}`}>
-        <span className="h-[21px] w-[21px]">{icon}</span>
+        <span className="h-5.25 w-5.25">{icon}</span>
       </div>
       <h4 className="font-display text-[14.5px] font-semibold">{th}</h4>
       <div className="mt-0.5 font-mono text-[11px] text-muted-2">{en}</div>

@@ -24,6 +24,9 @@ export function Sidebar({
   onClose: () => void;
 }) {
   const overview: NavEntry[] = [{ id: "dashboard", label: "แดชบอร์ด", icon: <Icons.Dashboard /> }];
+  const assistant: NavEntry[] = [
+    { id: "ai-chat", label: "AI Assistant", icon: <Icons.Ai />, dot: true },
+  ];
   const modules: NavEntry[] = [
     { id: "samples", label: "การจัดการตัวอย่าง", icon: <Icons.Sample />, num: "01" },
     { id: "equipment", label: "การจัดการเครื่องมือ", icon: <Icons.Equipment />, num: "02", dot: true },
@@ -115,6 +118,10 @@ export function Sidebar({
           ภาพรวม
         </div>
         {overview.map(renderItem)}
+        <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
+          ผู้ช่วย AI
+        </div>
+        {assistant.map(renderItem)}
         <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
           โมดูลหลัก
         </div>
