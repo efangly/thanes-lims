@@ -5,13 +5,14 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
-import type { Sample } from "@/lib/data";
+import { apiErrorMessage } from "@/lib/api-client";
 
 const TYPES = ["Blood", "Urine", "Water", "Tissue", "Food", "Serum"];
 
 export function AddSampleModal() {
-  const { activeModal, closeModal, samples, addSample, pushToast } = useLims();
+  const { activeModal, closeModal, addSample, pushToast } = useLims();
   const [name, setName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [type, setType] = useState(TYPES[0]);
   const [custodian, setCustodian] = useState("");
   const [loc, setLoc] = useState("");
@@ -30,22 +31,18 @@ export function AddSampleModal() {
     closeModal();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim() || !custodian.trim() || !loc.trim()) return;
-    const nextNum = 4821 + samples.length;
-    const now = new Date();
-    const sample: Sample = {
-      id: `SMP-2569-${nextNum}`,
-      name: name.trim(),
-      type,
-      custodian: custodian.trim(),
-      loc: loc.trim(),
-      status: { tone: "amber", label: "รอตรวจสอบ" },
-      recv: `21 ก.ค. ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
-    };
-    addSample(sample);
-    pushToast("เพิ่มตัวอย่างเรียบร้อย");
-    handleClose();
+    setSubmitting(true);
+    try {
+      await addSample({ name: name.trim(), type, custodian: custodian.trim(), loc: loc.trim() });
+      pushToast("เพิ่มตัวอย่างเรียบร้อย");
+      handleClose();
+    } catch (err) {
+      pushToast(apiErrorMessage(err), "red");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -60,9 +57,9 @@ export function AddSampleModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit}>
+          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting}>
             <Icons.Plus className="h-[14px] w-[14px]" />
-            รับตัวอย่างเข้าระบบ
+            {submitting ? "กำลังบันทึก..." : "รับตัวอย่างเข้าระบบ"}
           </Button>
         </>
       }

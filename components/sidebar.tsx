@@ -3,6 +3,13 @@
 import { Icons } from "@/lib/icons";
 import type { ModuleId } from "@/lib/data";
 import type { ReactNode } from "react";
+import { useAuth } from "@/lib/auth-context";
+
+function initialsFor(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 interface NavEntry {
   id: ModuleId;
@@ -23,6 +30,7 @@ export function Sidebar({
   open: boolean;
   onClose: () => void;
 }) {
+  const { user, logout } = useAuth();
   const overview: NavEntry[] = [{ id: "dashboard", label: "แดชบอร์ด", icon: <Icons.Dashboard /> }];
   const assistant: NavEntry[] = [
     { id: "ai-chat", label: "AI Assistant", icon: <Icons.Ai />, dot: true },
@@ -132,12 +140,20 @@ export function Sidebar({
       <div className="border-t border-[var(--color-sidebar-line)] p-3">
         <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.045] px-[9px] py-2">
           <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-gradient-to-br from-[#3a6ea5] to-[#2b4d73] font-display text-xs font-semibold text-white">
-            TS
+            {user ? initialsFor(user.name) : "—"}
           </span>
-          <div>
-            <div className="text-[12.5px] font-medium leading-tight text-[#e7eef3]">ธเนศ สุขใจ</div>
-            <div className="text-[10.5px] text-sidebar-muted">Lab Manager</div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[12.5px] font-medium leading-tight text-[#e7eef3]">{user?.name ?? "—"}</div>
+            <div className="truncate text-[10.5px] text-sidebar-muted">{user?.role ?? ""}</div>
           </div>
+          <button
+            onClick={logout}
+            aria-label="ออกจากระบบ"
+            title="ออกจากระบบ"
+            className="grid h-7 w-7 flex-none place-items-center rounded-lg text-sidebar-muted transition hover:bg-[var(--color-sidebar-hover)] hover:text-[#e7eef3]"
+          >
+            <Icons.Logout className="h-4 w-4" />
+          </button>
         </div>
         <div className="mt-2.5 flex items-center gap-[7px] px-[3px] font-mono text-[10.5px] text-sidebar-muted">
           <span className="h-[7px] w-[7px] rounded-full bg-teal animate-pulse-dot" />

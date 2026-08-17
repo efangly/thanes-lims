@@ -1,19 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
-import { DOC_HISTORY } from "@/lib/data";
+import type { Document, DocHistory } from "@/lib/data";
 import { Button, Card, CardHead, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { apiFetch } from "@/lib/api-client";
+import { mapDocHistory, type DocHistoryDTO } from "@/lib/backend-mappers";
 
 const SEG_OPTIONS = ["ทั้งหมด", "SOP", "นโยบาย", "แบบฟอร์ม"];
 const SEG_TYPE = ["", "SOP", "Policy", "Form"];
 
+function useDocHistory(docId: string | undefined) {
+  const [history, setHistory] = useState<DocHistory[]>([]);
+  useEffect(() => {
+    if (!docId) {
+      setHistory([]);
+      return;
+    }
+    let cancelled = false;
+    apiFetch<DocHistoryDTO[]>(`/documents/${docId}/history`)
+      .then((r) => {
+        if (!cancelled) setHistory(r.map(mapDocHistory));
+      })
+      .catch(() => {
+        if (!cancelled) setHistory([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [docId]);
+  return history;
+}
+
 export function DocumentsView() {
   const { documents, openModal } = useLims();
   const [seg, setSeg] = useState(0);
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
 
   const filtered = documents.filter((d) => (seg === 0 ? true : d.type === SEG_TYPE[seg]));
+  const active = selectedDoc && filtered.some((d) => d.id === selectedDoc.id) ? selectedDoc : filtered[0] ?? null;
+  const history = useDocHistory(active?.id);
 
   return (
     <div className="animate-fade">
@@ -50,7 +77,13 @@ export function DocumentsView() {
           />
           <div>
             {filtered.map((d, i) => (
-              <div key={i} className="flex items-center gap-3 border-b border-line px-[18px] py-3 transition last:border-none hover:bg-bg/60">
+              <div
+                key={i}
+                onClick={() => setSelectedDoc(d)}
+                className={`flex cursor-pointer items-center gap-3 border-b border-line px-[18px] py-3 transition last:border-none hover:bg-bg/60 ${
+                  active?.id === d.id ? "bg-bg/60" : ""
+                }`}
+              >
                 <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-violet-bg text-violet">
                   <Icons.Doc className="h-[17px] w-[17px]" />
                 </div>
@@ -76,12 +109,15 @@ export function DocumentsView() {
           <CardHead
             icon={<Icons.Clock />}
             title="ประวัติการแก้ไข"
-            right={<span className="font-mono text-[11.5px] text-muted">SOP-เก็บตัวอย่างเลือด</span>}
+            right={<span className="font-mono text-[11.5px] text-muted">{active?.name ?? "—"}</span>}
           />
           <div className="px-5 pb-3.5 pt-1.5">
-            {DOC_HISTORY.map((v, i) => {
+            {history.length === 0 && (
+              <div className="py-4 text-center text-[12.5px] text-muted">ไม่มีประวัติการแก้ไข</div>
+            )}
+            {history.map((v, i) => {
               const isFirst = i === 0;
-              const isLast = i === DOC_HISTORY.length - 1;
+              const isLast = i === history.length - 1;
               return (
                 <div key={i} className="relative flex gap-3.5 py-3">
                   {!isLast && <span className="absolute left-[15px] top-[34px] -bottom-3 w-0.5 bg-line" />}

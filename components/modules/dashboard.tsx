@@ -1,9 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
-import { FEED, type ModuleId, type TagTone } from "@/lib/data";
+import { FEED, type EnvAlert, type ModuleId, type TagTone } from "@/lib/data";
 import { Card, CardHead, KpiCard, PageHead, Seg, Tag, BarChart } from "@/components/ui";
 import type { ReactNode } from "react";
+import { useLims } from "@/components/lims-data-context";
+import { apiFetch } from "@/lib/api-client";
+import { mapAlert, type AlertDTO } from "@/lib/backend-mappers";
+
+function useAlerts() {
+  const [alerts, setAlerts] = useState<EnvAlert[]>([]);
+  useEffect(() => {
+    apiFetch<AlertDTO[]>("/environment/alerts")
+      .then((r) => setAlerts(r.map(mapAlert)))
+      .catch(() => {});
+  }, []);
+  return alerts;
+}
 
 const feedIcons = {
   Env: <Icons.Env />,
@@ -69,6 +83,16 @@ function ModuleCard({
 }
 
 export function DashboardView({ onNavigate }: { onNavigate: (id: ModuleId) => void }) {
+  const { samples, equipment, tests, inventory, documents } = useLims();
+  const alerts = useAlerts();
+
+  const activeSamples = samples.filter((s) => s.status.label !== "เสร็จสิ้น").length;
+  const equipmentDue = equipment.filter((e) => e.status.label !== "พร้อมใช้").length;
+  const equipmentOverdue = equipment.filter((e) => e.status.label === "เลยกำหนด").length;
+  const critAlert = alerts.find((a) => a.level === "crit");
+  const pendingTests = tests.filter((t) => t.status.label === "รอทวนสอบ").length;
+  const inventoryLow = inventory.filter((i) => i.status.tone === "red" || i.status.tone === "amber").length;
+
   return (
     <div className="animate-fade">
       <PageHead
@@ -78,10 +102,26 @@ export function DashboardView({ onNavigate }: { onNavigate: (id: ModuleId) => vo
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="teal" icon={<Icons.Sample />} label="ตัวอย่างที่กำลังดำเนินการ" value="248" unit="ตัวอย่าง" trend="▲ 12 รับเข้าวันนี้" />
-        <KpiCard accent="amber" icon={<Icons.Equipment />} label="เครื่องมือรอสอบเทียบ" value="3" unit="เครื่อง" trend="▼ 1 เลยกำหนด" trendDown />
-        <KpiCard accent="red" icon={<Icons.Env />} label="การแจ้งเตือนสภาพแวดล้อม" value="2" unit="รายการ" trend="Freezer-B วิกฤต" trendDown />
-        <KpiCard accent="green" icon={<Icons.Test />} label="ผลทดสอบรออนุมัติ" value="17" unit="รายการ" trend="▲ 5 พร้อมตรวจ" />
+        <KpiCard accent="teal" icon={<Icons.Sample />} label="ตัวอย่างที่กำลังดำเนินการ" value={String(activeSamples)} unit="ตัวอย่าง" trend={`${samples.length} ตัวอย่างทั้งหมด`} />
+        <KpiCard
+          accent="amber"
+          icon={<Icons.Equipment />}
+          label="เครื่องมือรอสอบเทียบ"
+          value={String(equipmentDue)}
+          unit="เครื่อง"
+          trend={equipmentOverdue > 0 ? `▼ ${equipmentOverdue} เลยกำหนด` : "ไม่มีรายการเลยกำหนด"}
+          trendDown={equipmentOverdue > 0}
+        />
+        <KpiCard
+          accent="red"
+          icon={<Icons.Env />}
+          label="การแจ้งเตือนสภาพแวดล้อม"
+          value={String(alerts.length)}
+          unit="รายการ"
+          trend={critAlert ? critAlert.title : "ไม่มีการแจ้งเตือน"}
+          trendDown={Boolean(critAlert)}
+        />
+        <KpiCard accent="green" icon={<Icons.Test />} label="ผลทดสอบรออนุมัติ" value={String(pendingTests)} unit="รายการ" trend={`${tests.length} ผลทดสอบทั้งหมด`} />
       </div>
 
       <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.55fr_1fr]">
@@ -123,12 +163,12 @@ export function DashboardView({ onNavigate }: { onNavigate: (id: ModuleId) => vo
       </div>
 
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-        <ModuleCard onClick={() => onNavigate("samples")} tone="teal" icon={<Icons.Sample />} th="การจัดการตัวอย่าง" en="Sample Management" desc="บันทึก ติดตาม และรักษา Chain of Custody ตลอดวงจรของตัวอย่าง" stat="248 ตัวอย่างที่ใช้งาน" />
-        <ModuleCard onClick={() => onNavigate("equipment")} tone="green" icon={<Icons.Equipment />} th="การจัดการเครื่องมือ" en="Equipment Management" desc="ประวัติการใช้งาน สอบเทียบ บำรุงรักษา และพร้อมรับการตรวจสอบ" stat="32 เครื่อง · 3 รอสอบเทียบ" />
-        <ModuleCard onClick={() => onNavigate("environment")} tone="red" icon={<Icons.Env />} th="ควบคุมสภาพแวดล้อม" en="Environmental" desc="ติดตามอุณหภูมิ/ความชื้นเรียลไทม์ แจ้งเตือนเข้าสมาร์ตโฟนทันที" stat="2 การแจ้งเตือนที่ต้องดำเนินการ" />
-        <ModuleCard onClick={() => onNavigate("inventory")} tone="amber" icon={<Icons.Inventory />} th="สินค้าคงคลัง" en="Inventory" desc="บริหารสต็อกวัสดุ สารเคมี พร้อมสั่งซื้อซ้ำอัตโนมัติ" stat="2 รายการถึงจุดสั่งซื้อ" />
-        <ModuleCard onClick={() => onNavigate("documents")} tone="violet" icon={<Icons.Doc />} th="การจัดการเอกสาร" en="Documents" desc="SOP คู่มือ นโยบาย พร้อมประวัติแก้ไขและสิทธิ์การเข้าถึง" stat="142 เอกสาร · 2 อัปเดตวันนี้" />
-        <ModuleCard onClick={() => onNavigate("tests")} tone="teal" icon={<Icons.Test />} th="ทดสอบ & วิเคราะห์" en="Test & Analysis" desc="ควบคุมมาตรฐาน บันทึกผล แปลผลด้วย AI (เร็ว ๆ นี้)" stat="17 ผลรออนุมัติ" />
+        <ModuleCard onClick={() => onNavigate("samples")} tone="teal" icon={<Icons.Sample />} th="การจัดการตัวอย่าง" en="Sample Management" desc="บันทึก ติดตาม และรักษา Chain of Custody ตลอดวงจรของตัวอย่าง" stat={`${activeSamples} ตัวอย่างที่ใช้งาน`} />
+        <ModuleCard onClick={() => onNavigate("equipment")} tone="green" icon={<Icons.Equipment />} th="การจัดการเครื่องมือ" en="Equipment Management" desc="ประวัติการใช้งาน สอบเทียบ บำรุงรักษา และพร้อมรับการตรวจสอบ" stat={`${equipment.length} เครื่อง · ${equipmentDue} รอสอบเทียบ`} />
+        <ModuleCard onClick={() => onNavigate("environment")} tone="red" icon={<Icons.Env />} th="ควบคุมสภาพแวดล้อม" en="Environmental" desc="ติดตามอุณหภูมิ/ความชื้นเรียลไทม์ แจ้งเตือนเข้าสมาร์ตโฟนทันที" stat={`${alerts.length} การแจ้งเตือนที่ต้องดำเนินการ`} />
+        <ModuleCard onClick={() => onNavigate("inventory")} tone="amber" icon={<Icons.Inventory />} th="สินค้าคงคลัง" en="Inventory" desc="บริหารสต็อกวัสดุ สารเคมี พร้อมสั่งซื้อซ้ำอัตโนมัติ" stat={`${inventoryLow} รายการถึงจุดสั่งซื้อ`} />
+        <ModuleCard onClick={() => onNavigate("documents")} tone="violet" icon={<Icons.Doc />} th="การจัดการเอกสาร" en="Documents" desc="SOP คู่มือ นโยบาย พร้อมประวัติแก้ไขและสิทธิ์การเข้าถึง" stat={`${documents.length} เอกสาร`} />
+        <ModuleCard onClick={() => onNavigate("tests")} tone="teal" icon={<Icons.Test />} th="ทดสอบ & วิเคราะห์" en="Test & Analysis" desc="ควบคุมมาตรฐาน บันทึกผล แปลผลด้วย AI (เร็ว ๆ นี้)" stat={`${pendingTests} ผลรออนุมัติ`} />
       </div>
     </div>
   );

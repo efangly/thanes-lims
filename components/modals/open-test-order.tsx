@@ -5,15 +5,16 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
-import type { TestResult } from "@/lib/data";
+import { apiErrorMessage } from "@/lib/api-client";
 
 export function OpenTestOrderModal() {
-  const { activeModal, closeModal, samples, tests, addTest, pushToast } = useLims();
+  const { activeModal, closeModal, samples, addTest, pushToast } = useLims();
   const open = activeModal === "open-test-order";
   const [sampleId, setSampleId] = useState("");
   const [test, setTest] = useState("");
   const [analyst, setAnalyst] = useState("");
   const [ref, setRef] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const currentSample = sampleId || samples[0]?.id || "";
 
@@ -27,21 +28,18 @@ export function OpenTestOrderModal() {
     reset();
     closeModal();
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!test.trim() || !analyst.trim()) return;
-    const t: TestResult = {
-      id: `TST-${88401 + tests.length}`,
-      sample: currentSample,
-      test: test.trim(),
-      analyst: analyst.trim(),
-      result: "รอผล",
-      flag: "ok",
-      ref: ref.trim() || "—",
-      status: { tone: "teal", label: "กำลังวิเคราะห์" },
-    };
-    addTest(t);
-    pushToast("เปิดคำสั่งทดสอบเรียบร้อย");
-    handleClose();
+    setSubmitting(true);
+    try {
+      await addTest({ sample: currentSample, test: test.trim(), analyst: analyst.trim(), ref: ref.trim() || "—" });
+      pushToast("เปิดคำสั่งทดสอบเรียบร้อย");
+      handleClose();
+    } catch (err) {
+      pushToast(apiErrorMessage(err), "red");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -56,9 +54,9 @@ export function OpenTestOrderModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit}>
+          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting}>
             <Icons.Plus className="h-[14px] w-[14px]" />
-            เปิดคำสั่งทดสอบ
+            {submitting ? "กำลังบันทึก..." : "เปิดคำสั่งทดสอบ"}
           </Button>
         </>
       }

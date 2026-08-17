@@ -2,9 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
-import { GAUGES, ENV_ALERTS } from "@/lib/data";
+import type { EnvAlert, Gauge } from "@/lib/data";
 import { AreaChart, Button, Card, CardHead, PageHead, Sparkline, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { apiFetch } from "@/lib/api-client";
+import { mapAlert, mapGauge, mapTrend, type AlertDTO, type GaugeDTO, type ReadingDTO } from "@/lib/backend-mappers";
+
+function useEnvironmentData() {
+  const [gauges, setGauges] = useState<Gauge[]>([]);
+  const [alerts, setAlerts] = useState<EnvAlert[]>([]);
+  useEffect(() => {
+    apiFetch<GaugeDTO[]>("/environment/gauges")
+      .then(async (r) => {
+        const mapped = r.map(mapGauge);
+        setGauges(mapped);
+        const withTrend = await Promise.all(
+          r.map(async (g, i) => {
+            try {
+              const readings = await apiFetch<ReadingDTO[]>(`/environment/gauges/${encodeURIComponent(g.location)}/trend`);
+              return { ...mapped[i], trend: mapTrend(readings) };
+            } catch {
+              return mapped[i];
+            }
+          })
+        );
+        setGauges(withTrend);
+      })
+      .catch(() => {});
+    apiFetch<AlertDTO[]>("/environment/alerts").then((r) => setAlerts(r.map(mapAlert))).catch(() => {});
+  }, []);
+  return { gauges, alerts };
+}
 
 function useClock() {
   const [time, setTime] = useState("--:--:--");
@@ -41,6 +69,7 @@ const alertMeta = {
 export function EnvironmentView() {
   const time = useClock();
   const { openModal } = useLims();
+  const { gauges, alerts } = useEnvironmentData();
 
   return (
     <div className="animate-fade">
@@ -73,7 +102,7 @@ export function EnvironmentView() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {GAUGES.map((g, i) => (
+          {gauges.map((g, i) => (
             <div
               key={i}
               className="relative border-b border-r border-[var(--color-readout-line)] px-[18px] pb-[18px] pt-4 last:border-r-0"
@@ -121,7 +150,7 @@ export function EnvironmentView() {
             right={<span className="font-mono text-[11.5px] text-muted">Push · SMS</span>}
           />
           <div>
-            {ENV_ALERTS.map((a, i) => {
+            {alerts.map((a, i) => {
               const m = alertMeta[a.level];
               return (
                 <div key={i} className="flex items-start gap-3 border-b border-line px-4 py-[13px] last:border-none">

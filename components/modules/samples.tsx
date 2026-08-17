@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
-import { COC_STEPS } from "@/lib/data";
+import type { CoCStep, Sample } from "@/lib/data";
 import { Avatar, Button, Card, CardHead, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { apiFetch } from "@/lib/api-client";
+import { mapCoCStep, type CoCStepDTO } from "@/lib/backend-mappers";
 
 const cocIcons = {
   Plus: <Icons.Plus />,
@@ -16,15 +18,40 @@ const cocIcons = {
 
 const SEG_OPTIONS = ["ทั้งหมด", "กำลังทดสอบ", "รอตรวจ"];
 
+function useCoC(sampleId: string | undefined) {
+  const [steps, setSteps] = useState<CoCStep[]>([]);
+  useEffect(() => {
+    if (!sampleId) {
+      setSteps([]);
+      return;
+    }
+    let cancelled = false;
+    apiFetch<CoCStepDTO[]>(`/samples/${sampleId}/coc`)
+      .then((r) => {
+        if (!cancelled) setSteps(r.map(mapCoCStep));
+      })
+      .catch(() => {
+        if (!cancelled) setSteps([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sampleId]);
+  return steps;
+}
+
 export function SamplesView() {
   const { samples, openModal } = useLims();
   const [seg, setSeg] = useState(0);
+  const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
 
   const filtered = samples.filter((s) => {
     if (seg === 1) return s.status.label === "กำลังทดสอบ";
     if (seg === 2) return s.status.label.includes("รอตรวจ");
     return true;
   });
+  const active = selectedSample && filtered.some((s) => s.id === selectedSample.id) ? selectedSample : filtered[0] ?? null;
+  const cocSteps = useCoC(active?.id);
 
   return (
     <div className="animate-fade">
@@ -72,7 +99,11 @@ export function SamplesView() {
               </thead>
               <tbody>
                 {filtered.map((s) => (
-                  <tr key={s.id} className="transition hover:bg-bg/60">
+                  <tr
+                    key={s.id}
+                    onClick={() => setSelectedSample(s)}
+                    className={`cursor-pointer transition hover:bg-bg/60 ${active?.id === s.id ? "bg-bg/60" : ""}`}
+                  >
                     <td className="border-b border-line px-3.5 py-3">
                       <div className="font-mono text-[12.5px] font-medium text-ink">{s.id}</div>
                       <div className="text-[11.5px] text-muted">{s.recv}</div>
@@ -102,11 +133,14 @@ export function SamplesView() {
           <CardHead
             icon={<Icons.Shield />}
             title="Chain of Custody"
-            right={<span className="font-mono text-[11.5px] text-muted">SMP-2569-04821</span>}
+            right={<span className="font-mono text-[11.5px] text-muted">{active?.id ?? "—"}</span>}
           />
           <div className="px-5 pb-3.5 pt-1.5">
-            {COC_STEPS.map((c, i) => {
-              const isLast = i === COC_STEPS.length - 1;
+            {cocSteps.length === 0 && (
+              <div className="py-4 text-center text-[12.5px] text-muted">ไม่มีข้อมูล Chain of Custody</div>
+            )}
+            {cocSteps.map((c, i) => {
+              const isLast = i === cocSteps.length - 1;
               const dotCls =
                 c.state === "done"
                   ? "bg-teal border-teal text-white"

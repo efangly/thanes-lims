@@ -34,9 +34,12 @@ export function Modal({
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
-    panelRef.current?.focus();
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (open) panelRef.current?.focus();
+  }, [open]);
 
   if (!open) return null;
 

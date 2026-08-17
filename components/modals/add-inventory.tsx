@@ -5,18 +5,12 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
-import type { InventoryItem, Tag as TagType } from "@/lib/data";
+import { apiErrorMessage } from "@/lib/api-client";
 
 const CATS = ["สารเคมี", "วัสดุสิ้นเปลือง", "รีเอเจนต์"];
 
-function statusFor(pct: number): TagType {
-  if (pct < 20) return { tone: "red", label: "สั่งซื้อด่วน" };
-  if (pct < 35) return { tone: "amber", label: "ใกล้หมด" };
-  return { tone: "green", label: "เพียงพอ" };
-}
-
 export function AddInventoryModal() {
-  const { activeModal, closeModal, inventory, addInventoryItem, pushToast } = useLims();
+  const { activeModal, closeModal, addInventoryItem, pushToast } = useLims();
   const open = activeModal === "add-inventory";
   const [name, setName] = useState("");
   const [cat, setCat] = useState(CATS[0]);
@@ -24,6 +18,7 @@ export function AddInventoryModal() {
   const [unit, setUnit] = useState("");
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setName("");
@@ -37,17 +32,21 @@ export function AddInventoryModal() {
     reset();
     closeModal();
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const q = Number(qty);
     const mx = Number(max);
     const mn = Number(min);
     if (!name.trim() || !unit.trim() || !mx || !q) return;
-    const pct = Math.round((q / mx) * 100);
-    const id = `NEW-${String(inventory.length + 1).padStart(4, "0")}`;
-    const item: InventoryItem = { id, name: name.trim(), cat, qty: q, unit: unit.trim(), min: mn, max: mx, pct, status: statusFor(pct) };
-    addInventoryItem(item);
-    pushToast("เพิ่มรายการสินค้าคงคลังเรียบร้อย");
-    handleClose();
+    setSubmitting(true);
+    try {
+      await addInventoryItem({ name: name.trim(), cat, qty: q, unit: unit.trim(), min: mn, max: mx });
+      pushToast("เพิ่มรายการสินค้าคงคลังเรียบร้อย");
+      handleClose();
+    } catch (err) {
+      pushToast(apiErrorMessage(err), "red");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -62,9 +61,9 @@ export function AddInventoryModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit}>
+          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting}>
             <Icons.Plus className="h-[14px] w-[14px]" />
-            เพิ่มรายการ
+            {submitting ? "กำลังบันทึก..." : "เพิ่มรายการ"}
           </Button>
         </>
       }

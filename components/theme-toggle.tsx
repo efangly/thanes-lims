@@ -20,16 +20,16 @@ export function ThemeToggle() {
       aria-label={isDark ? "สลับเป็นโหมดสว่าง" : "สลับเป็นโหมดมืด"}
       title={isDark ? "โหมดสว่าง" : "โหมดมืด"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative grid h-9.5 w-[38px] place-items-center rounded-lg border border-line text-muted transition hover:bg-bg"
+      className="relative grid h-9.5 w-9.5 place-items-center rounded-lg border border-line text-muted transition hover:bg-bg"
     >
       {mounted ? (
         isDark ? (
-          <Icons.Sun className="h-[17px] w-[17px]" />
+          <Icons.Sun className="h-4.25 w-4.25" />
         ) : (
-          <Icons.Moon className="h-[17px] w-[17px]" />
+          <Icons.Moon className="h-4.25 w-4.25" />
         )
       ) : (
-        <span className="h-[17px] w-[17px]" />
+        <span className="h-4.25 w-4.25" />
       )}
     </button>
   );

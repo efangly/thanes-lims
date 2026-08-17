@@ -124,6 +124,7 @@ export const INVENTORY: InventoryItem[] = [
 ];
 
 export interface Document {
+  id: string;
   name: string;
   type: string;
   ver: string;
@@ -134,11 +135,11 @@ export interface Document {
 }
 
 export const DOCUMENTS: Document[] = [
-  { name: "SOP – การเก็บและขนส่งตัวอย่างเลือด", type: "SOP", ver: "v3.2", by: "ธเนศ", date: "18 ก.ค. 2569", access: "ทั่วไป", locked: false },
-  { name: "คู่มือการใช้เครื่อง Real-Time PCR", type: "Manual", ver: "v1.4", by: "พิมพ์ชนก", date: "14 ก.ค. 2569", access: "ทั่วไป", locked: false },
-  { name: "นโยบายความปลอดภัยข้อมูลผู้ป่วย", type: "Policy", ver: "v2.0", by: "ผู้ดูแลระบบ", date: "02 ก.ค. 2569", access: "จำกัด – ผู้บริหาร", locked: true },
-  { name: "แบบฟอร์มขอสอบเทียบเครื่องมือ", type: "Form", ver: "v1.1", by: "สมชาย", date: "28 มิ.ย. 2569", access: "ทั่วไป", locked: false },
-  { name: "บันทึกการตรวจสอบภายใน (Audit)", type: "Record", ver: "v5.7", by: "ธเนศ", date: "20 ก.ค. 2569", access: "จำกัด – QA", locked: true },
+  { id: "DOC-0001", name: "SOP – การเก็บและขนส่งตัวอย่างเลือด", type: "SOP", ver: "v3.2", by: "ธเนศ", date: "18 ก.ค. 2569", access: "ทั่วไป", locked: false },
+  { id: "DOC-0002", name: "คู่มือการใช้เครื่อง Real-Time PCR", type: "Manual", ver: "v1.4", by: "พิมพ์ชนก", date: "14 ก.ค. 2569", access: "ทั่วไป", locked: false },
+  { id: "DOC-0003", name: "นโยบายความปลอดภัยข้อมูลผู้ป่วย", type: "Policy", ver: "v2.0", by: "ผู้ดูแลระบบ", date: "02 ก.ค. 2569", access: "จำกัด – ผู้บริหาร", locked: true },
+  { id: "DOC-0004", name: "แบบฟอร์มขอสอบเทียบเครื่องมือ", type: "Form", ver: "v1.1", by: "สมชาย", date: "28 มิ.ย. 2569", access: "ทั่วไป", locked: false },
+  { id: "DOC-0005", name: "บันทึกการตรวจสอบภายใน (Audit)", type: "Record", ver: "v5.7", by: "ธเนศ", date: "20 ก.ค. 2569", access: "จำกัด – QA", locked: true },
 ];
 
 export interface DocHistory {

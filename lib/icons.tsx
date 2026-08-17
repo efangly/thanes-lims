@@ -137,6 +137,13 @@ export const Icons = {
       <path d="M12 3v9M6.4 6.4a8 8 0 1 0 11.2 0" />
     </svg>
   ),
+  Logout: (p: IconProps) => (
+    <svg {...base(p)}>
+      <path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" />
+      <path d="M16 17l5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
+  ),
   Search: (p: IconProps) => (
     <svg {...base(p)}>
       <circle cx="11" cy="11" r="7" />

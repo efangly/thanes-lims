@@ -5,7 +5,7 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
-import type { Document } from "@/lib/data";
+import { apiErrorMessage } from "@/lib/api-client";
 
 const TYPES = ["SOP", "Manual", "Policy", "Form", "Record"];
 const ACCESS = ["ทั่วไป", "จำกัด – QA", "จำกัด – ผู้บริหาร"];
@@ -16,32 +16,31 @@ export function UploadDocumentModal() {
   const [name, setName] = useState("");
   const [type, setType] = useState(TYPES[0]);
   const [access, setAccess] = useState(ACCESS[0]);
-  const [fileName, setFileName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setName("");
     setType(TYPES[0]);
     setAccess(ACCESS[0]);
-    setFileName("");
+    setFile(null);
   };
   const handleClose = () => {
     reset();
     closeModal();
   };
-  const handleSubmit = () => {
-    if (!name.trim()) return;
-    const doc: Document = {
-      name: name.trim(),
-      type,
-      ver: "v1.0",
-      by: "ธเนศ สุขใจ",
-      date: "21 ก.ค. 2569",
-      access,
-      locked: access !== "ทั่วไป",
-    };
-    addDocument(doc);
-    pushToast("อัปโหลดเอกสารเรียบร้อย");
-    handleClose();
+  const handleSubmit = async () => {
+    if (!name.trim() || !file) return;
+    setSubmitting(true);
+    try {
+      await addDocument({ name: name.trim(), type, access }, file);
+      pushToast("อัปโหลดเอกสารเรียบร้อย");
+      handleClose();
+    } catch (err) {
+      pushToast(apiErrorMessage(err), "red");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -56,9 +55,9 @@ export function UploadDocumentModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit}>
+          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting}>
             <Icons.Plus className="h-[14px] w-[14px]" />
-            อัปโหลด
+            {submitting ? "กำลังอัปโหลด..." : "อัปโหลด"}
           </Button>
         </>
       }
@@ -66,11 +65,11 @@ export function UploadDocumentModal() {
       <div className="flex flex-col gap-3.5">
         <label className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-line bg-bg py-6 text-center transition hover:border-teal">
           <Icons.Doc className="h-6 w-6 text-muted-2" />
-          <span className="text-[12.5px] text-muted">{fileName || "คลิกเพื่อเลือกไฟล์ หรือวางไฟล์ที่นี่"}</span>
+          <span className="text-[12.5px] text-muted">{file?.name || "คลิกเพื่อเลือกไฟล์ หรือวางไฟล์ที่นี่"}</span>
           <input
             type="file"
             className="hidden"
-            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>
         <Field label="ชื่อเอกสาร">
