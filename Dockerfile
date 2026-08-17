@@ -39,4 +39,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget -qO- http://localhost:3000/ >/dev/null 2>&1 || exit 1
 
-CMD ["node", "server.js"]
+CMD ["node", "/app/server.js"]
