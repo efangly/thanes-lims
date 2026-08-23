@@ -57,6 +57,16 @@ export const Icons = {
       <path d="M7 15l4-5 3 3 5-7" />
     </svg>
   ),
+  Microscope: (p: IconProps) => (
+    <svg {...base(p)}>
+      <circle cx="8.5" cy="4.5" r="1.3" />
+      <path d="M8.5 5.8v3.2" />
+      <path d="M8.5 9l6.5 6.5" />
+      <path d="M9.5 12h5" />
+      <path d="M15 15.5a5.5 5.5 0 0 1-5.5 5.5" />
+      <path d="M6 21h9" />
+    </svg>
+  ),
   Bell: (p: IconProps) => (
     <svg {...base(p)}>
       <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
