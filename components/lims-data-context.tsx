@@ -56,7 +56,8 @@ interface LimsContextValue {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
-  addSample: (s: Pick<Sample, "name" | "type" | "custodian" | "loc">) => Promise<void>;
+  addSample: (s: Pick<Sample, "name" | "type" | "custodian">) => Promise<void>;
+  putAwaySample: (sampleId: string, locationId: string) => Promise<void>;
   addEquipment: (e: Pick<Equipment, "name" | "next">) => Promise<void>;
   addInventoryItem: (i: Pick<InventoryItem, "name" | "cat" | "qty" | "unit" | "min" | "max">) => Promise<void>;
   addDocument: (d: Pick<Document, "name" | "type" | "access">, file: File | null) => Promise<void>;
@@ -123,12 +124,20 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     };
   }, [user]);
 
-  const addSample = useCallback(async (s: Pick<Sample, "name" | "type" | "custodian" | "loc">) => {
+  const addSample = useCallback(async (s: Pick<Sample, "name" | "type" | "custodian">) => {
     const created = await apiFetch<SampleDTO>("/samples", {
       method: "POST",
-      body: JSON.stringify({ name: s.name, type: s.type.toLowerCase(), custodian: s.custodian, location: s.loc }),
+      body: JSON.stringify({ name: s.name, type: s.type.toLowerCase(), custodian: s.custodian }),
     });
     setSamples((prev) => [mapSample(created), ...prev]);
+  }, []);
+
+  const putAwaySample = useCallback(async (sampleId: string, locationId: string) => {
+    const updated = await apiFetch<SampleDTO>(`/samples/${sampleId}/location`, {
+      method: "PATCH",
+      body: JSON.stringify({ location_id: locationId }),
+    });
+    setSamples((prev) => prev.map((s) => (s.id === sampleId ? mapSample(updated) : s)));
   }, []);
 
   const addEquipment = useCallback(async (e: Pick<Equipment, "name" | "next">) => {
@@ -202,6 +211,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
         unreadCount,
         loading,
         addSample,
+        putAwaySample,
         addEquipment,
         addInventoryItem,
         addDocument,

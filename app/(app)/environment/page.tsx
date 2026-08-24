@@ -55,9 +55,9 @@ const gaugeStroke = {
   crit: "var(--color-red)",
 };
 const gaugeValColor = {
-  ok: "text-white",
-  warn: "text-[#f0a742]",
-  crit: "text-[#ec7b70]",
+  ok: "text-teal",
+  warn: "text-amber",
+  crit: "text-red",
 };
 
 const alertMeta = {
@@ -66,7 +66,7 @@ const alertMeta = {
   ok: { cls: "bg-green-bg text-green", icon: <Icons.Power /> },
 };
 
-export function EnvironmentView() {
+export default function EnvironmentPage() {
   const time = useClock();
   const { openModal } = useLims();
   const { gauges, alerts } = useEnvironmentData();
@@ -93,11 +93,11 @@ export function EnvironmentView() {
       {/* SIGNATURE: live instrument readout strip */}
       <div className="mb-4 overflow-hidden rounded-[10px] bg-[var(--color-readout)] shadow-card">
         <div className="flex items-center justify-between border-b border-[var(--color-readout-line)] px-[18px] py-3">
-          <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.5px] text-[#9fb3c2]">
+          <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.5px] text-muted">
             <span className="h-2 w-2 rounded-full bg-teal animate-pulse-dot" />
             LIVE ENVIRONMENTAL MONITORING · 4 SENSORS
           </div>
-          <div className="font-mono text-[12.5px] tracking-[0.5px] text-[#e7eef3]">
+          <div className="font-mono text-[12.5px] tracking-[0.5px] text-ink">
             21 ก.ค. 2569 · {time}
           </div>
         </div>
@@ -107,7 +107,7 @@ export function EnvironmentView() {
               key={i}
               className="relative border-b border-r border-[var(--color-readout-line)] px-[18px] pb-[18px] pt-4 last:border-r-0"
             >
-              <div className="flex items-center justify-between text-[11px] text-[#8ba3b3]">
+              <div className="flex items-center justify-between text-[11px] text-muted">
                 <span>{g.loc}</span>
               </div>
               <div className="absolute right-4 top-3.5">
@@ -118,10 +118,10 @@ export function EnvironmentView() {
               </div>
               <div className={`mt-[7px] font-mono text-[29px] font-semibold leading-none tracking-[-1px] ${gaugeValColor[g.level]}`}>
                 {g.val}
-                <span className="ml-0.5 text-[14px] font-normal text-[#7f97a8]">{g.unit}</span>
+                <span className="ml-0.5 text-[14px] font-normal text-muted">{g.unit}</span>
               </div>
               <Sparkline points={g.trend} stroke={gaugeStroke[g.level]} />
-              <div className="mt-2 font-mono text-[10.5px] text-[#6f8799]">{g.range}</div>
+              <div className="mt-2 font-mono text-[10.5px] text-muted-2">{g.range}</div>
             </div>
           ))}
         </div>

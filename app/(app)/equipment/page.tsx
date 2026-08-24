@@ -26,7 +26,7 @@ function calColor(cal: number) {
   return "var(--color-red)";
 }
 
-export function EquipmentView() {
+export default function EquipmentPage() {
   const { equipment, openModal } = useLims();
   const [seg, setSeg] = useState(0);
 

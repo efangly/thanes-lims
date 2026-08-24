@@ -33,7 +33,7 @@ function useDocHistory(docId: string | undefined) {
   return history;
 }
 
-export function DocumentsView() {
+export default function DocumentsPage() {
   const { documents, openModal } = useLims();
   const [seg, setSeg] = useState(0);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);

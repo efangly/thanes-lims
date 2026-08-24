@@ -58,6 +58,10 @@ interface Envelope<T> {
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 204) {
+    if (!res.ok) throw new ApiError(res.status, "unknown", res.statusText);
+    return undefined as T;
+  }
   const body: Envelope<T> = await res.json().catch(() => ({ success: false, error: { code: "parse_error", message: res.statusText } }));
   if (!res.ok || !body.success) {
     if (res.status === 401) clearTokens();

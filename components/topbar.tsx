@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui";
@@ -35,14 +36,13 @@ const addModalByModule: Partial<Record<ModuleId, ModalKey>> = {
 };
 
 export function Topbar({
-  active,
-  onNavigate,
   onMenuClick,
 }: {
-  active: ModuleId;
-  onNavigate: (id: ModuleId) => void;
   onMenuClick: () => void;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const active = (pathname?.slice(1) || "dashboard") as ModuleId;
   const meta = MODULE_META[active];
   const { notifications, unreadCount, markNotificationRead, markAllRead, openModal, samples, equipment, inventory, documents } = useLims();
 
@@ -133,7 +133,7 @@ export function Topbar({
                 <button
                   key={`${r.module}-${r.id}`}
                   onClick={() => {
-                    onNavigate(r.module);
+                    router.push(`/${r.module}`);
                     setQuery("");
                     setSearchOpen(false);
                   }}

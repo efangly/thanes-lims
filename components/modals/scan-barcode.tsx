@@ -5,6 +5,7 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Avatar, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useFullPath } from "@/lib/use-full-path";
 
 export function ScanBarcodeModal() {
   const { activeModal, closeModal, samples, pushToast } = useLims();
@@ -31,6 +32,7 @@ export function ScanBarcodeModal() {
   };
 
   const s = samples[foundIdx];
+  const { path: fullPath } = useFullPath(s?.locationId);
 
   return (
     <Modal open={open} onClose={handleClose} title="สแกนบาร์โค้ด" icon={<Icons.Arrow />} size="sm">
@@ -64,7 +66,7 @@ export function ScanBarcodeModal() {
                 </span>
                 <Tag {...s.status} />
               </div>
-              <div className="mt-2 font-mono text-[11.5px] text-muted">{s.loc}</div>
+              <div className="mt-2 font-mono text-[11.5px] text-muted">{fullPath ?? "ยังไม่ได้จัดเก็บ"}</div>
             </div>
             <Button
               variant="teal"

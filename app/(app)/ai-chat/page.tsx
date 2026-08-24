@@ -234,7 +234,7 @@ const BlockView = memo(function BlockView({ block }: { block: AiBlock }) {
 });
 
 /* ---------- หน้าหลัก ---------- */
-export function AiChatView() {
+export default function AiChatPage() {
   const { pushToast } = useLims();
 
   const [messages, setMessages] = useState<ChatMsg[]>([greetingMsg()]);

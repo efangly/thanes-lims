@@ -15,7 +15,6 @@ export function AddSampleModal() {
   const [submitting, setSubmitting] = useState(false);
   const [type, setType] = useState(TYPES[0]);
   const [custodian, setCustodian] = useState("");
-  const [loc, setLoc] = useState("");
 
   const open = activeModal === "add-sample";
 
@@ -23,7 +22,6 @@ export function AddSampleModal() {
     setName("");
     setType(TYPES[0]);
     setCustodian("");
-    setLoc("");
   };
 
   const handleClose = () => {
@@ -32,10 +30,10 @@ export function AddSampleModal() {
   };
 
   const handleSubmit = async () => {
-    if (!name.trim() || !custodian.trim() || !loc.trim()) return;
+    if (!name.trim() || !custodian.trim()) return;
     setSubmitting(true);
     try {
-      await addSample({ name: name.trim(), type, custodian: custodian.trim(), loc: loc.trim() });
+      await addSample({ name: name.trim(), type, custodian: custodian.trim() });
       pushToast("เพิ่มตัวอย่างเรียบร้อย");
       handleClose();
     } catch (err) {
@@ -80,9 +78,9 @@ export function AddSampleModal() {
         <Field label="ผู้ดูแลปัจจุบัน">
           <Input value={custodian} onChange={(e) => setCustodian(e.target.value)} placeholder="ชื่อผู้รับผิดชอบ" />
         </Field>
-        <Field label="ตำแหน่งจัดเก็บ">
-          <Input value={loc} onChange={(e) => setLoc(e.target.value)} placeholder="เช่น Fridge-A / R2-04" />
-        </Field>
+        <div className="rounded-lg border border-line bg-bg px-3 py-2.5 text-[12px] text-muted">
+          รับตัวอย่างเข้าระบบก่อน แล้วค่อยไปกำหนดตำแหน่งจัดเก็บทีหลังได้ที่แผงตัวอย่าง
+        </div>
       </div>
     </Modal>
   );

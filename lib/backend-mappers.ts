@@ -1,4 +1,4 @@
-import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, Gauge, InventoryItem, Notification, PurchaseOrder, Sample, Tag, TestResult } from "@/lib/data";
+import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, Gauge, InventoryItem, Location, LevelType, Notification, PurchaseOrder, Sample, Tag, TestResult } from "@/lib/data";
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
@@ -42,7 +42,7 @@ export interface SampleDTO {
   name: string;
   type: string;
   custodian: string;
-  location: string;
+  location_id: string | null;
   status: string;
   received_at: string;
 }
@@ -52,9 +52,24 @@ export function mapSample(d: SampleDTO): Sample {
     name: d.name,
     type: d.type,
     custodian: d.custodian,
-    loc: d.location,
+    locationId: d.location_id,
     status: statusTag(SAMPLE_STATUS, d.status),
     recv: formatDateTime(d.received_at),
+  };
+}
+
+export interface LocationDTO {
+  id: string;
+  parent_id: string | null;
+  name: string;
+  level_type: LevelType;
+}
+export function mapLocation(d: LocationDTO): Location {
+  return {
+    id: d.id,
+    parentId: d.parent_id,
+    name: d.name,
+    levelType: d.level_type,
   };
 }
 

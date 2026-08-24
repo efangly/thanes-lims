@@ -8,7 +8,7 @@ import { useLims } from "@/components/lims-data-context";
 const flagColor = { hi: "text-red", lo: "text-amber", ok: "text-green" };
 const SEG_OPTIONS = ["ทั้งหมด", "รอทวนสอบ", "ผิดปกติ"];
 
-export function TestsView() {
+export default function TestsPage() {
   const { tests, openModal } = useLims();
   const [seg, setSeg] = useState(0);
 
@@ -82,31 +82,31 @@ export function TestsView() {
         </Card>
 
         <div>
-          <div className="relative overflow-hidden rounded-[10px] bg-gradient-to-br from-[#132a3e] to-[#0d1b2a] p-5 text-[#dfe8ef]">
+          <div className="relative overflow-hidden rounded-[10px] border border-line bg-gradient-to-br from-teal-bg to-panel p-5 text-ink shadow-card">
             <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(10,147,150,0.35),transparent_70%)]" />
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal/40 bg-teal/20 px-2.5 py-1 font-mono text-[10.5px] tracking-[1px] text-[#5fd4d7]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal/40 bg-teal/20 px-2.5 py-1 font-mono text-[10.5px] tracking-[1px] text-teal">
               <Icons.Ai className="h-3.5 w-3.5" />
               AI ANALYSIS · เร็ว ๆ นี้
             </span>
-            <h3 className="relative mb-1.5 mt-3.5 font-display text-[16px] text-white">วิเคราะห์และแปลผลด้วย AI</h3>
-            <p className="relative text-[12.5px] leading-relaxed text-[#a9bccc]">
+            <h3 className="relative mb-1.5 mt-3.5 font-display text-[16px] text-ink">วิเคราะห์และแปลผลด้วย AI</h3>
+            <p className="relative text-[12.5px] leading-relaxed text-muted">
               ระบบ AI ช่วยตรวจจับความผิดปกติ แนวโน้ม และให้คำแนะนำการทวนสอบผลอัตโนมัติ (ฟังก์ชันเสริมในอนาคต)
             </p>
-            <div className="relative mt-3.5 rounded-lg border border-white/10 bg-white/[0.05] px-3.5 py-3">
-              <div className="flex items-center gap-2 text-[12px] font-medium text-white">
+            <div className="relative mt-3.5 rounded-lg border border-line bg-bg-2 px-3.5 py-3">
+              <div className="flex items-center gap-2 text-[12px] font-medium text-ink">
                 <Icons.Bolt className="h-3.5 w-3.5" />
                 ตรวจพบแนวโน้ม
               </div>
-              <div className="mt-1.5 text-[11.5px] text-[#9fb3c2]">
+              <div className="mt-1.5 text-[11.5px] text-muted">
                 ค่า COD ของน้ำเสีย (TST-88399) สูงกว่าค่าเฉลี่ย 7 วันถึง 2.8 เท่า — แนะนำให้ทวนสอบซ้ำและตรวจสอบแหล่งที่มา
               </div>
             </div>
-            <div className="relative mt-3.5 rounded-lg border border-white/10 bg-white/[0.05] px-3.5 py-3">
-              <div className="flex items-center gap-2 text-[12px] font-medium text-white">
+            <div className="relative mt-3.5 rounded-lg border border-line bg-bg-2 px-3.5 py-3">
+              <div className="flex items-center gap-2 text-[12px] font-medium text-ink">
                 <Icons.Check className="h-3.5 w-3.5" />
                 ควบคุมคุณภาพ
               </div>
-              <div className="mt-1.5 text-[11.5px] text-[#9fb3c2]">
+              <div className="mt-1.5 text-[11.5px] text-muted">
                 ผลทดสอบ 98.2% อยู่ในเกณฑ์ควบคุม (QC) — ไม่พบสัญญาณ drift ของเครื่องมือ
               </div>
             </div>

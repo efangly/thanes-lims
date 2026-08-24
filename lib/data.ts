@@ -5,6 +5,7 @@ export type ModuleId =
   | "dashboard"
   | "ai-chat"
   | "samples"
+  | "locations"
   | "equipment"
   | "environment"
   | "inventory"
@@ -15,6 +16,7 @@ export const MODULE_META: Record<ModuleId, { code: string; title: string }> = {
   dashboard: { code: "MODULE 00", title: "แดชบอร์ด" },
   "ai-chat": { code: "AI ASSISTANT", title: "ผู้ช่วยอัจฉริยะ" },
   samples: { code: "MODULE 01", title: "การจัดการตัวอย่าง" },
+  locations: { code: "MODULE 01B", title: "ตำแหน่งจัดเก็บ" },
   equipment: { code: "MODULE 02", title: "การจัดการเครื่องมือ" },
   environment: { code: "MODULE 03", title: "ควบคุมสภาพแวดล้อม" },
   inventory: { code: "MODULE 04", title: "สินค้าคงคลัง" },
@@ -22,23 +24,40 @@ export const MODULE_META: Record<ModuleId, { code: string; title: string }> = {
   tests: { code: "MODULE 06", title: "ทดสอบ & วิเคราะห์" },
 };
 
+/* ---------- Storage Location tree ---------- */
+export type LevelType = "cabinet" | "shelf" | "slot" | "sub_slot";
+
+export const LEVEL_LABEL: Record<LevelType, string> = {
+  cabinet: "ตู้",
+  shelf: "ชั้น",
+  slot: "ช่อง",
+  sub_slot: "Sub-ช่อง",
+};
+
+export interface Location {
+  id: string;
+  parentId: string | null;
+  name: string;
+  levelType: LevelType;
+}
+
 export interface Sample {
   id: string;
   name: string;
   type: string;
   custodian: string;
-  loc: string;
+  locationId: string | null;
   status: Tag;
   recv: string;
 }
 
 export const SAMPLES: Sample[] = [
-  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", type: "Blood", custodian: "พิมพ์ชนก", loc: "Fridge-A / R2-04", status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "21 ก.ค. 09:14" },
-  { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", type: "Urine", custodian: "ธเนศ", loc: "Freezer-B / -20°C", status: { tone: "green", label: "เสร็จสิ้น" }, recv: "21 ก.ค. 08:52" },
-  { id: "SMP-2569-04819", name: "น้ำเสียอุตสาหกรรม", type: "Water", custodian: "สมชาย", loc: "Shelf-C / RT-11", status: { tone: "amber", label: "รอตรวจสอบ" }, recv: "21 ก.ค. 08:30" },
-  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", type: "Tissue", custodian: "พิมพ์ชนก", loc: "Freezer-A / -80°C", status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "20 ก.ค. 16:47" },
-  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", type: "Food", custodian: "วิภา", loc: "Fridge-B / R1-08", status: { tone: "violet", label: "ส่งต่อแผนก" }, recv: "20 ก.ค. 15:20" },
-  { id: "SMP-2569-04816", name: "ซีรั่ม – แผนกภูมิคุ้มกัน", type: "Serum", custodian: "ธเนศ", loc: "Fridge-A / R3-02", status: { tone: "green", label: "เสร็จสิ้น" }, recv: "20 ก.ค. 14:05" },
+  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", type: "Blood", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "21 ก.ค. 09:14" },
+  { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", type: "Urine", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "21 ก.ค. 08:52" },
+  { id: "SMP-2569-04819", name: "น้ำเสียอุตสาหกรรม", type: "Water", custodian: "สมชาย", locationId: null, status: { tone: "amber", label: "รอตรวจสอบ" }, recv: "21 ก.ค. 08:30" },
+  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", type: "Tissue", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "20 ก.ค. 16:47" },
+  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", type: "Food", custodian: "วิภา", locationId: null, status: { tone: "violet", label: "ส่งต่อแผนก" }, recv: "20 ก.ค. 15:20" },
+  { id: "SMP-2569-04816", name: "ซีรั่ม – แผนกภูมิคุ้มกัน", type: "Serum", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "20 ก.ค. 14:05" },
 ];
 
 export interface CoCStep {

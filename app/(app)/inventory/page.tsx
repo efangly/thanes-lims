@@ -35,7 +35,7 @@ function usePurchaseOrders() {
   return orders;
 }
 
-export function InventoryView() {
+export default function InventoryPage() {
   const { inventory, openModal } = useLims();
   const [seg, setSeg] = useState(0);
   const purchaseOrders = usePurchaseOrders();

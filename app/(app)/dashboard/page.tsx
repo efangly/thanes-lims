@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import { FEED, type EnvAlert, type ModuleId, type TagTone } from "@/lib/data";
 import { Card, CardHead, KpiCard, PageHead, Seg, Tag, BarChart } from "@/components/ui";
@@ -82,7 +83,9 @@ function ModuleCard({
   );
 }
 
-export function DashboardView({ onNavigate }: { onNavigate: (id: ModuleId) => void }) {
+export default function DashboardPage() {
+  const router = useRouter();
+  const onNavigate = (id: ModuleId) => router.push(`/${id}`);
   const { samples, equipment, tests, inventory, documents } = useLims();
   const alerts = useAlerts();
 

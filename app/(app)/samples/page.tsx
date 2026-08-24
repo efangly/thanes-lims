@@ -7,6 +7,8 @@ import { Avatar, Button, Card, CardHead, KpiCard, PageHead, Seg, Tag } from "@/c
 import { useLims } from "@/components/lims-data-context";
 import { apiFetch } from "@/lib/api-client";
 import { mapCoCStep, type CoCStepDTO } from "@/lib/backend-mappers";
+import { useFullPath } from "@/lib/use-full-path";
+import { PutAwaySampleModal } from "@/components/modals/put-away-sample";
 
 const cocIcons = {
   Plus: <Icons.Plus />,
@@ -40,10 +42,11 @@ function useCoC(sampleId: string | undefined) {
   return steps;
 }
 
-export function SamplesView() {
+export default function SamplesPage() {
   const { samples, openModal } = useLims();
   const [seg, setSeg] = useState(0);
   const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
+  const [putAwayOpen, setPutAwayOpen] = useState(false);
 
   const filtered = samples.filter((s) => {
     if (seg === 1) return s.status.label === "กำลังทดสอบ";
@@ -52,6 +55,7 @@ export function SamplesView() {
   });
   const active = selectedSample && filtered.some((s) => s.id === selectedSample.id) ? selectedSample : filtered[0] ?? null;
   const cocSteps = useCoC(active?.id);
+  const { path: fullPath, loading: pathLoading } = useFullPath(active?.locationId);
 
   return (
     <div className="animate-fade">
@@ -90,7 +94,7 @@ export function SamplesView() {
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr>
-                  {["รหัส / บาร์โค้ด", "ตัวอย่าง", "ผู้ดูแลปัจจุบัน", "ตำแหน่งจัดเก็บ", "สถานะ"].map((h) => (
+                  {["รหัส / บาร์โค้ด", "ตัวอย่าง", "ผู้ดูแลปัจจุบัน", "สถานะ"].map((h) => (
                     <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                       {h}
                     </th>
@@ -118,7 +122,6 @@ export function SamplesView() {
                         {s.custodian}
                       </span>
                     </td>
-                    <td className="border-b border-line px-3.5 py-3 font-mono text-[12.5px]">{s.loc}</td>
                     <td className="border-b border-line px-3.5 py-3">
                       <Tag {...s.status} />
                     </td>
@@ -129,7 +132,28 @@ export function SamplesView() {
           </div>
         </Card>
 
+        <div>
         <Card>
+          <CardHead
+            icon={<Icons.Loc />}
+            title="ตำแหน่งจัดเก็บ"
+            right={
+              <Button variant="ghost" size="sm" onClick={() => setPutAwayOpen(true)} disabled={!active}>
+                <Icons.Loc className="h-[13px] w-[13px]" />
+                {active?.locationId ? "ย้ายตำแหน่ง" : "จัดเก็บ"}
+              </Button>
+            }
+          />
+          <div className="px-5 py-3.5 font-mono text-[13px]">
+            {!active
+              ? "—"
+              : pathLoading
+              ? "กำลังโหลด…"
+              : fullPath ?? "ยังไม่ได้จัดเก็บ"}
+          </div>
+        </Card>
+
+        <Card className="mt-4">
           <CardHead
             icon={<Icons.Shield />}
             title="Chain of Custody"
@@ -172,7 +196,10 @@ export function SamplesView() {
             ทุกการเปลี่ยนมือถูกบันทึกอัตโนมัติ ป้องกันข้อมูลสูญหาย
           </div>
         </Card>
+        </div>
       </div>
+
+      <PutAwaySampleModal sample={active} open={putAwayOpen} onClose={() => setPutAwayOpen(false)} />
     </div>
   );
 }

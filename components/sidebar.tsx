@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import type { ModuleId } from "@/lib/data";
 import type { ReactNode } from "react";
@@ -21,23 +23,22 @@ interface NavEntry {
 }
 
 export function Sidebar({
-  active,
-  onNavigate,
   open,
   onClose,
 }: {
-  active: ModuleId;
-  onNavigate: (id: ModuleId) => void;
   open: boolean;
   onClose: () => void;
 }) {
   const { user, logout } = useAuth();
+  const pathname = usePathname();
+  const active = (pathname?.slice(1) || "dashboard") as ModuleId;
   const overview: NavEntry[] = [{ id: "dashboard", label: "แดชบอร์ด", icon: <Icons.Dashboard /> }];
   const assistant: NavEntry[] = [
     { id: "ai-chat", label: "AI Assistant", icon: <Icons.Ai />, dot: true },
   ];
   const modules: NavEntry[] = [
     { id: "samples", label: "การจัดการตัวอย่าง", icon: <Icons.Sample />, num: "01" },
+    { id: "locations", label: "ตำแหน่งจัดเก็บ", icon: <Icons.Loc /> },
     { id: "equipment", label: "การจัดการเครื่องมือ", icon: <Icons.Equipment />, num: "02", dot: true },
     { id: "environment", label: "ควบคุมสภาพแวดล้อม", icon: <Icons.Env />, num: "03", dot: true },
     { id: "inventory", label: "สินค้าคงคลัง", icon: <Icons.Inventory />, num: "04", dot: true },
@@ -48,16 +49,14 @@ export function Sidebar({
   const renderItem = (e: NavEntry) => {
     const isActive = active === e.id;
     return (
-      <button
+      <Link
         key={e.id}
-        onClick={() => {
-          onNavigate(e.id);
-          onClose();
-        }}
+        href={`/${e.id}`}
+        onClick={onClose}
         className={`relative mb-0.5 flex w-full items-center gap-[11px] rounded-lg px-[11px] py-[9px] text-left text-[13.5px] transition ${
           isActive
             ? "bg-teal font-medium text-white"
-            : "text-sidebar-text hover:bg-[var(--color-sidebar-hover)] hover:text-[#e7eef3]"
+            : "text-sidebar-text hover:bg-[var(--color-sidebar-hover)] hover:text-ink"
         }`}
       >
         <span className={`h-[18px] w-[18px] flex-none ${isActive ? "opacity-100" : "opacity-85"}`}>
@@ -77,7 +76,7 @@ export function Sidebar({
             style={{ boxShadow: `0 0 0 3px ${isActive ? "var(--color-teal)" : "var(--color-sidebar)"}` }}
           />
         )}
-      </button>
+      </Link>
     );
   };
 
@@ -92,7 +91,7 @@ export function Sidebar({
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-[#0a1520] bg-sidebar text-sidebar-text transition-transform duration-200 ease-out md:static md:z-auto md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-[var(--color-sidebar-line)] bg-sidebar text-sidebar-text transition-transform duration-200 ease-out md:static md:z-auto md:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -102,7 +101,7 @@ export function Sidebar({
           <LogoMark className="h-[15px] w-[15px] text-white" />
         </div>
         <div>
-          <div className="font-display text-[16px] font-bold leading-[1.1] tracking-[0.2px] text-white">
+          <div className="font-display text-[16px] font-bold leading-[1.1] tracking-[0.2px] text-ink">
             Thanes LIMS
           </div>
           <div className="mt-0.5 font-mono text-[10.5px] tracking-[1px] text-sidebar-muted">
@@ -112,7 +111,7 @@ export function Sidebar({
         <button
           onClick={onClose}
           aria-label="ปิดเมนู"
-          className="ml-auto grid h-8 w-8 flex-none place-items-center rounded-lg text-sidebar-muted transition hover:bg-[var(--color-sidebar-hover)] hover:text-[#e7eef3] md:hidden"
+          className="ml-auto grid h-8 w-8 flex-none place-items-center rounded-lg text-sidebar-muted transition hover:bg-[var(--color-sidebar-hover)] hover:text-ink md:hidden"
         >
           <Icons.Close className="h-[18px] w-[18px]" />
         </button>
@@ -136,19 +135,19 @@ export function Sidebar({
 
       {/* Footer */}
       <div className="border-t border-[var(--color-sidebar-line)] p-3">
-        <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.045] px-[9px] py-2">
+        <div className="flex items-center gap-2.5 rounded-lg bg-[var(--color-sidebar-hover)] px-[9px] py-2">
           <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-gradient-to-br from-[#3a6ea5] to-[#2b4d73] font-display text-xs font-semibold text-white">
             {user ? initialsFor(user.name) : "—"}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[12.5px] font-medium leading-tight text-[#e7eef3]">{user?.name ?? "—"}</div>
+            <div className="truncate text-[12.5px] font-medium leading-tight text-ink">{user?.name ?? "—"}</div>
             <div className="truncate text-[10.5px] text-sidebar-muted">{user?.role ?? ""}</div>
           </div>
           <button
             onClick={logout}
             aria-label="ออกจากระบบ"
             title="ออกจากระบบ"
-            className="grid h-7 w-7 flex-none place-items-center rounded-lg text-sidebar-muted transition hover:bg-[var(--color-sidebar-hover)] hover:text-[#e7eef3]"
+            className="grid h-7 w-7 flex-none place-items-center rounded-lg text-sidebar-muted transition hover:bg-[var(--color-sidebar-hover)] hover:text-ink"
           >
             <Icons.Logout className="h-4 w-4" />
           </button>
