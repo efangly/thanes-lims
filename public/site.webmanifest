@@ -1,0 +1,12 @@
+{
+  "name": "Thanes LIMS",
+  "short_name": "Thanes LIMS",
+  "icons": [
+    { "src": "/images/meta/favicon-16x16.png", "sizes": "16x16", "type": "image/png" },
+    { "src": "/images/meta/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/images/meta/apple-touch-icon-180x180.png", "sizes": "180x180", "type": "image/png" }
+  ],
+  "theme_color": "#eef2f5",
+  "background_color": "#eef2f5",
+  "display": "standalone"
+}

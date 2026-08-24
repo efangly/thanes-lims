@@ -4,6 +4,7 @@ import { Icons } from "@/lib/icons";
 import type { ModuleId } from "@/lib/data";
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { LogoMark } from "@/components/logo";
 
 function initialsFor(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -98,10 +99,7 @@ export function Sidebar({
       {/* Brand */}
       <div className="flex items-center gap-[11px] border-b border-[var(--color-sidebar-line)] px-5 pb-[18px] pt-[22px]">
         <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-gradient-to-br from-teal to-[#0a6d70] shadow-[0_0_0_1px_rgba(255,255,255,0.08)_inset]">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-[19px] w-[19px]">
-            <path d="M9 3h6M10 3v6.5L5 18a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-8.5V3" />
-            <path d="M7.5 14h9" />
-          </svg>
+          <LogoMark className="h-[15px] w-[15px] text-white" />
         </div>
         <div>
           <div className="font-display text-[16px] font-bold leading-[1.1] tracking-[0.2px] text-white">
