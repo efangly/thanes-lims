@@ -1,41 +1,44 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
-const ACCESS_TOKEN_KEY = "thanes_lims_access_token";
-const REFRESH_TOKEN_KEY = "thanes_lims_refresh_token";
-const TOKEN_MAX_AGE_DAYS = 30;
+const CSRF_HEADER = { "X-SMLIMS-CSRF": "1" };
 
-function getCookie(name: string): string | null {
-  if (typeof document === "undefined") return null;
-  const escaped = name.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1");
-  const match = document.cookie.match(new RegExp(`(?:^|; )${escaped}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-function setCookie(name: string, value: string, days: number) {
-  const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; secure" : "";
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${days * 24 * 60 * 60}; samesite=lax${secure}`;
-}
-
-function deleteCookie(name: string) {
-  document.cookie = `${name}=; path=/; max-age=0; samesite=lax`;
-}
+let accessToken: string | null = null;
 
 export function getAccessToken(): string | null {
-  return getCookie(ACCESS_TOKEN_KEY);
+  return accessToken;
 }
 
-export function getRefreshToken(): string | null {
-  return getCookie(REFRESH_TOKEN_KEY);
+export function setAccessToken(token: string | null) {
+  accessToken = token;
 }
 
-export function setTokens(accessToken: string, refreshToken: string) {
-  setCookie(ACCESS_TOKEN_KEY, accessToken, TOKEN_MAX_AGE_DAYS);
-  setCookie(REFRESH_TOKEN_KEY, refreshToken, TOKEN_MAX_AGE_DAYS);
+let sessionExpiredCallback: (() => void) | null = null;
+
+export function onSessionExpired(cb: () => void) {
+  sessionExpiredCallback = cb;
 }
 
-export function clearTokens() {
-  deleteCookie(ACCESS_TOKEN_KEY);
-  deleteCookie(REFRESH_TOKEN_KEY);
+let refreshPromise: Promise<string> | null = null;
+
+export async function refreshAccessToken(): Promise<string> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+      headers: { ...CSRF_HEADER },
+    });
+    if (!res.ok) throw new ApiError(res.status, "unauthorized", "session expired");
+    const body: Envelope<{ access_token: string }> = await res.json();
+    const token = body.data!.access_token;
+    setAccessToken(token);
+    return token;
+  })();
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
 }
 
 export class ApiError extends Error {
@@ -66,7 +69,7 @@ export function apiErrorMessage(err: unknown): string {
 }
 
 interface Envelope<T> {
-  success: boolean;
+  success?: boolean;
   data?: T;
   meta?: unknown;
   error?: { code: string; message: string };
@@ -78,29 +81,42 @@ async function handleResponse<T>(res: Response): Promise<T> {
     return undefined as T;
   }
   const body: Envelope<T> = await res.json().catch(() => ({ success: false, error: { code: "parse_error", message: res.statusText } }));
-  if (!res.ok || !body.success) {
-    if (res.status === 401) clearTokens();
+  if (!res.ok || body.success === false) {
     throw new ApiError(res.status, body.error?.code ?? "unknown", body.error?.message ?? res.statusText);
   }
   return body.data as T;
 }
 
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getAccessToken();
-  const headers: Record<string, string> = {
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(options.headers as Record<string, string> | undefined),
-  };
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+const AUTH_ENDPOINTS_NO_RETRY = ["/auth/login", "/auth/refresh"];
+
+async function request<T>(path: string, options: RequestInit, buildHeaders: (token: string | null) => Record<string, string>): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers: buildHeaders(getAccessToken()) });
+
+  if (res.status === 401 && !AUTH_ENDPOINTS_NO_RETRY.includes(path)) {
+    try {
+      const newToken = await refreshAccessToken();
+      const retryRes = await fetch(`${API_BASE}${path}`, { ...options, headers: buildHeaders(newToken) });
+      return handleResponse<T>(retryRes);
+    } catch {
+      setAccessToken(null);
+      sessionExpiredCallback?.();
+      return handleResponse<T>(res);
+    }
+  }
+
   return handleResponse<T>(res);
 }
 
-export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
-  const token = getAccessToken();
-  const headers: Record<string, string> = {
+export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  return request<T>(path, options, (token) => ({
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-  const res = await fetch(`${API_BASE}${path}`, { method: "POST", body: formData, headers });
-  return handleResponse<T>(res);
+    ...(options.headers as Record<string, string> | undefined),
+  }));
+}
+
+export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  return request<T>(path, { method: "POST", body: formData }, (token) => ({
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }));
 }

@@ -2,7 +2,14 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { apiErrorMessage, apiFetch, ApiError, clearTokens, getAccessToken, getRefreshToken, setTokens } from "@/lib/api-client";
+import {
+  apiErrorMessage,
+  apiFetch,
+  ApiError,
+  onSessionExpired,
+  refreshAccessToken,
+  setAccessToken,
+} from "@/lib/api-client";
 
 export interface AuthUser {
   id: string;
@@ -13,7 +20,6 @@ export interface AuthUser {
 
 interface LoginResponse {
   access_token: string;
-  refresh_token: string;
 }
 
 interface AuthContextValue {
@@ -33,14 +39,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = getAccessToken();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    apiFetch<AuthUser>("/users/me")
+    onSessionExpired(() => {
+      setAccessToken(null);
+      setUser(null);
+      router.push("/login");
+    });
+  }, [router]);
+
+  useEffect(() => {
+    refreshAccessToken()
+      .then(() => apiFetch<AuthUser>("/users/me"))
       .then((me) => setUser(me))
-      .catch(() => clearTokens())
+      .catch(() => setAccessToken(null))
       .finally(() => setLoading(false));
   }, []);
 
@@ -49,9 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const tokens = await apiFetch<LoginResponse>("/auth/login", {
         method: "POST",
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
-      setTokens(tokens.access_token, tokens.refresh_token);
+      setAccessToken(tokens.access_token);
       const me = await apiFetch<AuthUser>("/users/me");
       setUser(me);
     } catch (err) {
@@ -65,11 +76,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
-    const refreshToken = getRefreshToken();
-    if (refreshToken) {
-      apiFetch("/auth/logout", { method: "POST", body: JSON.stringify({ refresh_token: refreshToken }) }).catch(() => {});
-    }
-    clearTokens();
+    apiFetch("/auth/logout", {
+      method: "POST",
+      credentials: "include",
+      headers: { "X-SMLIMS-CSRF": "1" },
+    }).catch(() => {});
+    setAccessToken(null);
     setUser(null);
     router.push("/login");
   }, [router]);
