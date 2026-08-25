@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Field, Input } from "@/components/ui";
 import { Icons } from "@/lib/icons";
 import { useAuth } from "@/lib/auth-context";
@@ -33,6 +34,8 @@ const features = [
 
 export function LoginForm() {
   const { login, error } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("admin@thanes-lims.demo");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -43,6 +46,7 @@ export function LoginForm() {
     setSubmitting(true);
     try {
       await login(email.trim(), password);
+      router.replace(searchParams.get("redirect") || "/dashboard");
     } catch {
       // error is surfaced via useAuth().error
     } finally {
@@ -81,7 +85,7 @@ export function LoginForm() {
       <span className="pointer-events-none absolute left-[calc(82%-9px)] top-[calc(46%-9px)] h-6 w-6 rounded-full border border-teal/45" />
 
       {/* Content */}
-      <main className="relative z-[2] flex flex-1 flex-col items-center justify-center px-4 py-6 sm:py-12">
+      <main className="relative z-[2] mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-4 py-6 sm:py-12 md:flex-row md:items-center md:justify-center md:gap-16 md:px-8 lg:gap-24">
         <div className="mb-4 flex items-center gap-3 sm:hidden">
           <BrandBadge size="sm" />
           <div className="text-left">
@@ -89,7 +93,7 @@ export function LoginForm() {
           </div>
         </div>
 
-        <div className="mb-8 hidden max-w-md flex-col items-center gap-4 text-center sm:flex">
+        <div className="mb-8 hidden max-w-md flex-col items-center gap-4 text-center sm:flex md:mb-0 md:max-w-sm md:flex-1 md:items-start md:text-left">
           <div className="flex items-center gap-3">
             <BrandBadge />
             <div className="text-left">
@@ -98,14 +102,14 @@ export function LoginForm() {
             </div>
           </div>
 
-          <h2 className="text-balance font-display text-[clamp(22px,2.6vw,30px)] font-bold leading-[1.22] tracking-[-0.2px]">
+          <h2 className="text-balance font-display text-[clamp(22px,2.6vw,30px)] font-bold leading-[1.22] tracking-[-0.2px] md:text-left">
             จัดการห้องปฏิบัติการของคุณ <span className="text-teal-d">อย่างแม่นยำ</span> ในที่เดียว
           </h2>
           <p className="max-w-[42ch] text-[14px] leading-relaxed text-muted">
             ตัวอย่าง เครื่องมือ สภาพแวดล้อม และเอกสาร — ติดตามได้แบบเรียลไทม์ พร้อมข้อมูลที่เชื่อถือได้ในทุกขั้นตอน
           </p>
 
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-4 md:justify-start">
             {features.map((f) => (
               <div key={f.label} className="flex items-center gap-2 text-[13px] font-medium">
                 <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-teal-bg text-teal-d">
@@ -117,7 +121,7 @@ export function LoginForm() {
           </div>
         </div>
 
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm md:flex-shrink-0">
           <form
             onSubmit={handleSubmit}
             className="rounded-[18px] border border-line bg-panel/90 p-5 pb-5 shadow-card backdrop-blur-sm sm:p-7 sm:pb-[26px]"

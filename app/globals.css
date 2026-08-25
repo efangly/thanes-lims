@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* Class-based dark mode: toggled by next-themes adding `.dark` to <html> */
-@variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
   Design tokens exposed as CSS variables so both Tailwind utilities
@@ -116,9 +116,9 @@
   --color-sidebar-text: var(--tok-sidebar-text);
   --color-sidebar-muted: var(--tok-sidebar-muted);
 
-  --font-sans: "IBM Plex Sans Thai", "Sora", system-ui, sans-serif;
-  --font-display: "Sora", "IBM Plex Sans Thai", sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  --font-sans: var(--font-anuphan), system-ui, sans-serif;
+  --font-display: var(--font-anuphan), system-ui, sans-serif;
+  --font-mono: var(--font-anuphan), monospace;
 }
 
 * {

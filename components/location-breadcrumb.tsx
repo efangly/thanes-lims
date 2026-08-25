@@ -5,10 +5,12 @@ import { Icons } from "@/lib/icons";
 
 export function LocationBreadcrumb({
   path,
+  ancestorLabel,
   onRoot,
   onCrumb,
 }: {
   path: Location[];
+  ancestorLabel?: string | null;
   onRoot: () => void;
   onCrumb: (index: number) => void;
 }) {
@@ -20,6 +22,12 @@ export function LocationBreadcrumb({
       >
         ตู้ทั้งหมด
       </button>
+      {ancestorLabel && (
+        <span className="flex items-center gap-1.5 px-1 italic text-muted-2">
+          <Icons.Arrow className="h-3 w-3" />
+          {ancestorLabel}
+        </span>
+      )}
       {path.map((node, i) => (
         <span key={node.id} className="flex items-center gap-1.5">
           <Icons.Arrow className="h-3 w-3 text-muted-2" />

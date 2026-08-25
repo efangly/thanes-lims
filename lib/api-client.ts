@@ -2,25 +2,40 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v
 
 const ACCESS_TOKEN_KEY = "thanes_lims_access_token";
 const REFRESH_TOKEN_KEY = "thanes_lims_refresh_token";
+const TOKEN_MAX_AGE_DAYS = 30;
+
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const escaped = name.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1");
+  const match = document.cookie.match(new RegExp(`(?:^|; )${escaped}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function setCookie(name: string, value: string, days: number) {
+  const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${days * 24 * 60 * 60}; samesite=lax${secure}`;
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=; path=/; max-age=0; samesite=lax`;
+}
 
 export function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY);
+  return getCookie(ACCESS_TOKEN_KEY);
 }
 
 export function getRefreshToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(REFRESH_TOKEN_KEY);
+  return getCookie(REFRESH_TOKEN_KEY);
 }
 
 export function setTokens(accessToken: string, refreshToken: string) {
-  window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  setCookie(ACCESS_TOKEN_KEY, accessToken, TOKEN_MAX_AGE_DAYS);
+  setCookie(REFRESH_TOKEN_KEY, refreshToken, TOKEN_MAX_AGE_DAYS);
 }
 
 export function clearTokens() {
-  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  deleteCookie(ACCESS_TOKEN_KEY);
+  deleteCookie(REFRESH_TOKEN_KEY);
 }
 
 export class ApiError extends Error {

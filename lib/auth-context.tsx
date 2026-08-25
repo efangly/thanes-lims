@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { apiErrorMessage, apiFetch, ApiError, clearTokens, getAccessToken, getRefreshToken, setTokens } from "@/lib/api-client";
 
 export interface AuthUser {
@@ -26,6 +27,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     clearTokens();
     setUser(null);
-  }, []);
+    router.push("/login");
+  }, [router]);
 
   return (
     <AuthContext.Provider value={{ user, loading, error, login, logout }}>

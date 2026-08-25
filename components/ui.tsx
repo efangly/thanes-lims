@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { forwardRef, type ReactNode, useState } from "react";
 import type { Tag as TagType, TagTone } from "@/lib/data";
 
 /* ---------- Tag / status pill ---------- */
@@ -131,32 +131,31 @@ export function PageHead({
 }
 
 /* ---------- Button ---------- */
-export function Button({
-  children,
-  variant = "ink",
-  size = "md",
-  className = "",
-  ...props
-}: {
-  children: ReactNode;
-  variant?: "ink" | "ghost" | "teal";
-  size?: "md" | "sm";
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export const Button = forwardRef<
+  HTMLButtonElement,
+  {
+    children: ReactNode;
+    variant?: "ink" | "ghost" | "teal" | "danger";
+    size?: "md" | "sm";
+  } & React.ButtonHTMLAttributes<HTMLButtonElement>
+>(function Button({ children, variant = "ink", size = "md", className = "", ...props }, ref) {
   const variants = {
     ink: "bg-ink text-panel hover:brightness-125",
     teal: "bg-teal text-white hover:brightness-110",
     ghost: "bg-panel text-ink border border-line hover:bg-bg",
+    danger: "bg-red text-white hover:brightness-110",
   };
   const sizes = { md: "px-[15px] py-[9px] text-[13px]", sm: "px-[11px] py-1.5 text-[12px]" };
   return (
     <button
+      ref={ref}
       className={`inline-flex items-center gap-[7px] rounded-lg font-medium transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
     </button>
   );
-}
+});
 
 /* ---------- Segmented control ---------- */
 export function Seg({

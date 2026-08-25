@@ -6,6 +6,7 @@ import { Icons } from "@/lib/icons";
 import type { ModuleId } from "@/lib/data";
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useConfirm } from "@/lib/confirm-context";
 import { LogoMark } from "@/components/logo";
 
 function initialsFor(name: string): string {
@@ -30,8 +31,9 @@ export function Sidebar({
   onClose: () => void;
 }) {
   const { user, logout } = useAuth();
+  const confirm = useConfirm();
   const pathname = usePathname();
-  const active = (pathname?.slice(1) || "dashboard") as ModuleId;
+  const active = (pathname?.split("/")[1] || "dashboard") as ModuleId;
   const overview: NavEntry[] = [{ id: "dashboard", label: "แดชบอร์ด", icon: <Icons.Dashboard /> }];
   const assistant: NavEntry[] = [
     { id: "ai-chat", label: "AI Assistant", icon: <Icons.Ai />, dot: true },
@@ -45,6 +47,16 @@ export function Sidebar({
     { id: "documents", label: "การจัดการเอกสาร", icon: <Icons.Doc />, num: "05" },
     { id: "tests", label: "ทดสอบ & วิเคราะห์", icon: <Icons.Test />, num: "06" },
   ];
+
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: "ออกจากระบบ",
+      message: "คุณต้องการออกจากระบบใช่หรือไม่?",
+      confirmText: "ออกจากระบบ",
+      cancelText: "ยกเลิก",
+    });
+    if (ok) logout();
+  };
 
   const renderItem = (e: NavEntry) => {
     const isActive = active === e.id;
@@ -144,7 +156,7 @@ export function Sidebar({
             <div className="truncate text-[10.5px] text-sidebar-muted">{user?.role ?? ""}</div>
           </div>
           <button
-            onClick={logout}
+            onClick={handleLogout}
             aria-label="ออกจากระบบ"
             title="ออกจากระบบ"
             className="grid h-7 w-7 flex-none place-items-center rounded-lg text-sidebar-muted transition hover:bg-[var(--color-sidebar-hover)] hover:text-ink"

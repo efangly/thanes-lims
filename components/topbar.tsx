@@ -42,7 +42,7 @@ export function Topbar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const active = (pathname?.slice(1) || "dashboard") as ModuleId;
+  const active = (pathname?.split("/")[1] || "dashboard") as ModuleId;
   const meta = MODULE_META[active];
   const { notifications, unreadCount, markNotificationRead, markAllRead, openModal, samples, equipment, inventory, documents } = useLims();
 
