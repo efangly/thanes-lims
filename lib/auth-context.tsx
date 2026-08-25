@@ -27,7 +27,7 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -75,12 +75,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    apiFetch("/auth/logout", {
-      method: "POST",
-      credentials: "include",
-      headers: { "X-SMLIMS-CSRF": "1" },
-    }).catch(() => {});
+  const logout = useCallback(async () => {
+    try {
+      await apiFetch("/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        keepalive: true,
+        headers: { "X-SMLIMS-CSRF": "1" },
+      });
+    } catch (err) {
+      console.error("logout request failed", err);
+    }
     setAccessToken(null);
     setUser(null);
     router.push("/login");

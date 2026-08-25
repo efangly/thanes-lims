@@ -87,7 +87,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return body.data as T;
 }
 
-const AUTH_ENDPOINTS_NO_RETRY = ["/auth/login", "/auth/refresh"];
+const AUTH_ENDPOINTS_NO_RETRY = ["/auth/login", "/auth/refresh", "/auth/logout"];
 
 async function request<T>(path: string, options: RequestInit, buildHeaders: (token: string | null) => Record<string, string>): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers: buildHeaders(getAccessToken()) });
