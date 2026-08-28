@@ -12,6 +12,13 @@ import {
 } from "@/lib/data";
 import { apiFetch, apiUpload } from "@/lib/api-client";
 import { issueStock as issueStockApi, type IssueLine, type IssueResult } from "@/lib/inventory-api";
+import {
+  createEquipment,
+  patchEquipment as patchEquipmentApi,
+  type EquipmentInput,
+  type EquipmentPatch,
+} from "@/lib/equipment-api";
+import { createItem as createItemApi, updateItem as updateItemApi, type ItemInput } from "@/lib/inventory-api";
 import { useAuth } from "@/lib/auth-context";
 import {
   mapDocument,
@@ -41,7 +48,8 @@ export type ModalKey =
   | "upload-document"
   | "manage-access"
   | "open-test-order"
-  | "generate-report";
+  | "generate-report"
+  | "record-calibration";
 
 interface Toast {
   id: string;
@@ -64,12 +72,25 @@ interface LimsContextValue {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
-  addSample: (s: { name: string; type: string; custodianUserId: number }) => Promise<void>;
+  addSample: (s: {
+    name: string;
+    type: string;
+    custodianUserId: number;
+    description?: string;
+    barcodeId?: string;
+  }) => Promise<Sample>;
+  genSampleBarcode: (sampleId: string) => Promise<Sample>;
   putAwaySample: (sampleId: string, locationId: string) => Promise<void>;
-  addEquipment: (e: Pick<Equipment, "name" | "next">) => Promise<void>;
-  addInventoryItem: (i: Pick<InventoryItem, "name" | "cat" | "qty" | "unit" | "min" | "max">) => Promise<void>;
+  addEquipment: (input: EquipmentInput) => Promise<Equipment>;
+  patchEquipmentFields: (id: string, patch: EquipmentPatch) => Promise<Equipment>;
+  addInventoryItem: (input: ItemInput) => Promise<InventoryItem>;
+  patchInventoryItem: (id: string, input: ItemInput) => Promise<InventoryItem>;
+  applyReceivedItem: (item: InventoryItem) => void;
   issueStock: (itemId: string, lines: IssueLine[], force: boolean) => Promise<IssueResult>;
-  addDocument: (d: Pick<Document, "name" | "type" | "access">, file: File | null) => Promise<void>;
+  addDocument: (
+    d: { name: string; type: string; access: string; equipmentId?: string; calibrationEventId?: number },
+    file: File | null
+  ) => Promise<Document>;
   addTest: (t: { sample: string; test: string; analyst: string; ref: string }) => Promise<void>;
   markNotificationRead: (id: string) => void;
   markAllRead: () => void;
@@ -77,8 +98,19 @@ interface LimsContextValue {
   pushToast: (message: string, tone?: TagTone) => void;
   dismissToast: (id: string) => void;
   activeModal: ModalKey | null;
-  openModal: (key: ModalKey) => void;
+  modalContext: ModalContext;
+  openModal: (key: ModalKey, context?: ModalContext) => void;
   closeModal: () => void;
+}
+
+/** Optional payload a caller can attach when opening a modal (e.g. preset the upload-document form). */
+export interface ModalContext {
+  /** upload-document: link the file to this equipment and preset type=warranty, hiding the type/access pickers. */
+  equipmentId?: string;
+  calibrationEventId?: number;
+  inventoryItemId?: string;
+  docType?: string;
+  docTypeLabel?: string;
 }
 
 const LimsContext = createContext<LimsContextValue | null>(null);
@@ -95,6 +127,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activeModal, setActiveModal] = useState<ModalKey | null>(null);
+  const [modalContext, setModalContext] = useState<ModalContext>({});
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -139,17 +172,33 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const addSample = useCallback(
-    async (s: { name: string; type: string; custodianUserId: number }) => {
+    async (s: { name: string; type: string; custodianUserId: number; description?: string; barcodeId?: string }) => {
+      const barcode = s.barcodeId?.trim();
       const created = await apiFetch<SampleDTO>("/samples", {
         method: "POST",
         body: JSON.stringify({
           name: s.name,
           type: s.type.toLowerCase(),
           custodian_user_id: s.custodianUserId,
+          description: s.description?.trim() ?? "",
+          ...(barcode ? { barcode_id: barcode } : {}),
         }),
       });
       const nameById = new Map(users.map((u) => [u.id, u.name]));
-      setSamples((prev) => [mapSample(created, nameById), ...prev]);
+      const mapped = mapSample(created, nameById);
+      setSamples((prev) => [mapped, ...prev]);
+      return mapped;
+    },
+    [users]
+  );
+
+  const genSampleBarcode = useCallback(
+    async (sampleId: string) => {
+      const dto = await apiFetch<SampleDTO>(`/samples/${sampleId}/barcode`, { method: "POST" });
+      const nameById = new Map(users.map((u) => [u.id, u.name]));
+      const mapped = mapSample(dto, nameById);
+      setSamples((prev) => prev.map((x) => (x.id === sampleId ? mapped : x)));
+      return mapped;
     },
     [users]
   );
@@ -166,31 +215,34 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     [users]
   );
 
-  const addEquipment = useCallback(async (e: Pick<Equipment, "name" | "next">) => {
-    const typeCode =
-      e.name
-        .trim()
-        .toUpperCase()
-        .replace(/[^A-Z0-9]+/g, "_")
-        .replace(/^_+|_+$/g, "")
-        .slice(0, 20) || "EQUIPMENT";
-    const created = await apiFetch<EquipmentDTO>("/equipment", {
-      method: "POST",
-      body: JSON.stringify({ name: e.name, type_code: typeCode, next_calibration_due: new Date(e.next).toISOString() }),
-    });
-    setEquipment((prev) => [mapEquipment(created), ...prev]);
+  const addEquipment = useCallback(async (input: EquipmentInput) => {
+    const created = await createEquipment(input);
+    setEquipment((prev) => [created, ...prev]);
+    return created;
   }, []);
 
-  const addInventoryItem = useCallback(
-    async (i: Pick<InventoryItem, "name" | "cat" | "qty" | "unit" | "min" | "max">) => {
-      const created = await apiFetch<InventoryDTO>("/inventory", {
-        method: "POST",
-        body: JSON.stringify({ name: i.name, category: i.cat, quantity: i.qty, unit: i.unit, min: i.min, max: i.max }),
-      });
-      setInventory((prev) => [mapInventory(created), ...prev]);
-    },
-    []
-  );
+  const patchEquipmentFields = useCallback(async (id: string, patch: EquipmentPatch) => {
+    const updated = await patchEquipmentApi(id, patch);
+    setEquipment((prev) => prev.map((e) => (e.id === id ? updated : e)));
+    return updated;
+  }, []);
+
+  const addInventoryItem = useCallback(async (input: ItemInput) => {
+    const created = await createItemApi(input);
+    setInventory((prev) => [created, ...prev]);
+    return created;
+  }, []);
+
+  const patchInventoryItem = useCallback(async (id: string, input: ItemInput) => {
+    const updated = await updateItemApi(id, input);
+    setInventory((prev) => prev.map((i) => (i.id === id ? updated : i)));
+    return updated;
+  }, []);
+
+  /** Called by the receive page so the list's derived qty / expiry stay fresh. */
+  const applyReceivedItem = useCallback((item: InventoryItem) => {
+    setInventory((prev) => prev.map((i) => (i.id === item.id ? item : i)));
+  }, []);
 
   const issueStock = useCallback(async (itemId: string, lines: IssueLine[], force: boolean) => {
     const result = await issueStockApi(itemId, lines, force);
@@ -200,16 +252,25 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     return result;
   }, []);
 
-  const addDocument = useCallback(async (d: Pick<Document, "name" | "type" | "access">, file: File | null) => {
-    if (!file) throw new Error("กรุณาเลือกไฟล์เอกสาร");
-    const form = new FormData();
-    form.append("file", file);
-    form.append("name", d.name);
-    form.append("type", d.type);
-    form.append("access_level", d.access);
-    const created = await apiUpload<DocumentDTO>("/documents", form);
-    setDocuments((prev) => [mapDocument(created), ...prev]);
-  }, []);
+  const addDocument = useCallback(
+    async (
+      d: { name: string; type: string; access: string; equipmentId?: string; calibrationEventId?: number },
+      file: File | null
+    ) => {
+      if (!file) throw new Error("กรุณาเลือกไฟล์เอกสาร");
+      const form = new FormData();
+      form.append("file", file);
+      form.append("name", d.name);
+      form.append("type", d.type);
+      form.append("access_level", d.access);
+      if (d.equipmentId) form.append("equipment_id", d.equipmentId);
+      if (d.calibrationEventId) form.append("calibration_event_id", String(d.calibrationEventId));
+      const created = mapDocument(await apiUpload<DocumentDTO>("/documents", form));
+      setDocuments((prev) => [created, ...prev]);
+      return created;
+    },
+    []
+  );
 
   const addTest = useCallback(async (t: { sample: string; test: string; analyst: string; ref: string }) => {
     const created = await apiFetch<TestResultDTO>("/tests", {
@@ -228,8 +289,14 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() => {});
   }, []);
 
-  const openModal = useCallback((key: ModalKey) => setActiveModal(key), []);
-  const closeModal = useCallback(() => setActiveModal(null), []);
+  const openModal = useCallback((key: ModalKey, context: ModalContext = {}) => {
+    setModalContext(context);
+    setActiveModal(key);
+  }, []);
+  const closeModal = useCallback(() => {
+    setActiveModal(null);
+    setModalContext({});
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -245,9 +312,13 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       unreadCount,
       loading,
       addSample,
+      genSampleBarcode,
       putAwaySample,
       addEquipment,
+      patchEquipmentFields,
       addInventoryItem,
+      patchInventoryItem,
+      applyReceivedItem,
       issueStock,
       addDocument,
       addTest,
@@ -257,6 +328,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       pushToast,
       dismissToast,
       activeModal,
+      modalContext,
       openModal,
       closeModal,
     }),
@@ -271,9 +343,13 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       unreadCount,
       loading,
       addSample,
+      genSampleBarcode,
       putAwaySample,
       addEquipment,
+      patchEquipmentFields,
       addInventoryItem,
+      patchInventoryItem,
+      applyReceivedItem,
       issueStock,
       addDocument,
       addTest,
@@ -283,6 +359,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       pushToast,
       dismissToast,
       activeModal,
+      modalContext,
       openModal,
       closeModal,
     ]

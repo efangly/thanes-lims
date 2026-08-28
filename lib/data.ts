@@ -10,35 +10,37 @@ export type ModuleId =
   | "environment"
   | "inventory"
   | "documents"
-  | "tests";
+  | "tests"
+  | "vendors";
 
 export const MODULE_META: Record<ModuleId, { code: string; title: string }> = {
   dashboard: { code: "MODULE 00", title: "แดชบอร์ด" },
   "ai-chat": { code: "AI ASSISTANT", title: "ผู้ช่วยอัจฉริยะ" },
   samples: { code: "MODULE 01", title: "การจัดการตัวอย่าง" },
-  locations: { code: "MODULE 01B", title: "ตำแหน่งจัดเก็บ" },
+  locations: { code: "ข้อมูลหลัก", title: "ตำแหน่งจัดเก็บ" },
   equipment: { code: "MODULE 02", title: "การจัดการเครื่องมือ" },
   environment: { code: "MODULE 03", title: "ควบคุมสภาพแวดล้อม" },
   inventory: { code: "MODULE 04", title: "สินค้าคงคลัง" },
   documents: { code: "MODULE 05", title: "การจัดการเอกสาร" },
   tests: { code: "MODULE 06", title: "ทดสอบ & วิเคราะห์" },
+  vendors: { code: "ข้อมูลหลัก", title: "ผู้ขาย (Vendor)" },
 };
 
 /* ---------- Storage Location tree ---------- */
-export type LevelType = "cabinet" | "shelf" | "slot" | "sub_slot";
+/** Which of the two storage trees a Location belongs to — see lib/location-kinds.ts (ADR-0008). */
+export type LocationKind = "sample_storage" | "equipment_storage";
 
-export const LEVEL_LABEL: Record<LevelType, string> = {
-  cabinet: "ตู้",
-  shelf: "ชั้น",
-  slot: "ช่อง",
-  sub_slot: "Sub-ช่อง",
-};
+/** Union of both trees' rungs. Depth and meaning come from the Kind, never from the name. */
+export type LevelType = "cabinet" | "shelf" | "slot" | "sub_slot" | "building" | "room" | "zone";
 
 export interface Location {
   id: string;
   parentId: string | null;
   name: string;
+  kind: LocationKind;
   levelType: LevelType;
+  /** Scannable code carried by every node; absent only on pre-Phase-2 rows the backend never backfilled. */
+  barcodeCode?: string;
 }
 
 export interface Sample {
@@ -49,15 +51,19 @@ export interface Sample {
   locationId: string | null;
   status: Tag;
   recv: string;
+  /** Optional scan code — either printed on the tube already or generated after intake. Null until set. */
+  barcodeId: string | null;
+  /** Free-text intake notes. Empty string when none. */
+  description: string;
 }
 
 export const SAMPLES: Sample[] = [
-  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", type: "Blood", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "21 ก.ค. 09:14" },
-  { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", type: "Urine", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "21 ก.ค. 08:52" },
-  { id: "SMP-2569-04819", name: "น้ำเสียอุตสาหกรรม", type: "Water", custodian: "สมชาย", locationId: null, status: { tone: "amber", label: "รอตรวจสอบ" }, recv: "21 ก.ค. 08:30" },
-  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", type: "Tissue", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "20 ก.ค. 16:47" },
-  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", type: "Food", custodian: "วิภา", locationId: null, status: { tone: "violet", label: "ส่งต่อแผนก" }, recv: "20 ก.ค. 15:20" },
-  { id: "SMP-2569-04816", name: "ซีรั่ม – แผนกภูมิคุ้มกัน", type: "Serum", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "20 ก.ค. 14:05" },
+  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", type: "Blood", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "21 ก.ค. 09:14" , barcodeId: null, description: "" },
+  { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", type: "Urine", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "21 ก.ค. 08:52" , barcodeId: null, description: "" },
+  { id: "SMP-2569-04819", name: "น้ำเสียอุตสาหกรรม", type: "Water", custodian: "สมชาย", locationId: null, status: { tone: "amber", label: "รอตรวจสอบ" }, recv: "21 ก.ค. 08:30" , barcodeId: null, description: "" },
+  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", type: "Tissue", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "20 ก.ค. 16:47" , barcodeId: null, description: "" },
+  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", type: "Food", custodian: "วิภา", locationId: null, status: { tone: "violet", label: "ส่งต่อแผนก" }, recv: "20 ก.ค. 15:20" , barcodeId: null, description: "" },
+  { id: "SMP-2569-04816", name: "ซีรั่ม – แผนกภูมิคุ้มกัน", type: "Serum", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "20 ก.ค. 14:05" , barcodeId: null, description: "" },
 ];
 
 export interface CoCStep {
@@ -83,14 +89,23 @@ export interface Equipment {
   next: string;
   status: Tag;
   usage: string;
+  /** Asset/nameplate fields (Phase 5). Empty string when unset. */
+  sn: string;
+  category: string;
+  manufacturer: string;
+  model: string;
+  /** `yyyy-mm-dd` for the date input, or null. */
+  installDate: string | null;
+  vendorId: string | null;
+  locationId: string | null;
 }
 
 export const EQUIPMENT: Equipment[] = [
-  { id: "EQ-CENT-002", name: "เครื่องปั่นเหวี่ยง Hettich", cal: 88, next: "12 ส.ค. 2569", status: { tone: "green", label: "พร้อมใช้" }, usage: "1,204 ชม." },
-  { id: "EQ-BAL-004", name: "เครื่องชั่งวิเคราะห์ Mettler", cal: 34, next: "28 ก.ค. 2569", status: { tone: "amber", label: "ใกล้สอบเทียบ" }, usage: "842 ชม." },
-  { id: "EQ-PCR-001", name: "เครื่อง Real-Time PCR", cal: 71, next: "05 ส.ค. 2569", status: { tone: "green", label: "พร้อมใช้" }, usage: "2,391 ชม." },
-  { id: "EQ-SPEC-003", name: "UV-Vis Spectrophotometer", cal: 12, next: "23 ก.ค. 2569", status: { tone: "red", label: "เลยกำหนด" }, usage: "560 ชม." },
-  { id: "EQ-MICR-006", name: "กล้องจุลทรรศน์ Olympus", cal: 59, next: "02 ส.ค. 2569", status: { tone: "green", label: "พร้อมใช้" }, usage: "1,780 ชม." },
+  { id: "EQ-CENT-002", name: "เครื่องปั่นเหวี่ยง Hettich", cal: 88, next: "12 ส.ค. 2569", status: { tone: "green", label: "พร้อมใช้" }, usage: "1,204 ชม." , sn: "", category: "", manufacturer: "", model: "", installDate: null, vendorId: null, locationId: null },
+  { id: "EQ-BAL-004", name: "เครื่องชั่งวิเคราะห์ Mettler", cal: 34, next: "28 ก.ค. 2569", status: { tone: "amber", label: "ใกล้สอบเทียบ" }, usage: "842 ชม." , sn: "", category: "", manufacturer: "", model: "", installDate: null, vendorId: null, locationId: null },
+  { id: "EQ-PCR-001", name: "เครื่อง Real-Time PCR", cal: 71, next: "05 ส.ค. 2569", status: { tone: "green", label: "พร้อมใช้" }, usage: "2,391 ชม." , sn: "", category: "", manufacturer: "", model: "", installDate: null, vendorId: null, locationId: null },
+  { id: "EQ-SPEC-003", name: "UV-Vis Spectrophotometer", cal: 12, next: "23 ก.ค. 2569", status: { tone: "red", label: "เลยกำหนด" }, usage: "560 ชม." , sn: "", category: "", manufacturer: "", model: "", installDate: null, vendorId: null, locationId: null },
+  { id: "EQ-MICR-006", name: "กล้องจุลทรรศน์ Olympus", cal: 59, next: "02 ส.ค. 2569", status: { tone: "green", label: "พร้อมใช้" }, usage: "1,780 ชม." , sn: "", category: "", manufacturer: "", model: "", installDate: null, vendorId: null, locationId: null },
 ];
 
 export interface Gauge {
@@ -126,12 +141,22 @@ export interface InventoryItem {
   id: string;
   name: string;
   cat: string;
+  /** derived from received lots — never set directly (Phase 8) */
   qty: number;
   unit: string;
   min: number;
   max: number;
   pct: number;
   status: Tag;
+  /** custodian User id — required by the backend on create (Phase 7′) */
+  custodianUserId: number | null;
+  /** plain nameplate text, not a Vendor */
+  manufacturer: string;
+  vendorId: string | null;
+  locationId: string | null;
+  /** raw RFC3339 of the soonest-expiring lot, or null */
+  earliestExpireDate: string | null;
+  lotCount: number;
 }
 
 export interface InventoryLot {
@@ -146,11 +171,11 @@ export interface InventoryLot {
 }
 
 export const INVENTORY: InventoryItem[] = [
-  { id: "CHM-0142", name: "Ethanol 99.9% AR", cat: "สารเคมี", qty: 3, unit: "L", min: 5, max: 20, pct: 15, status: { tone: "red", label: "สั่งซื้อด่วน" } },
-  { id: "CHM-0098", name: "Sodium Chloride NaCl", cat: "สารเคมี", qty: 12, unit: "kg", min: 8, max: 25, pct: 48, status: { tone: "green", label: "เพียงพอ" } },
-  { id: "CON-0311", name: "Pipette Tips 1000µL", cat: "วัสดุสิ้นเปลือง", qty: 6, unit: "กล่อง", min: 10, max: 40, pct: 15, status: { tone: "red", label: "สั่งซื้อด่วน" } },
-  { id: "RGT-0056", name: "PCR Master Mix", cat: "รีเอเจนต์", qty: 9, unit: "ชุด", min: 8, max: 30, pct: 30, status: { tone: "amber", label: "ใกล้หมด" } },
-  { id: "CON-0207", name: "Nitrile Gloves M", cat: "วัสดุสิ้นเปลือง", qty: 34, unit: "กล่อง", min: 15, max: 50, pct: 68, status: { tone: "green", label: "เพียงพอ" } },
+  { id: "CHM-0142", name: "Ethanol 99.9% AR", cat: "สารเคมี", qty: 3, unit: "L", min: 5, max: 20, pct: 15, status: { tone: "red", label: "สั่งซื้อด่วน" } , custodianUserId: null, manufacturer: "", vendorId: null, locationId: null, earliestExpireDate: null, lotCount: 0 },
+  { id: "CHM-0098", name: "Sodium Chloride NaCl", cat: "สารเคมี", qty: 12, unit: "kg", min: 8, max: 25, pct: 48, status: { tone: "green", label: "เพียงพอ" } , custodianUserId: null, manufacturer: "", vendorId: null, locationId: null, earliestExpireDate: null, lotCount: 0 },
+  { id: "CON-0311", name: "Pipette Tips 1000µL", cat: "วัสดุสิ้นเปลือง", qty: 6, unit: "กล่อง", min: 10, max: 40, pct: 15, status: { tone: "red", label: "สั่งซื้อด่วน" } , custodianUserId: null, manufacturer: "", vendorId: null, locationId: null, earliestExpireDate: null, lotCount: 0 },
+  { id: "RGT-0056", name: "PCR Master Mix", cat: "รีเอเจนต์", qty: 9, unit: "ชุด", min: 8, max: 30, pct: 30, status: { tone: "amber", label: "ใกล้หมด" } , custodianUserId: null, manufacturer: "", vendorId: null, locationId: null, earliestExpireDate: null, lotCount: 0 },
+  { id: "CON-0207", name: "Nitrile Gloves M", cat: "วัสดุสิ้นเปลือง", qty: 34, unit: "กล่อง", min: 15, max: 50, pct: 68, status: { tone: "green", label: "เพียงพอ" } , custodianUserId: null, manufacturer: "", vendorId: null, locationId: null, earliestExpireDate: null, lotCount: 0 },
 ];
 
 export interface Document {
@@ -162,14 +187,16 @@ export interface Document {
   date: string;
   access: string;
   locked: boolean;
+  equipmentId: string | null;
+  calibrationEventId: number | null;
 }
 
 export const DOCUMENTS: Document[] = [
-  { id: "DOC-0001", name: "SOP – การเก็บและขนส่งตัวอย่างเลือด", type: "SOP", ver: "v3.2", by: "ธเนศ", date: "18 ก.ค. 2569", access: "ทั่วไป", locked: false },
-  { id: "DOC-0002", name: "คู่มือการใช้เครื่อง Real-Time PCR", type: "Manual", ver: "v1.4", by: "พิมพ์ชนก", date: "14 ก.ค. 2569", access: "ทั่วไป", locked: false },
-  { id: "DOC-0003", name: "นโยบายความปลอดภัยข้อมูลผู้ป่วย", type: "Policy", ver: "v2.0", by: "ผู้ดูแลระบบ", date: "02 ก.ค. 2569", access: "จำกัด – ผู้บริหาร", locked: true },
-  { id: "DOC-0004", name: "แบบฟอร์มขอสอบเทียบเครื่องมือ", type: "Form", ver: "v1.1", by: "สมชาย", date: "28 มิ.ย. 2569", access: "ทั่วไป", locked: false },
-  { id: "DOC-0005", name: "บันทึกการตรวจสอบภายใน (Audit)", type: "Record", ver: "v5.7", by: "ธเนศ", date: "20 ก.ค. 2569", access: "จำกัด – QA", locked: true },
+  { id: "DOC-0001", name: "SOP – การเก็บและขนส่งตัวอย่างเลือด", type: "SOP", ver: "v3.2", by: "ธเนศ", date: "18 ก.ค. 2569", access: "ทั่วไป", locked: false, equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0002", name: "คู่มือการใช้เครื่อง Real-Time PCR", type: "Manual", ver: "v1.4", by: "พิมพ์ชนก", date: "14 ก.ค. 2569", access: "ทั่วไป", locked: false, equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0003", name: "นโยบายความปลอดภัยข้อมูลผู้ป่วย", type: "Policy", ver: "v2.0", by: "ผู้ดูแลระบบ", date: "02 ก.ค. 2569", access: "จำกัด – ผู้บริหาร", locked: true, equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0004", name: "แบบฟอร์มขอสอบเทียบเครื่องมือ", type: "Form", ver: "v1.1", by: "สมชาย", date: "28 มิ.ย. 2569", access: "ทั่วไป", locked: false, equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0005", name: "บันทึกการตรวจสอบภายใน (Audit)", type: "Record", ver: "v5.7", by: "ธเนศ", date: "20 ก.ค. 2569", access: "จำกัด – QA", locked: true, equipmentId: null, calibrationEventId: null },
 ];
 
 export interface DocHistory {

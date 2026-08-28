@@ -40,12 +40,17 @@ export function Sidebar({
   ];
   const modules: NavEntry[] = [
     { id: "samples", label: "การจัดการตัวอย่าง", icon: <Icons.Sample />, num: "01" },
-    { id: "locations", label: "ตำแหน่งจัดเก็บ", icon: <Icons.Loc /> },
     { id: "equipment", label: "การจัดการเครื่องมือ", icon: <Icons.Equipment />, num: "02", dot: true },
     { id: "environment", label: "ควบคุมสภาพแวดล้อม", icon: <Icons.Env />, num: "03", dot: true },
     { id: "inventory", label: "สินค้าคงคลัง", icon: <Icons.Inventory />, num: "04", dot: true },
     { id: "documents", label: "การจัดการเอกสาร", icon: <Icons.Doc />, num: "05" },
     { id: "tests", label: "ทดสอบ & วิเคราะห์", icon: <Icons.Test />, num: "06" },
+  ];
+  // Master data the modules point at rather than own. Kept out of the numbered
+  // list so the 01-06 numbering keeps matching the requirement document.
+  const masterData: NavEntry[] = [
+    { id: "locations", label: "ตำแหน่งจัดเก็บ", icon: <Icons.Loc /> },
+    { id: "vendors", label: "ผู้ขาย (Vendor)", icon: <Icons.Cart /> },
   ];
 
   const handleLogout = async () => {
@@ -143,6 +148,10 @@ export function Sidebar({
           โมดูลหลัก
         </div>
         {modules.map(renderItem)}
+        <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
+          ข้อมูลหลัก
+        </div>
+        {masterData.map(renderItem)}
       </nav>
 
       {/* Footer */}

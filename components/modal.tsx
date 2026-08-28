@@ -3,6 +3,9 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import { Icons } from "@/lib/icons";
 
+/** Stack of currently-open Modals, innermost last — see the Escape handler below. */
+const openModals: object[] = [];
+
 const sizeCls = {
   sm: "max-w-[420px]",
   md: "max-w-[560px]",
@@ -28,13 +31,24 @@ export function Modal({
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
 
+  // Escape must close only the topmost dialog: a quick-add opened from inside
+  // another modal would otherwise close its parent too, taking the half-filled
+  // form with it. Every open Modal pushes itself here; only the last one listens.
   useEffect(() => {
     if (!open) return;
+    const token = {};
+    openModals.push(token);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      if (openModals[openModals.length - 1] !== token) return;
+      onClose();
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      const i = openModals.indexOf(token);
+      if (i !== -1) openModals.splice(i, 1);
+    };
   }, [open, onClose]);
 
   useEffect(() => {

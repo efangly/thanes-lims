@@ -8,11 +8,14 @@ export function LocationBreadcrumb({
   ancestorLabel,
   onRoot,
   onCrumb,
+  rootCrumbLabel = "ตู้ทั้งหมด",
 }: {
   path: Location[];
   ancestorLabel?: string | null;
   onRoot: () => void;
   onCrumb: (index: number) => void;
+  /** Names the tree's root level — "ตู้ทั้งหมด" in the sample tree, "อาคารทั้งหมด" in the equipment one. */
+  rootCrumbLabel?: string;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-[12.5px]">
@@ -20,7 +23,7 @@ export function LocationBreadcrumb({
         onClick={onRoot}
         className={`rounded-md px-2 py-1 transition hover:bg-bg ${path.length === 0 ? "font-medium text-ink" : "text-muted"}`}
       >
-        ตู้ทั้งหมด
+        {rootCrumbLabel}
       </button>
       {ancestorLabel && (
         <span className="flex items-center gap-1.5 px-1 italic text-muted-2">

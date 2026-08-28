@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Icons } from "@/lib/icons";
 import type { InventoryItem, PurchaseOrder } from "@/lib/data";
 import { Button, Card, CardHead, Donut, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
@@ -26,6 +27,19 @@ function stockColor(pct: number) {
   return "var(--color-green)";
 }
 
+const DAY = 24 * 60 * 60 * 1000;
+const EXPIRY_SOON_DAYS = 30;
+
+/** Expiry standing of an item's soonest-expiring lot (Phase 8, from `earliest_expire_date`). */
+function expiryInfo(iso: string | null): { label: string; tone: "red" | "amber" | "muted"; soon: boolean } {
+  if (!iso) return { label: "—", tone: "muted", soon: false };
+  const days = (new Date(iso).getTime() - Date.now()) / DAY;
+  const label = new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
+  if (days < 0) return { label, tone: "red", soon: true };
+  if (days <= EXPIRY_SOON_DAYS) return { label, tone: "amber", soon: true };
+  return { label, tone: "muted", soon: false };
+}
+
 function usePurchaseOrders() {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   useEffect(() => {
@@ -43,6 +57,8 @@ export default function InventoryPage() {
   const purchaseOrders = usePurchaseOrders();
 
   const filtered = inventory.filter((i) => (seg === 1 ? i.status.tone === "red" || i.status.tone === "amber" : true));
+
+  const expiringSoon = inventory.filter((i) => expiryInfo(i.earliestExpireDate).soon).length;
 
   const autoOrders = purchaseOrders.filter(
     (o) => o.status.label === "รออนุมัติ" || o.status.label === "ส่งให้ผู้ขายแล้ว"
@@ -69,6 +85,12 @@ export default function InventoryPage() {
               <Icons.Cart className="h-[15px] w-[15px]" />
               ประวัติสั่งซื้อ
             </Button>
+            <Link href="/inventory/receive">
+              <Button variant="ghost" size="sm">
+                <Icons.Arrow className="h-[15px] w-[15px] rotate-90" />
+                รับของเข้าคลัง
+              </Button>
+            </Link>
             <Button variant="teal" onClick={() => openModal("add-inventory")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
               เพิ่มรายการ
@@ -81,7 +103,13 @@ export default function InventoryPage() {
         <KpiCard accent="teal" label="รายการทั้งหมด" value="418" trend="ใน 7 หมวดหมู่" />
         <KpiCard accent="red" label="ถึงจุดสั่งซื้อ" value="2" trend="สั่งซื้ออัตโนมัติแล้ว" trendDown />
         <KpiCard accent="amber" label="ใกล้หมด" value="5" trend="ต่ำกว่า 30%" trendDown />
-        <KpiCard accent="green" label="มูลค่าคงคลัง" value="฿1.24" unit="M" trend="อัปเดตล่าสุด" />
+        <KpiCard
+          accent={expiringSoon > 0 ? "red" : "green"}
+          label="ล็อตใกล้หมดอายุ"
+          value={String(expiringSoon)}
+          trend={`ภายใน ${EXPIRY_SOON_DAYS} วัน หรือเลยกำหนด`}
+          trendDown={expiringSoon > 0}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr]">
@@ -95,7 +123,7 @@ export default function InventoryPage() {
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr>
-                  {["รหัส", "รายการ", "หมวด", "ระดับสต็อก (เส้น = จุดสั่งซื้อ)", "คงเหลือ", "สถานะ", ""].map((h, idx) => (
+                  {["รหัส", "รายการ", "หมวด", "ระดับสต็อก (เส้น = จุดสั่งซื้อ)", "คงเหลือ", "หมดอายุใกล้สุด", "สถานะ", ""].map((h, idx) => (
                     <th key={h || idx} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                       {h}
                     </th>
@@ -120,13 +148,44 @@ export default function InventoryPage() {
                         {i.qty} {i.unit}
                       </td>
                       <td className="border-b border-line px-3.5 py-3">
+                        {(() => {
+                          const ex = expiryInfo(i.earliestExpireDate);
+                          const cls =
+                            ex.tone === "red"
+                              ? "bg-red-bg text-red"
+                              : ex.tone === "amber"
+                              ? "bg-amber-bg text-amber"
+                              : "text-muted";
+                          return (
+                            <span className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[11.5px] ${cls}`}>
+                              {ex.label}
+                              {i.lotCount > 1 && <span className="ml-1 opacity-60">({i.lotCount} ล็อต)</span>}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td className="border-b border-line px-3.5 py-3">
                         <Tag {...i.status} />
                       </td>
                       <td className="border-b border-line px-3.5 py-3 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => setIssueItem(i)}>
-                          <Icons.Arrow className="h-[13px] w-[13px]" />
-                          เบิก
-                        </Button>
+                        <div className="flex justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openModal("add-inventory", { inventoryItemId: i.id })}
+                          >
+                            แก้ไข
+                          </Button>
+                          <Link href={`/inventory/receive?item=${i.id}`}>
+                            <Button variant="ghost" size="sm">
+                              รับของเข้า
+                            </Button>
+                          </Link>
+                          <Button variant="ghost" size="sm" onClick={() => setIssueItem(i)}>
+                            <Icons.Arrow className="h-[13px] w-[13px]" />
+                            เบิก
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );

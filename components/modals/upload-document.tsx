@@ -11,8 +11,12 @@ const TYPES = ["SOP", "Manual", "Policy", "Form", "Record"];
 const ACCESS = ["ทั่วไป", "จำกัด – QA", "จำกัด – ผู้บริหาร"];
 
 export function UploadDocumentModal() {
-  const { activeModal, closeModal, addDocument, pushToast } = useLims();
+  const { activeModal, modalContext, closeModal, addDocument, pushToast } = useLims();
   const open = activeModal === "upload-document";
+  // When opened from an equipment detail page the type is fixed (e.g. warranty)
+  // and the doc is linked to that equipment — the pickers below are hidden.
+  const presetType = modalContext.docType ?? null;
+  const equipmentId = modalContext.equipmentId ?? null;
   const [name, setName] = useState("");
   const [type, setType] = useState(TYPES[0]);
   const [access, setAccess] = useState(ACCESS[0]);
@@ -33,7 +37,10 @@ export function UploadDocumentModal() {
     if (!name.trim() || !file) return;
     setSubmitting(true);
     try {
-      await addDocument({ name: name.trim(), type, access }, file);
+      await addDocument(
+        { name: name.trim(), type: presetType ?? type, access, equipmentId: equipmentId ?? undefined },
+        file
+      );
       pushToast("อัปโหลดเอกสารเรียบร้อย");
       handleClose();
     } catch (err) {
@@ -75,24 +82,33 @@ export function UploadDocumentModal() {
         <Field label="ชื่อเอกสาร">
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SOP – การล้างเครื่องแก้ว" autoFocus />
         </Field>
-        <Field label="ประเภทเอกสาร">
-          <Select value={type} onChange={(e) => setType(e.target.value)}>
-            {TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="ระดับการเข้าถึง">
-          <Select value={access} onChange={(e) => setAccess(e.target.value)}>
-            {ACCESS.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        {presetType ? (
+          <div className="rounded-lg border border-line bg-bg px-3 py-2.5 text-[12px] text-muted">
+            {modalContext.docTypeLabel ?? presetType}
+            {equipmentId && <span className="font-mono"> · แนบกับเครื่องมือ {equipmentId}</span>}
+          </div>
+        ) : (
+          <>
+            <Field label="ประเภทเอกสาร">
+              <Select value={type} onChange={(e) => setType(e.target.value)}>
+                {TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="ระดับการเข้าถึง">
+              <Select value={access} onChange={(e) => setAccess(e.target.value)}>
+                {ACCESS.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </>
+        )}
       </div>
     </Modal>
   );

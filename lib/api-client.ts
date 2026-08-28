@@ -120,3 +120,28 @@ export async function apiUpload<T>(path: string, formData: FormData): Promise<T>
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }));
 }
+
+/**
+ * Fetches a binary response (e.g. a generated PDF) with the same auth + refresh
+ * handling as apiFetch. Used instead of pointing a new tab straight at the URL,
+ * which would carry no Authorization header (the access token lives in memory).
+ */
+export async function apiFetchBlob(path: string): Promise<Blob> {
+  const buildHeaders = (token: string | null): Record<string, string> => ({
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  });
+  let res = await fetch(`${API_BASE}${path}`, { headers: buildHeaders(getAccessToken()) });
+  if (res.status === 401) {
+    try {
+      const newToken = await refreshAccessToken();
+      res = await fetch(`${API_BASE}${path}`, { headers: buildHeaders(newToken) });
+    } catch {
+      setAccessToken(null);
+      sessionExpiredCallback?.();
+    }
+  }
+  if (!res.ok) {
+    throw new ApiError(res.status, res.status === 404 ? "not_found" : "unknown", res.statusText);
+  }
+  return res.blob();
+}

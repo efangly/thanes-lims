@@ -12,6 +12,7 @@ import { UploadDocumentModal } from "@/components/modals/upload-document";
 import { ManageAccessModal } from "@/components/modals/manage-access";
 import { OpenTestOrderModal } from "@/components/modals/open-test-order";
 import { GenerateReportModal } from "@/components/modals/generate-report";
+import { RecordCalibrationModal } from "@/components/modals/record-calibration";
 
 export function ModalRouter() {
   return (
@@ -28,6 +29,7 @@ export function ModalRouter() {
       <ManageAccessModal />
       <OpenTestOrderModal />
       <GenerateReportModal />
+      <RecordCalibrationModal />
     </>
   );
 }

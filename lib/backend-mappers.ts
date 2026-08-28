@@ -1,4 +1,4 @@
-import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, Gauge, InventoryItem, InventoryLot, Location, LevelType, Notification, PurchaseOrder, Sample, Tag, TestResult } from "@/lib/data";
+import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, Gauge, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, PurchaseOrder, Sample, Tag, TestResult } from "@/lib/data";
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
@@ -66,6 +66,8 @@ export function mapSample(d: SampleDTO, userNames?: Map<number, string>): Sample
     locationId: d.location_id,
     status: statusTag(SAMPLE_STATUS, d.status),
     recv: formatDateTime(d.received_at),
+    barcodeId: d.barcode_id ?? null,
+    description: d.description ?? "",
   };
 }
 
@@ -73,14 +75,18 @@ export interface LocationDTO {
   id: string;
   parent_id: string | null;
   name: string;
+  kind?: LocationKind;
   level_type: LevelType;
+  barcode_code?: string;
 }
 export function mapLocation(d: LocationDTO): Location {
   return {
     id: d.id,
     parentId: d.parent_id,
     name: d.name,
+    kind: d.kind ?? "sample_storage",
     levelType: d.level_type,
+    barcodeCode: d.barcode_code,
   };
 }
 
@@ -93,6 +99,13 @@ export interface EquipmentDTO {
   usage_hours: number;
   calibration_pct: number;
   status: string;
+  serial_number?: string;
+  category?: string;
+  manufacturer?: string;
+  model?: string;
+  installation_date?: string | null;
+  vendor_id?: string | null;
+  location_id?: string | null;
 }
 export function mapEquipment(d: EquipmentDTO): Equipment {
   return {
@@ -102,6 +115,13 @@ export function mapEquipment(d: EquipmentDTO): Equipment {
     next: formatDate(d.next_calibration_due),
     status: statusTag(EQUIPMENT_STATUS, d.status),
     usage: `${d.usage_hours.toLocaleString()} ชม.`,
+    sn: d.serial_number ?? "",
+    category: d.category ?? "",
+    manufacturer: d.manufacturer ?? "",
+    model: d.model ?? "",
+    installDate: d.installation_date ? d.installation_date.slice(0, 10) : null,
+    vendorId: d.vendor_id ?? null,
+    locationId: d.location_id ?? null,
   };
 }
 
@@ -120,6 +140,8 @@ export interface InventoryDTO {
   manufacturer?: string | null;
   vendor_id?: string | null;
   location_id?: string | null;
+  earliest_expire_date?: string | null;
+  lot_count?: number;
 }
 export function mapInventory(d: InventoryDTO): InventoryItem {
   return {
@@ -132,6 +154,12 @@ export function mapInventory(d: InventoryDTO): InventoryItem {
     max: d.max,
     pct: d.pct,
     status: statusTag(INVENTORY_STATUS, d.status),
+    custodianUserId: d.custodian_user_id ?? null,
+    manufacturer: d.manufacturer ?? "",
+    vendorId: d.vendor_id ?? null,
+    locationId: d.location_id ?? null,
+    earliestExpireDate: d.earliest_expire_date ?? null,
+    lotCount: d.lot_count ?? 0,
   };
 }
 
@@ -175,6 +203,8 @@ export interface DocumentDTO {
   issued_at: string;
   access_level: string;
   locked: boolean;
+  equipment_id?: string | null;
+  calibration_event_id?: number | null;
 }
 export function mapDocument(d: DocumentDTO): Document {
   return {
@@ -186,6 +216,8 @@ export function mapDocument(d: DocumentDTO): Document {
     date: formatDate(d.issued_at),
     access: mapAccessLevel(d.access_level),
     locked: d.locked,
+    equipmentId: d.equipment_id ?? null,
+    calibrationEventId: d.calibration_event_id ?? null,
   };
 }
 

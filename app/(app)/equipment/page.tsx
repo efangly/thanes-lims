@@ -1,9 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, KpiCard, PageHead, Ring, Seg, Tag } from "@/components/ui";
+import { Button, Card, CardHead, Input, KpiCard, PageHead, Ring, Seg, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useFullPath } from "@/lib/use-full-path";
+import { listAllSchedules, type CalibrationSchedule } from "@/lib/equipment-api";
+import { calibrationStanding, groupSchedules } from "@/lib/calibration-status";
+
+function LocationCell({ locationId }: { locationId: string | null }) {
+  const { path } = useFullPath(locationId);
+  return <span className="font-mono text-[12px] text-muted">{path ?? "—"}</span>;
+}
 
 const SEG_OPTIONS = ["ทั้งหมด", "ต้องดำเนินการ"];
 
@@ -20,17 +29,29 @@ const auditDocs = [
   { name: "บันทึกปัญหาที่พบ & การแก้ไข", type: "Issue Log", note: "2 รายการปิดแล้ว" },
 ];
 
-function calColor(cal: number) {
-  if (cal > 60) return "var(--color-green)";
-  if (cal > 25) return "var(--color-amber)";
-  return "var(--color-red)";
-}
-
 export default function EquipmentPage() {
+  const router = useRouter();
   const { equipment, openModal } = useLims();
   const [seg, setSeg] = useState(0);
+  const [q, setQ] = useState("");
+  const [schedules, setSchedules] = useState<CalibrationSchedule[]>([]);
 
-  const filtered = equipment.filter((e) => (seg === 1 ? e.status.tone !== "green" : true));
+  useEffect(() => {
+    listAllSchedules()
+      .then(setSchedules)
+      .catch(() => setSchedules([]));
+  }, []);
+
+  // ADR-0006: derive the due date / ring / status from each machine's schedules.
+  const byEquipment = useMemo(() => groupSchedules(schedules), [schedules]);
+  const rows = equipment.map((e) => ({ e, standing: calibrationStanding(byEquipment.get(e.id) ?? []) }));
+
+  const needle = q.trim().toLowerCase();
+  const filtered = rows.filter(({ e, standing }) => {
+    if (seg === 1 && standing.status.tone === "green") return false;
+    if (needle && !e.name.toLowerCase().includes(needle) && !e.sn.toLowerCase().includes(needle)) return false;
+    return true;
+  });
 
   return (
     <div className="animate-fade">
@@ -39,6 +60,14 @@ export default function EquipmentPage() {
         desc="บันทึกประวัติการใช้งาน ใบรับรองสอบเทียบ ประวัติบำรุงรักษา พร้อมแจ้งเตือนอัตโนมัติเมื่อถึงกำหนด — พร้อมรับการตรวจสอบ (Audit) เสมอ"
         actions={
           <>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/equipment/calibration-results")}>
+              <Icons.Check className="h-[15px] w-[15px]" />
+              ผลการสอบเทียบ
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => openModal("record-calibration")}>
+              <Icons.Plus className="h-[15px] w-[15px]" />
+              บันทึกผลสอบเทียบ
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => openModal("export-audit-report")}>
               <Icons.Doc className="h-[15px] w-[15px]" />
               ส่งออกรายงาน Audit
@@ -62,13 +91,23 @@ export default function EquipmentPage() {
         <CardHead
           icon={<Icons.Equipment />}
           title="ทะเบียนเครื่องมือ & ตารางสอบเทียบ"
-          right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
+          right={
+            <div className="flex items-center gap-2.5">
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="ค้นหาชื่อ หรือ S/N"
+                className="w-[200px]"
+              />
+              <Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />
+            </div>
+          }
         />
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr>
-                {["รหัส", "เครื่องมือ", "ชั่วโมงใช้งานสะสม", "รอบสอบเทียบถัดไป", "เหลือเวลา", "สถานะ"].map((h) => (
+                {["รหัส", "เครื่องมือ", "S/N", "ตำแหน่ง", "รอบสอบเทียบถัดไป", "เหลือเวลา", "สถานะ"].map((h) => (
                   <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                     {h}
                   </th>
@@ -76,20 +115,31 @@ export default function EquipmentPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((e) => (
-                <tr key={e.id} className="transition hover:bg-bg/60">
+              {filtered.map(({ e, standing }) => (
+                <tr
+                  key={e.id}
+                  onClick={() => router.push(`/equipment/${e.id}`)}
+                  className="cursor-pointer transition hover:bg-bg/60"
+                >
                   <td className="border-b border-line px-3.5 py-3 font-mono text-[12.5px] font-medium">{e.id}</td>
                   <td className="border-b border-line px-3.5 py-3 font-medium">{e.name}</td>
-                  <td className="border-b border-line px-3.5 py-3 font-mono text-[12.5px]">{e.usage}</td>
-                  <td className="border-b border-line px-3.5 py-3 font-mono text-[12.5px]">{e.next}</td>
+                  <td className="border-b border-line px-3.5 py-3 font-mono text-[12px] text-muted">{e.sn || "—"}</td>
                   <td className="border-b border-line px-3.5 py-3">
-                    <span className="flex items-center gap-3">
-                      <Ring pct={e.cal} color={calColor(e.cal)} />
-                      <span className="font-mono text-[11px] text-muted">{e.cal}%</span>
-                    </span>
+                    <LocationCell locationId={e.locationId} />
+                  </td>
+                  <td className="border-b border-line px-3.5 py-3 font-mono text-[12.5px]">{standing.nextDueLabel}</td>
+                  <td className="border-b border-line px-3.5 py-3">
+                    {standing.pct === null ? (
+                      <span className="text-[11px] text-muted-2">—</span>
+                    ) : (
+                      <span className="flex items-center gap-3">
+                        <Ring pct={standing.pct} color={standing.ringColor} />
+                        <span className="font-mono text-[11px] text-muted">{standing.pct}%</span>
+                      </span>
+                    )}
                   </td>
                   <td className="border-b border-line px-3.5 py-3">
-                    <Tag {...e.status} />
+                    <Tag {...standing.status} />
                   </td>
                 </tr>
               ))}

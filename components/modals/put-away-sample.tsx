@@ -35,7 +35,7 @@ export function PutAwaySampleModal({ sample, open, onClose }: { sample: Sample |
         </div>
       )}
       <div className="relative">
-        <LocationPicker onSelect={handleSelect} disabled={submitting} />
+        <LocationPicker onSelect={handleSelect} disabled={submitting} emptyLeavesOnly enableScan />
         {submitting && (
           <div className="absolute inset-0 grid place-items-center rounded-lg bg-panel/70 text-[12.5px] text-muted">
             กำลังบันทึก…

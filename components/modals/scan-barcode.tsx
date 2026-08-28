@@ -1,85 +1,96 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import type { Location, Sample } from "@/lib/data";
 import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
-import { Button, Avatar, Tag } from "@/components/ui";
+import { Tag } from "@/components/ui";
+import { ScanInput } from "@/components/scan-input";
+import { LocationPicker } from "@/components/location-picker";
 import { useLims } from "@/components/lims-data-context";
-import { useFullPath } from "@/lib/use-full-path";
+import { apiErrorMessage } from "@/lib/api-client";
+import { searchSamples } from "@/lib/samples-api";
 
+/**
+ * Move a sample into storage by scanning (requirement 1.3). Two steps:
+ * scan the tube's barcode to pull up the sample, then scan/drill to a free leaf
+ * — the destination must be an unoccupied leaf, which the backend enforces too.
+ * Replaces the old fake "scanning…" animation that picked a random sample.
+ */
 export function ScanBarcodeModal() {
-  const { activeModal, closeModal, samples, pushToast } = useLims();
+  const { activeModal, closeModal, users, putAwaySample, pushToast } = useLims();
   const open = activeModal === "scan-barcode";
-  const [phase, setPhase] = useState<"scanning" | "found">("scanning");
-  const [foundIdx, setFoundIdx] = useState(0);
-
-  useEffect(() => {
-    if (!open) {
-      setPhase("scanning");
-      return;
-    }
-    const t = setTimeout(() => {
-      setFoundIdx(Math.floor(Math.random() * samples.length));
-      setPhase("found");
-    }, 1500);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  const [sample, setSample] = useState<Sample | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const nameById = useMemo(() => new Map(users.map((u) => [u.id, u.name])), [users]);
 
   const handleClose = () => {
-    setPhase("scanning");
+    setSample(null);
     closeModal();
   };
 
-  const s = samples[foundIdx];
-  const { path: fullPath } = useFullPath(s?.locationId);
+  const handleScanSample = async (code: string) => {
+    try {
+      const rows = await searchSamples({ barcodeId: code }, nameById);
+      if (rows.length === 0) {
+        pushToast(`ไม่พบตัวอย่างที่มีบาร์โค้ด ${code}`, "red");
+        return false;
+      }
+      setSample(rows[0]);
+      return true;
+    } catch (err) {
+      pushToast(apiErrorMessage(err), "red");
+      return false;
+    }
+  };
+
+  const handleSelectLocation = async (location: Location) => {
+    if (!sample) return;
+    setSubmitting(true);
+    try {
+      await putAwaySample(sample.id, location.id);
+      pushToast(`ย้าย ${sample.id} ไปที่ ${location.name} เรียบร้อย`);
+      handleClose();
+    } catch (err) {
+      pushToast(apiErrorMessage(err), "red");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
-    <Modal open={open} onClose={handleClose} title="สแกนบาร์โค้ด" icon={<Icons.Arrow />} size="sm">
-      {phase === "scanning" ? (
-        <div className="flex flex-col items-center gap-4 py-6">
-          <div className="relative h-[140px] w-full overflow-hidden rounded-lg border-2 border-dashed border-line bg-bg">
-            <div className="absolute left-0 right-0 h-[2px] bg-teal shadow-[0_0_8px_2px_var(--color-teal)] animate-scan-line" />
-            <div className="grid h-full place-items-center">
-              <Icons.Sample className="h-10 w-10 text-muted-2 opacity-40" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 font-mono text-[12.5px] text-muted">
-            <span className="h-2 w-2 rounded-full bg-teal animate-pulse-dot" />
-            กำลังสแกน…
-          </div>
+    <Modal open={open} onClose={handleClose} title="ย้ายตำแหน่งตัวอย่าง (สแกน)" icon={<Icons.Arrow />} size="sm">
+      {!sample ? (
+        <div className="flex flex-col gap-3 py-2">
+          <ScanInput onScan={handleScanSample} autoFocus label="สแกนบาร์โค้ดตัวอย่าง" />
+          <p className="text-[12px] text-muted-2">
+            สแกนบาร์โค้ดบนหลอด/ภาชนะตัวอย่าง แล้วเลือกตำแหน่งจัดเก็บปลายทางในขั้นถัดไป
+          </p>
         </div>
       ) : (
-        s && (
-          <div className="flex flex-col gap-3.5">
-            <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-d">
-              <Icons.Check className="h-4 w-4" />
-              พบตัวอย่างในระบบ
+        <div className="flex flex-col gap-3.5">
+          <div className="flex items-center justify-between rounded-lg border border-line bg-bg px-3.5 py-2.5">
+            <div>
+              <div className="font-mono text-[12.5px] font-medium text-ink">{sample.id}</div>
+              <div className="text-[13px]">{sample.name}</div>
             </div>
-            <div className="rounded-lg border border-line bg-bg p-3.5">
-              <div className="font-mono text-[13px] font-semibold text-ink">{s.id}</div>
-              <div className="mt-1 text-[13px] font-medium">{s.name}</div>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="flex items-center gap-2 text-[12.5px] text-muted">
-                  <Avatar initials={s.custodian?.[0] ?? "?"} size="xs" />
-                  {s.custodian}
-                </span>
-                <Tag {...s.status} />
-              </div>
-              <div className="mt-2 font-mono text-[11.5px] text-muted">{fullPath ?? "ยังไม่ได้จัดเก็บ"}</div>
-            </div>
-            <Button
-              variant="teal"
-              size="sm"
-              onClick={() => {
-                pushToast(`พบตัวอย่าง ${s.id}`);
-                handleClose();
-              }}
-            >
-              ดูรายละเอียด
-            </Button>
+            <Tag {...sample.status} />
           </div>
-        )
+          <div className="relative">
+            <LocationPicker onSelect={handleSelectLocation} disabled={submitting} emptyLeavesOnly enableScan />
+            {submitting && (
+              <div className="absolute inset-0 grid place-items-center rounded-lg bg-panel/70 text-[12.5px] text-muted">
+                กำลังบันทึก…
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setSample(null)}
+            className="self-start text-[12px] text-muted underline-offset-2 hover:underline"
+          >
+            ← สแกนตัวอย่างอื่น
+          </button>
+        </div>
       )}
     </Modal>
   );

@@ -6,10 +6,12 @@ import { Icons } from "@/lib/icons";
 import type { CoCStep, Sample } from "@/lib/data";
 import { Avatar, Button, Card, CardHead, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
-import { apiFetch } from "@/lib/api-client";
+import { apiErrorMessage, apiFetch } from "@/lib/api-client";
 import { mapCoCStep, type CoCStepDTO } from "@/lib/backend-mappers";
 import { useFullPath } from "@/lib/use-full-path";
 import { PutAwaySampleModal } from "@/components/modals/put-away-sample";
+import { ScanInput } from "@/components/scan-input";
+import { hasSampleFilter, loadStickerPrefs, openStickerInNewTab, searchSamples, type SampleFilter } from "@/lib/samples-api";
 
 const cocIcons = {
   Plus: <Icons.Plus />,
@@ -48,17 +50,19 @@ const SampleTable = memo(function SampleTable({
   samples,
   selectedId,
   onSelect,
+  onReprint,
 }: {
   samples: Sample[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onReprint: (id: string) => void;
 }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-[13px]">
         <thead>
           <tr>
-            {["รหัส / บาร์โค้ด", "ตัวอย่าง", "ผู้ดูแลปัจจุบัน", "สถานะ"].map((h) => (
+            {["รหัสตัวอย่าง", "Barcode ID", "ตัวอย่าง", "ผู้ดูแลปัจจุบัน", "สถานะ"].map((h) => (
               <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                 {h}
               </th>
@@ -76,6 +80,26 @@ const SampleTable = memo(function SampleTable({
                 <div className="font-mono text-[12.5px] font-medium text-ink">{s.id}</div>
                 <div className="text-[11.5px] text-muted">{s.recv}</div>
               </td>
+              <td className="whitespace-nowrap border-b border-line px-3.5 py-3">
+                {s.barcodeId ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-mono text-[12px] text-ink">{s.barcodeId}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onReprint(s.id);
+                      }}
+                      aria-label="พิมพ์สติ๊กเกอร์ซ้ำ"
+                      title="พิมพ์สติ๊กเกอร์ซ้ำ"
+                      className="grid h-6 w-6 place-items-center rounded text-muted transition hover:bg-bg hover:text-ink"
+                    >
+                      <Icons.Doc className="h-[13px] w-[13px]" />
+                    </button>
+                  </span>
+                ) : (
+                  <span className="text-[11.5px] text-muted-2">—</span>
+                )}
+              </td>
               <td className="border-b border-line px-3.5 py-3">
                 <div className="font-medium">{s.name}</div>
                 <div className="text-[11.5px] text-muted">{s.type}</div>
@@ -91,6 +115,13 @@ const SampleTable = memo(function SampleTable({
               </td>
             </tr>
           ))}
+          {samples.length === 0 && (
+            <tr>
+              <td colSpan={5} className="border-b border-line px-3.5 py-8 text-center text-[12.5px] text-muted">
+                ไม่พบตัวอย่างที่ตรงกับเงื่อนไข
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
@@ -132,6 +163,13 @@ function SampleDetailPanel({
             : fullPath ?? "ยังไม่ได้จัดเก็บ"}
         </div>
       </Card>
+
+      {sample?.description && (
+        <Card className="mt-4">
+          <CardHead icon={<Icons.Doc />} title="รายละเอียด" />
+          <div className="whitespace-pre-wrap px-5 py-3.5 text-[13px] text-ink">{sample.description}</div>
+        </Card>
+      )}
 
       <Card className="mt-4">
         <CardHead
@@ -183,6 +221,61 @@ function SampleDetailPanel({
 }
 
 /**
+ * Server-side registry filter — barcode (exact scan), Location leaf name (ILIKE),
+ * custodian. When any is set the list comes from `GET /samples?...`; otherwise the
+ * shared context list is shown. The status segment filters whichever list on top.
+ */
+function useSampleRegistry(filter: SampleFilter) {
+  const { samples, users, loading } = useLims();
+  const [rows, setRows] = useState<Sample[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const nameById = useMemo(() => new Map(users.map((u) => [u.id, u.name])), [users]);
+  const active = hasSampleFilter(filter);
+  // stable key so the effect only re-runs when a filter value actually changes
+  const key = `${filter.barcodeId ?? ""}|${filter.location ?? ""}|${filter.custodianUserId ?? ""}`;
+
+  useEffect(() => {
+    if (!active) {
+      setRows(null);
+      setError(null);
+      return;
+    }
+    let cancelled = false;
+    setSearching(true);
+    const t = setTimeout(() => {
+      searchSamples(filter, nameById)
+        .then((r) => {
+          if (!cancelled) {
+            setRows(r);
+            setError(null);
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setRows([]);
+            setError(apiErrorMessage(err));
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setSearching(false);
+        });
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, active, nameById]);
+
+  return {
+    list: active ? rows ?? [] : samples,
+    loading: active ? searching : loading,
+    error,
+  };
+}
+
+/**
  * หน้า `/samples` หน้าเดียว — ตัวอย่างที่เลือกเก็บใน query param `?s=<id>`
  * (แหล่งความจริงเดียว) ไม่ใช้ selection state ที่ sync กับ URL อีก จึงไม่ remount route ตอนสลับตัวอย่าง
  */
@@ -190,21 +283,37 @@ export function SamplesView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedId = searchParams.get("s");
-  const { samples, loading, openModal } = useLims();
+  const { openModal, pushToast, users } = useLims();
   const [seg, setSeg] = useState(0);
   const [putAwayOpen, setPutAwayOpen] = useState(false);
 
+  const [barcode, setBarcode] = useState("");
+  const [location, setLocation] = useState("");
+  const [custodianUserId, setCustodianUserId] = useState("");
+
+  const filter = useMemo<SampleFilter>(
+    () => ({ barcodeId: barcode || undefined, location: location || undefined, custodianUserId: custodianUserId || undefined }),
+    [barcode, location, custodianUserId]
+  );
+  const { list, loading, error } = useSampleRegistry(filter);
+
+  useEffect(() => {
+    if (error) pushToast(error, "red");
+  }, [error, pushToast]);
+
   const filtered = useMemo(
     () =>
-      samples.filter((s) => {
+      list.filter((s) => {
         if (seg === 1) return s.status.label === "กำลังทดสอบ";
         if (seg === 2) return s.status.label.includes("รอตรวจ");
         return true;
       }),
-    [samples, seg]
+    [list, seg]
   );
-  const active = selectedId ? samples.find((s) => s.id === selectedId) ?? null : filtered[0] ?? null;
-  const notFound = Boolean(selectedId) && !loading && !active;
+  const selectedInList = selectedId ? list.find((s) => s.id === selectedId) ?? null : null;
+  const active = selectedInList ?? filtered[0] ?? null;
+  // "ไม่พบ" เฉพาะตอนค้นด้วยบาร์โค้ดแล้วไม่เจออะไรเลย (ลิงก์ ?s= เก่าที่ถูกกรองออกไม่นับ)
+  const notFound = Boolean(barcode) && !loading && filtered.length === 0;
 
   const select = useCallback(
     (id: string) => {
@@ -213,12 +322,37 @@ export function SamplesView() {
     [router]
   );
 
+  const reprint = useCallback(
+    async (id: string) => {
+      try {
+        await openStickerInNewTab(id, loadStickerPrefs());
+      } catch (err) {
+        pushToast(apiErrorMessage(err), "red");
+      }
+    },
+    [pushToast]
+  );
+
+  const scanResolve = useCallback((code: string) => {
+    setBarcode(code);
+    return true;
+  }, []);
+
   // เด้งไปตัวอย่างแรกอัตโนมัติเมื่อยังไม่ได้เลือก
+  const firstId = filtered[0]?.id;
+  const hasSelectedInList = Boolean(selectedInList);
   useEffect(() => {
-    if (!selectedId && !loading && filtered[0]) {
-      router.replace(`/samples?s=${filtered[0].id}`, { scroll: false });
+    if (!loading && firstId && !hasSelectedInList) {
+      router.replace(`/samples?s=${firstId}`, { scroll: false });
     }
-  }, [selectedId, loading, filtered, router]);
+  }, [loading, firstId, hasSelectedInList, router]);
+
+  const clearFilters = () => {
+    setBarcode("");
+    setLocation("");
+    setCustodianUserId("");
+  };
+  const anyFilter = Boolean(barcode || location || custodianUserId);
 
   return (
     <div className="animate-fade">
@@ -229,7 +363,7 @@ export function SamplesView() {
           <>
             <Button variant="ghost" size="sm" onClick={() => openModal("scan-barcode")}>
               <Icons.Arrow className="h-[15px] w-[15px]" />
-              สแกนบาร์โค้ด
+              ย้ายตำแหน่ง (สแกน)
             </Button>
             <Button variant="teal" onClick={() => openModal("add-sample")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
@@ -253,7 +387,51 @@ export function SamplesView() {
             title="ทะเบียนตัวอย่าง"
             right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
           />
-          <SampleTable samples={filtered} selectedId={active?.id ?? null} onSelect={select} />
+
+          <div className="grid grid-cols-1 gap-3 border-b border-line px-5 py-3.5 sm:grid-cols-[1.2fr_1fr_1fr]">
+            <ScanInput
+              onScan={scanResolve}
+              placeholder="สแกน Barcode ID แล้วกด Enter"
+              label="สแกนบาร์โค้ด"
+            />
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[12px] font-medium text-muted">ชื่อตู้ / ตำแหน่งจัดเก็บ</span>
+              <input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="เช่น Fridge-A / Slot-4"
+                className="w-full rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[12px] font-medium text-muted">ผู้ดูแล</span>
+              <select
+                value={custodianUserId}
+                onChange={(e) => setCustodianUserId(e.target.value)}
+                className="w-full rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal"
+              >
+                <option value="">ทั้งหมด</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {anyFilter && (
+            <div className="flex items-center justify-between border-b border-line bg-bg/40 px-5 py-2 text-[11.5px] text-muted">
+              <span>
+                {loading ? "กำลังค้นหา…" : `พบ ${filtered.length} รายการ`}
+                {barcode && ` · บาร์โค้ด "${barcode}"`}
+              </span>
+              <button onClick={clearFilters} className="font-medium text-teal-d hover:underline">
+                ล้างตัวกรอง
+              </button>
+            </div>
+          )}
+
+          <SampleTable samples={filtered} selectedId={active?.id ?? null} onSelect={select} onReprint={reprint} />
         </Card>
 
         <SampleDetailPanel sample={active} notFound={notFound} onPutAway={() => setPutAwayOpen(true)} />
