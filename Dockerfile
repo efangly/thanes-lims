@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
-FROM --platform=linux/amd64 node:24-alpine AS base
+FROM node:24-alpine AS base
+
+RUN apk update && apk upgrade --no-cache && rm -rf /var/cache/apk/*
 
 # --- deps: install dependencies ---
 FROM base AS deps
@@ -40,7 +42,7 @@ USER nextjs
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD wget -qO- http://localhost:3000/ >/dev/null 2>&1 || exit 1
 
 CMD ["node", "/app/server.js"]
