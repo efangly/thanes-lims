@@ -1,4 +1,4 @@
-import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, Gauge, InventoryItem, Location, LevelType, Notification, PurchaseOrder, Sample, Tag, TestResult } from "@/lib/data";
+import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, Gauge, InventoryItem, InventoryLot, Location, LevelType, Notification, PurchaseOrder, Sample, Tag, TestResult } from "@/lib/data";
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
@@ -23,8 +23,10 @@ const EQUIPMENT_STATUS: Record<string, Tag> = {
 
 const INVENTORY_STATUS: Record<string, Tag> = {
   ok: { tone: "green", label: "เพียงพอ" },
+  normal: { tone: "green", label: "เพียงพอ" },
   low: { tone: "amber", label: "ใกล้หมด" },
   critical: { tone: "red", label: "สั่งซื้อด่วน" },
+  out: { tone: "red", label: "หมด" },
 };
 
 const TEST_STATUS: Record<string, Tag> = {
@@ -37,21 +39,30 @@ function statusTag(map: Record<string, Tag>, status: string): Tag {
   return map[status] ?? { tone: "grey", label: status };
 }
 
+export interface UserDTO {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export interface SampleDTO {
   id: string;
   name: string;
   type: string;
-  custodian: string;
+  custodian_user_id: number;
   location_id: string | null;
   status: string;
   received_at: string;
+  barcode_id?: string | null;
+  description?: string;
 }
-export function mapSample(d: SampleDTO): Sample {
+export function mapSample(d: SampleDTO, userNames?: Map<number, string>): Sample {
   return {
     id: d.id,
     name: d.name,
     type: d.type,
-    custodian: d.custodian,
+    custodian: userNames?.get(d.custodian_user_id) ?? `ผู้ใช้ #${d.custodian_user_id}`,
     locationId: d.location_id,
     status: statusTag(SAMPLE_STATUS, d.status),
     recv: formatDateTime(d.received_at),
@@ -105,6 +116,10 @@ export interface InventoryDTO {
   pct: number;
   status: string;
   default_vendor: string;
+  custodian_user_id?: number | null;
+  manufacturer?: string | null;
+  vendor_id?: string | null;
+  location_id?: string | null;
 }
 export function mapInventory(d: InventoryDTO): InventoryItem {
   return {
@@ -117,6 +132,24 @@ export function mapInventory(d: InventoryDTO): InventoryItem {
     max: d.max,
     pct: d.pct,
     status: statusTag(INVENTORY_STATUS, d.status),
+  };
+}
+
+export interface InventoryLotDTO {
+  id: string;
+  item_id: string;
+  lot_no: string;
+  expire_date: string | null;
+  quantity: number;
+}
+export function mapInventoryLot(d: InventoryLotDTO): InventoryLot {
+  return {
+    id: d.id,
+    itemId: d.item_id,
+    lotNo: d.lot_no,
+    expireDate: d.expire_date,
+    expireLabel: d.expire_date ? formatDate(d.expire_date) : "—",
+    qty: d.quantity,
   };
 }
 

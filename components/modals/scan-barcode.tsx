@@ -61,7 +61,7 @@ export function ScanBarcodeModal() {
               <div className="mt-1 text-[13px] font-medium">{s.name}</div>
               <div className="mt-2 flex items-center justify-between">
                 <span className="flex items-center gap-2 text-[12.5px] text-muted">
-                  <Avatar initials={s.custodian[0]} size="xs" />
+                  <Avatar initials={s.custodian?.[0] ?? "?"} size="xs" />
                   {s.custodian}
                 </span>
                 <Tag {...s.status} />

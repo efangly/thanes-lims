@@ -10,18 +10,18 @@ import { apiErrorMessage } from "@/lib/api-client";
 const TYPES = ["Blood", "Urine", "Water", "Tissue", "Food", "Serum"];
 
 export function AddSampleModal() {
-  const { activeModal, closeModal, addSample, pushToast } = useLims();
+  const { activeModal, closeModal, addSample, pushToast, users } = useLims();
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [type, setType] = useState(TYPES[0]);
-  const [custodian, setCustodian] = useState("");
+  const [custodianId, setCustodianId] = useState("");
 
   const open = activeModal === "add-sample";
 
   const reset = () => {
     setName("");
     setType(TYPES[0]);
-    setCustodian("");
+    setCustodianId("");
   };
 
   const handleClose = () => {
@@ -30,10 +30,10 @@ export function AddSampleModal() {
   };
 
   const handleSubmit = async () => {
-    if (!name.trim() || !custodian.trim()) return;
+    if (!name.trim() || !custodianId) return;
     setSubmitting(true);
     try {
-      await addSample({ name: name.trim(), type, custodian: custodian.trim() });
+      await addSample({ name: name.trim(), type, custodianUserId: Number(custodianId) });
       pushToast("เพิ่มตัวอย่างเรียบร้อย");
       handleClose();
     } catch (err) {
@@ -76,7 +76,16 @@ export function AddSampleModal() {
           </Select>
         </Field>
         <Field label="ผู้ดูแลปัจจุบัน">
-          <Input value={custodian} onChange={(e) => setCustodian(e.target.value)} placeholder="ชื่อผู้รับผิดชอบ" />
+          <Select value={custodianId} onChange={(e) => setCustodianId(e.target.value)}>
+            <option value="" disabled>
+              เลือกผู้รับผิดชอบ
+            </option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </Select>
         </Field>
         <div className="rounded-lg border border-line bg-bg px-3 py-2.5 text-[12px] text-muted">
           รับตัวอย่างเข้าระบบก่อน แล้วค่อยไปกำหนดตำแหน่งจัดเก็บทีหลังได้ที่แผงตัวอย่าง

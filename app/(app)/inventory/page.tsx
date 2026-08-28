@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
-import type { PurchaseOrder } from "@/lib/data";
+import type { InventoryItem, PurchaseOrder } from "@/lib/data";
 import { Button, Card, CardHead, Donut, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiFetch } from "@/lib/api-client";
 import { mapPurchaseOrder, type PurchaseOrderDTO } from "@/lib/backend-mappers";
+import { StockIssueModal } from "@/components/modals/stock-issue";
 
 const SEG_OPTIONS = ["ทั้งหมด", "ต้องสั่งซื้อ"];
 
@@ -38,6 +39,7 @@ function usePurchaseOrders() {
 export default function InventoryPage() {
   const { inventory, openModal } = useLims();
   const [seg, setSeg] = useState(0);
+  const [issueItem, setIssueItem] = useState<InventoryItem | null>(null);
   const purchaseOrders = usePurchaseOrders();
 
   const filtered = inventory.filter((i) => (seg === 1 ? i.status.tone === "red" || i.status.tone === "amber" : true));
@@ -93,8 +95,8 @@ export default function InventoryPage() {
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr>
-                  {["รหัส", "รายการ", "หมวด", "ระดับสต็อก (เส้น = จุดสั่งซื้อ)", "คงเหลือ", "สถานะ"].map((h) => (
-                    <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
+                  {["รหัส", "รายการ", "หมวด", "ระดับสต็อก (เส้น = จุดสั่งซื้อ)", "คงเหลือ", "สถานะ", ""].map((h, idx) => (
+                    <th key={h || idx} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                       {h}
                     </th>
                   ))}
@@ -119,6 +121,12 @@ export default function InventoryPage() {
                       </td>
                       <td className="border-b border-line px-3.5 py-3">
                         <Tag {...i.status} />
+                      </td>
+                      <td className="border-b border-line px-3.5 py-3 text-right">
+                        <Button variant="ghost" size="sm" onClick={() => setIssueItem(i)}>
+                          <Icons.Arrow className="h-[13px] w-[13px]" />
+                          เบิก
+                        </Button>
                       </td>
                     </tr>
                   );
@@ -162,6 +170,8 @@ export default function InventoryPage() {
           </div>
         </Card>
       </div>
+
+      <StockIssueModal item={issueItem} open={issueItem !== null} onClose={() => setIssueItem(null)} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   type Document,
   type Equipment,
@@ -11,6 +11,7 @@ import {
   type TestResult,
 } from "@/lib/data";
 import { apiFetch, apiUpload } from "@/lib/api-client";
+import { issueStock as issueStockApi, type IssueLine, type IssueResult } from "@/lib/inventory-api";
 import { useAuth } from "@/lib/auth-context";
 import {
   mapDocument,
@@ -25,6 +26,7 @@ import {
   type NotificationDTO,
   type SampleDTO,
   type TestResultDTO,
+  type UserDTO,
 } from "@/lib/backend-mappers";
 
 export type ModalKey =
@@ -47,8 +49,14 @@ interface Toast {
   message: string;
 }
 
+export interface LimsUser {
+  id: number;
+  name: string;
+}
+
 interface LimsContextValue {
   samples: Sample[];
+  users: LimsUser[];
   equipment: Equipment[];
   inventory: InventoryItem[];
   documents: Document[];
@@ -56,10 +64,11 @@ interface LimsContextValue {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
-  addSample: (s: Pick<Sample, "name" | "type" | "custodian">) => Promise<void>;
+  addSample: (s: { name: string; type: string; custodianUserId: number }) => Promise<void>;
   putAwaySample: (sampleId: string, locationId: string) => Promise<void>;
   addEquipment: (e: Pick<Equipment, "name" | "next">) => Promise<void>;
   addInventoryItem: (i: Pick<InventoryItem, "name" | "cat" | "qty" | "unit" | "min" | "max">) => Promise<void>;
+  issueStock: (itemId: string, lines: IssueLine[], force: boolean) => Promise<IssueResult>;
   addDocument: (d: Pick<Document, "name" | "type" | "access">, file: File | null) => Promise<void>;
   addTest: (t: { sample: string; test: string; analyst: string; ref: string }) => Promise<void>;
   markNotificationRead: (id: string) => void;
@@ -77,6 +86,7 @@ const LimsContext = createContext<LimsContextValue | null>(null);
 export function LimsDataProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [samples, setSamples] = useState<Sample[]>([]);
+  const [users, setUsers] = useState<LimsUser[]>([]);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -103,15 +113,19 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     setLoading(true);
     Promise.allSettled([
-      apiFetch<SampleDTO[]>("/samples").then((r) => r.map(mapSample)),
+      apiFetch<UserDTO[]>("/users"),
+      apiFetch<SampleDTO[]>("/samples"),
       apiFetch<EquipmentDTO[]>("/equipment").then((r) => r.map(mapEquipment)),
       apiFetch<InventoryDTO[]>("/inventory").then((r) => r.map(mapInventory)),
       apiFetch<DocumentDTO[]>("/documents").then((r) => r.map(mapDocument)),
       apiFetch<TestResultDTO[]>("/tests").then((r) => r.map(mapTestResult)),
       apiFetch<NotificationDTO[]>("/notifications").then((r) => r.map(mapNotification)),
-    ]).then(([s, e, i, d, t, n]) => {
+    ]).then(([u, s, e, i, d, t, n]) => {
       if (cancelled) return;
-      if (s.status === "fulfilled") setSamples(s.value);
+      const userList = u.status === "fulfilled" ? u.value : [];
+      const nameById = new Map(userList.map((x) => [x.id, x.name]));
+      if (u.status === "fulfilled") setUsers(userList.map((x) => ({ id: x.id, name: x.name })));
+      if (s.status === "fulfilled") setSamples(s.value.map((x) => mapSample(x, nameById)));
       if (e.status === "fulfilled") setEquipment(e.value);
       if (i.status === "fulfilled") setInventory(i.value);
       if (d.status === "fulfilled") setDocuments(d.value);
@@ -124,21 +138,33 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     };
   }, [user]);
 
-  const addSample = useCallback(async (s: Pick<Sample, "name" | "type" | "custodian">) => {
-    const created = await apiFetch<SampleDTO>("/samples", {
-      method: "POST",
-      body: JSON.stringify({ name: s.name, type: s.type.toLowerCase(), custodian: s.custodian }),
-    });
-    setSamples((prev) => [mapSample(created), ...prev]);
-  }, []);
+  const addSample = useCallback(
+    async (s: { name: string; type: string; custodianUserId: number }) => {
+      const created = await apiFetch<SampleDTO>("/samples", {
+        method: "POST",
+        body: JSON.stringify({
+          name: s.name,
+          type: s.type.toLowerCase(),
+          custodian_user_id: s.custodianUserId,
+        }),
+      });
+      const nameById = new Map(users.map((u) => [u.id, u.name]));
+      setSamples((prev) => [mapSample(created, nameById), ...prev]);
+    },
+    [users]
+  );
 
-  const putAwaySample = useCallback(async (sampleId: string, locationId: string) => {
-    const updated = await apiFetch<SampleDTO>(`/samples/${sampleId}/location`, {
-      method: "PATCH",
-      body: JSON.stringify({ location_id: locationId }),
-    });
-    setSamples((prev) => prev.map((s) => (s.id === sampleId ? mapSample(updated) : s)));
-  }, []);
+  const putAwaySample = useCallback(
+    async (sampleId: string, locationId: string) => {
+      const updated = await apiFetch<SampleDTO>(`/samples/${sampleId}/location`, {
+        method: "PATCH",
+        body: JSON.stringify({ location_id: locationId }),
+      });
+      const nameById = new Map(users.map((u) => [u.id, u.name]));
+      setSamples((prev) => prev.map((s) => (s.id === sampleId ? mapSample(updated, nameById) : s)));
+    },
+    [users]
+  );
 
   const addEquipment = useCallback(async (e: Pick<Equipment, "name" | "next">) => {
     const typeCode =
@@ -165,6 +191,14 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     },
     []
   );
+
+  const issueStock = useCallback(async (itemId: string, lines: IssueLine[], force: boolean) => {
+    const result = await issueStockApi(itemId, lines, force);
+    if (result.applied) {
+      setInventory((prev) => prev.map((i) => (i.id === itemId ? mapInventory(result.item) : i)));
+    }
+    return result;
+  }, []);
 
   const addDocument = useCallback(async (d: Pick<Document, "name" | "type" | "access">, file: File | null) => {
     if (!file) throw new Error("กรุณาเลือกไฟล์เอกสาร");
@@ -199,36 +233,62 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  return (
-    <LimsContext.Provider
-      value={{
-        samples,
-        equipment,
-        inventory,
-        documents,
-        tests,
-        notifications,
-        unreadCount,
-        loading,
-        addSample,
-        putAwaySample,
-        addEquipment,
-        addInventoryItem,
-        addDocument,
-        addTest,
-        markNotificationRead,
-        markAllRead,
-        toasts,
-        pushToast,
-        dismissToast,
-        activeModal,
-        openModal,
-        closeModal,
-      }}
-    >
-      {children}
-    </LimsContext.Provider>
+  const value = useMemo<LimsContextValue>(
+    () => ({
+      samples,
+      users,
+      equipment,
+      inventory,
+      documents,
+      tests,
+      notifications,
+      unreadCount,
+      loading,
+      addSample,
+      putAwaySample,
+      addEquipment,
+      addInventoryItem,
+      issueStock,
+      addDocument,
+      addTest,
+      markNotificationRead,
+      markAllRead,
+      toasts,
+      pushToast,
+      dismissToast,
+      activeModal,
+      openModal,
+      closeModal,
+    }),
+    [
+      samples,
+      users,
+      equipment,
+      inventory,
+      documents,
+      tests,
+      notifications,
+      unreadCount,
+      loading,
+      addSample,
+      putAwaySample,
+      addEquipment,
+      addInventoryItem,
+      issueStock,
+      addDocument,
+      addTest,
+      markNotificationRead,
+      markAllRead,
+      toasts,
+      pushToast,
+      dismissToast,
+      activeModal,
+      openModal,
+      closeModal,
+    ]
   );
+
+  return <LimsContext.Provider value={value}>{children}</LimsContext.Provider>;
 }
 
 export function useLims() {

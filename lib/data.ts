@@ -134,6 +134,17 @@ export interface InventoryItem {
   status: Tag;
 }
 
+export interface InventoryLot {
+  id: string;
+  itemId: string;
+  lotNo: string;
+  /** raw RFC3339 string, or null when the lot has no expiry */
+  expireDate: string | null;
+  /** localized label for `expireDate`, or "—" when null */
+  expireLabel: string;
+  qty: number;
+}
+
 export const INVENTORY: InventoryItem[] = [
   { id: "CHM-0142", name: "Ethanol 99.9% AR", cat: "สารเคมี", qty: 3, unit: "L", min: 5, max: 20, pct: 15, status: { tone: "red", label: "สั่งซื้อด่วน" } },
   { id: "CHM-0098", name: "Sodium Chloride NaCl", cat: "สารเคมี", qty: 12, unit: "kg", min: 8, max: 25, pct: 48, status: { tone: "green", label: "เพียงพอ" } },
