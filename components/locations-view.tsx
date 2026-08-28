@@ -190,7 +190,7 @@ export function LocationsView({ currentId }: { currentId?: string }) {
                 </div>
                 {occupant && (
                   <Link
-                    href={`/samples/${occupant.id}`}
+                    href={`/samples?s=${occupant.id}`}
                     className="hidden items-center gap-1.5 rounded-full bg-bg px-2.5 py-1 font-mono text-[11px] text-muted transition hover:bg-line sm:flex"
                   >
                     <Icons.Sample className="h-3 w-3" />

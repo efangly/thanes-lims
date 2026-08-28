@@ -1,7 +1,7 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import type { CoCStep, Sample } from "@/lib/data";
 import { Avatar, Button, Card, CardHead, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
@@ -28,6 +28,7 @@ function useCoC(sampleId: string | undefined) {
       setSteps([]);
       return;
     }
+    // เก็บ steps เดิมไว้ระหว่างโหลดตัวใหม่ กันแฟลชสถานะว่างตอนสลับตัวอย่าง
     let cancelled = false;
     apiFetch<CoCStepDTO[]>(`/samples/${sampleId}/coc`)
       .then((r) => {
@@ -181,26 +182,43 @@ function SampleDetailPanel({
   );
 }
 
-/** Shared by `/samples` (no `activeId`, defaults to the first row) and `/samples/[id]` (deep-linkable detail). */
-export function SamplesView({ activeId }: { activeId?: string }) {
+/**
+ * หน้า `/samples` หน้าเดียว — ตัวอย่างที่เลือกเก็บใน query param `?s=<id>`
+ * (แหล่งความจริงเดียว) ไม่ใช้ selection state ที่ sync กับ URL อีก จึงไม่ remount route ตอนสลับตัวอย่าง
+ */
+export function SamplesView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedId = searchParams.get("s");
   const { samples, loading, openModal } = useLims();
   const [seg, setSeg] = useState(0);
   const [putAwayOpen, setPutAwayOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(activeId ?? null);
 
-  const filtered = samples.filter((s) => {
-    if (seg === 1) return s.status.label === "กำลังทดสอบ";
-    if (seg === 2) return s.status.label.includes("รอตรวจ");
-    return true;
-  });
+  const filtered = useMemo(
+    () =>
+      samples.filter((s) => {
+        if (seg === 1) return s.status.label === "กำลังทดสอบ";
+        if (seg === 2) return s.status.label.includes("รอตรวจ");
+        return true;
+      }),
+    [samples, seg]
+  );
   const active = selectedId ? samples.find((s) => s.id === selectedId) ?? null : filtered[0] ?? null;
   const notFound = Boolean(selectedId) && !loading && !active;
 
-  const select = (id: string) => {
-    setSelectedId(id);
-    router.replace(`/samples/${id}`, { scroll: false });
-  };
+  const select = useCallback(
+    (id: string) => {
+      router.replace(`/samples?s=${id}`, { scroll: false });
+    },
+    [router]
+  );
+
+  // เด้งไปตัวอย่างแรกอัตโนมัติเมื่อยังไม่ได้เลือก
+  useEffect(() => {
+    if (!selectedId && !loading && filtered[0]) {
+      router.replace(`/samples?s=${filtered[0].id}`, { scroll: false });
+    }
+  }, [selectedId, loading, filtered, router]);
 
   return (
     <div className="animate-fade">
