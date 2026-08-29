@@ -105,6 +105,11 @@ export const Icons = {
       <path d="M5 12h14M13 5l7 7-7 7" />
     </svg>
   ),
+  Chevron: (p: IconProps) => (
+    <svg {...base(p)}>
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  ),
   Drop: (p: IconProps) => (
     <svg {...base(p)}>
       <path d="M12 2.7S5 10 5 14a7 7 0 0 0 14 0c0-4-7-11.3-7-11.3z" />

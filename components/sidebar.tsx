@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/lib/confirm-context";
 import { LogoMark } from "@/components/logo";
+import { version as APP_VERSION } from "@/package.json";
 
 function initialsFor(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -175,7 +176,7 @@ export function Sidebar({
         </div>
         <div className="mt-2.5 flex items-center gap-[7px] px-[3px] font-mono text-[10.5px] text-sidebar-muted">
           <span className="h-[7px] w-[7px] rounded-full bg-teal animate-pulse-dot" />
-          CLOUD · SYNCED · v4.2.1
+          CLOUD · SYNCED · v{APP_VERSION}
         </div>
       </div>
       </aside>
