@@ -44,12 +44,12 @@ export function ScanBarcodeModal() {
     }
   };
 
-  const handleSelectLocation = async (location: Location) => {
+  const handleSelectLocation = async (location: Location, position?: string) => {
     if (!sample) return;
     setSubmitting(true);
     try {
-      await putAwaySample(sample.id, location.id);
-      pushToast(`ย้าย ${sample.id} ไปที่ ${location.name} เรียบร้อย`);
+      await putAwaySample(sample.id, location.id, position);
+      pushToast(`ย้าย ${sample.id} ไปที่ ${location.name}${position ? ` ช่อง ${position}` : ""} เรียบร้อย`);
       handleClose();
     } catch (err) {
       pushToast(apiErrorMessage(err), "red");

@@ -12,12 +12,12 @@ export function PutAwaySampleModal({ sample, open, onClose }: { sample: Sample |
   const { putAwaySample, pushToast } = useLims();
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSelect = async (location: Location) => {
+  const handleSelect = async (location: Location, position?: string) => {
     if (!sample) return;
     setSubmitting(true);
     try {
-      await putAwaySample(sample.id, location.id);
-      pushToast(`จัดเก็บ ${sample.id} ที่ ${location.name} เรียบร้อย`);
+      await putAwaySample(sample.id, location.id, position);
+      pushToast(`จัดเก็บ ${sample.id} ที่ ${location.name}${position ? ` ช่อง ${position}` : ""} เรียบร้อย`);
       onClose();
     } catch (err) {
       pushToast(apiErrorMessage(err), "red");

@@ -11,6 +11,8 @@ import {
   type TestResult,
 } from "@/lib/data";
 import { apiFetch, apiUpload } from "@/lib/api-client";
+import { moveWithinBox as moveWithinBoxApi, type CellMove } from "@/lib/locations-api";
+import { listSamplesInBox } from "@/lib/samples-api";
 import { issueStock as issueStockApi, type IssueLine, type IssueResult } from "@/lib/inventory-api";
 import {
   createEquipment,
@@ -80,7 +82,10 @@ interface LimsContextValue {
     barcodeId?: string;
   }) => Promise<Sample>;
   genSampleBarcode: (sampleId: string) => Promise<Sample>;
-  putAwaySample: (sampleId: string, locationId: string) => Promise<void>;
+  /** `position` is required when `locationId` is a Box, rejected otherwise (ADR-0009). */
+  putAwaySample: (sampleId: string, locationId: string, position?: string) => Promise<void>;
+  /** Atomic Cell rearrangement within one Box; refreshes the affected samples. */
+  moveWithinBox: (boxId: string, moves: CellMove[]) => Promise<void>;
   addEquipment: (input: EquipmentInput) => Promise<Equipment>;
   patchEquipmentFields: (id: string, patch: EquipmentPatch) => Promise<Equipment>;
   addInventoryItem: (input: ItemInput) => Promise<InventoryItem>;
@@ -204,13 +209,26 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
   );
 
   const putAwaySample = useCallback(
-    async (sampleId: string, locationId: string) => {
+    async (sampleId: string, locationId: string, position?: string) => {
       const updated = await apiFetch<SampleDTO>(`/samples/${sampleId}/location`, {
         method: "PATCH",
-        body: JSON.stringify({ location_id: locationId }),
+        body: JSON.stringify({ location_id: locationId, ...(position ? { position } : {}) }),
       });
       const nameById = new Map(users.map((u) => [u.id, u.name]));
       setSamples((prev) => prev.map((s) => (s.id === sampleId ? mapSample(updated, nameById) : s)));
+    },
+    [users]
+  );
+
+  const moveWithinBox = useCallback(
+    async (boxId: string, moves: CellMove[]) => {
+      await moveWithinBoxApi(boxId, moves);
+      // The batch may have shuffled samples not in `moves` too (none here, but
+      // cheap insurance) — re-pull the whole box and merge.
+      const nameById = new Map(users.map((u) => [u.id, u.name]));
+      const fresh = await listSamplesInBox(boxId, nameById);
+      const byId = new Map(fresh.map((s) => [s.id, s]));
+      setSamples((prev) => prev.map((s) => byId.get(s.id) ?? s));
     },
     [users]
   );
@@ -314,6 +332,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       addSample,
       genSampleBarcode,
       putAwaySample,
+      moveWithinBox,
       addEquipment,
       patchEquipmentFields,
       addInventoryItem,
@@ -345,6 +364,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       addSample,
       genSampleBarcode,
       putAwaySample,
+      moveWithinBox,
       addEquipment,
       patchEquipmentFields,
       addInventoryItem,

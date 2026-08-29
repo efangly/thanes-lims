@@ -11,11 +11,14 @@ import { apiErrorMessage } from "@/lib/api-client";
 /** The reverse direction of put-away: pick a sample to move into an already-selected leaf. */
 export function AssignSampleToLocationModal({
   location,
+  position,
   candidates,
   open,
   onClose,
 }: {
   location: Location | null;
+  /** Box Cell to drop the sample into — set only when `location` is a Box (ADR-0009). */
+  position?: string;
   candidates: Sample[];
   open: boolean;
   onClose: () => void;
@@ -35,8 +38,10 @@ export function AssignSampleToLocationModal({
     if (!location || !currentSampleId) return;
     setSubmitting(true);
     try {
-      await putAwaySample(currentSampleId, location.id);
-      pushToast(`ผูก ${currentSampleId} เข้าที่ ${location.name} เรียบร้อย`);
+      await putAwaySample(currentSampleId, location.id, position);
+      pushToast(
+        `ผูก ${currentSampleId} เข้าที่ ${location.name}${position ? ` ช่อง ${position}` : ""} เรียบร้อย`
+      );
       handleClose();
     } catch (err) {
       pushToast(apiErrorMessage(err), "red");
@@ -49,7 +54,7 @@ export function AssignSampleToLocationModal({
     <Modal
       open={open}
       onClose={handleClose}
-      title={`ผูก Sample เข้าที่ ${location?.name ?? ""}`}
+      title={`ผูก Sample เข้าที่ ${location?.name ?? ""}${position ? ` · ช่อง ${position}` : ""}`}
       icon={<Icons.Sample />}
       size="sm"
       footer={

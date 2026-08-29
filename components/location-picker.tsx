@@ -5,10 +5,11 @@ import type { Location, LocationKind } from "@/lib/data";
 import { levelLabel, rootLabel } from "@/lib/location-kinds";
 import { Icons } from "@/lib/icons";
 import { LocationBreadcrumb } from "@/components/location-breadcrumb";
+import { BoxGrid } from "@/components/box-grid";
 import { ScanInput } from "@/components/scan-input";
 import { useLocationBrowser } from "@/lib/use-location-browser";
 import { useLims } from "@/components/lims-data-context";
-import { occupantOf } from "@/lib/occupancy";
+import { boxOccupants, occupantOf } from "@/lib/occupancy";
 import { apiErrorMessage } from "@/lib/api-client";
 import { lookupLocationByBarcode } from "@/lib/locations-api";
 
@@ -30,7 +31,8 @@ export function LocationPicker({
   emptyLeavesOnly = false,
   enableScan = false,
 }: {
-  onSelect: (location: Location) => void;
+  /** For a Box target, `position` is the chosen Cell (ADR-0009); undefined for a plain leaf. */
+  onSelect: (location: Location, position?: string) => void;
   /** Which tree to browse — a picker never has a default tree in the domain, only in this signature (ADR-0008). */
   kind?: LocationKind;
   disabled?: boolean;
@@ -45,10 +47,16 @@ export function LocationPicker({
   );
   const { samples, pushToast } = useLims();
   const [entering, setEntering] = useState<string | null>(null);
+  const [boxTarget, setBoxTarget] = useState<Location | null>(null);
 
-  const isBlockedLeaf = (node: Location) => emptyLeavesOnly && Boolean(occupantOf(samples, node.id));
+  const isBlockedLeaf = (node: Location) =>
+    emptyLeavesOnly && node.levelType !== "box" && Boolean(occupantOf(samples, node.id));
 
-  const selectLeaf = (node: Location) => {
+  const selectNode = (node: Location) => {
+    if (node.levelType === "box") {
+      setBoxTarget(node);
+      return true;
+    }
     if (isBlockedLeaf(node)) {
       pushToast(`${node.name} มีตัวอย่างอื่นครองอยู่แล้ว`, "red");
       return false;
@@ -59,10 +67,14 @@ export function LocationPicker({
 
   const handleRowClick = async (node: Location) => {
     if (disabled) return;
+    if (node.levelType === "box") {
+      setBoxTarget(node);
+      return;
+    }
     setEntering(node.id);
     try {
       const kids = await enter(node);
-      if (kids.length === 0) selectLeaf(node);
+      if (kids.length === 0) selectNode(node);
     } finally {
       setEntering(null);
     }
@@ -75,14 +87,41 @@ export function LocationPicker({
         pushToast("บาร์โค้ดนี้ไม่ได้อยู่ในต้นไม้ตำแหน่งที่กำลังเลือก", "red");
         return false;
       }
+      if (node.levelType === "box") {
+        setBoxTarget(node);
+        return true;
+      }
       const kids = await jumpTo(node);
-      if (kids.length === 0) return selectLeaf(node);
+      if (kids.length === 0) return selectNode(node);
       return true;
     } catch (err) {
       pushToast(apiErrorMessage(err), "red");
       return false;
     }
   };
+
+  if (boxTarget) {
+    return (
+      <div className="flex flex-col gap-2.5">
+        <button
+          onClick={() => setBoxTarget(null)}
+          className="self-start text-[12px] text-muted underline-offset-2 hover:underline"
+        >
+          ← เลือกตำแหน่งอื่น
+        </button>
+        <div className="text-[12.5px] font-medium">
+          {boxTarget.name} — เลือกช่องว่างในกล่อง
+        </div>
+        <BoxGrid
+          box={boxTarget}
+          occupants={boxOccupants(samples, boxTarget.id)}
+          mode="pick"
+          busy={disabled}
+          onPickEmpty={(position) => onSelect(boxTarget, position)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -116,7 +155,10 @@ export function LocationPicker({
               <Icons.Loc className="h-[15px] w-[15px] flex-none text-teal-d" />
               <span className="flex-1">{node.name}</span>
               {blocked && <span className="text-[11px] text-amber">มีตัวอย่างครองอยู่</span>}
-              <span className="font-mono text-[11px] text-muted">{levelLabel(kind, node.levelType)}</span>
+              <span className="font-mono text-[11px] text-muted">
+                {levelLabel(kind, node.levelType)}
+                {node.levelType === "box" && node.rows && node.cols ? ` ${node.rows}×${node.cols}` : ""}
+              </span>
               {entering === node.id ? (
                 <span className="text-[11px] text-muted">กำลังเปิด…</span>
               ) : (

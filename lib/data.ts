@@ -30,8 +30,12 @@ export const MODULE_META: Record<ModuleId, { code: string; title: string }> = {
 /** Which of the two storage trees a Location belongs to — see lib/location-kinds.ts (ADR-0008). */
 export type LocationKind = "sample_storage" | "equipment_storage";
 
-/** Union of both trees' rungs. Depth and meaning come from the Kind, never from the name. */
-export type LevelType = "cabinet" | "shelf" | "slot" | "sub_slot" | "building" | "room" | "zone";
+/**
+ * Union of both trees' rungs. Depth and meaning come from the Kind, never from the name.
+ * `box` is special: a terminal marker in the sample tree (ADR-0009) that can appear at
+ * depth 2, 3, or 4 and never has children — it is not part of the fixed level chain.
+ */
+export type LevelType = "cabinet" | "shelf" | "slot" | "sub_slot" | "building" | "room" | "zone" | "box";
 
 export interface Location {
   id: string;
@@ -41,6 +45,9 @@ export interface Location {
   levelType: LevelType;
   /** Scannable code carried by every node; absent only on pre-Phase-2 rows the backend never backfilled. */
   barcodeCode?: string;
+  /** Box Grid dimensions — set only when `levelType === "box"` (ADR-0009). */
+  rows?: number;
+  cols?: number;
 }
 
 export interface Sample {
@@ -55,15 +62,17 @@ export interface Sample {
   barcodeId: string | null;
   /** Free-text intake notes. Empty string when none. */
   description: string;
+  /** Box Cell (`A1`, `H12`) when `locationId` points at a Box; null on a plain leaf or unassigned (ADR-0009). */
+  position: string | null;
 }
 
 export const SAMPLES: Sample[] = [
-  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", type: "Blood", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "21 ก.ค. 09:14" , barcodeId: null, description: "" },
-  { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", type: "Urine", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "21 ก.ค. 08:52" , barcodeId: null, description: "" },
-  { id: "SMP-2569-04819", name: "น้ำเสียอุตสาหกรรม", type: "Water", custodian: "สมชาย", locationId: null, status: { tone: "amber", label: "รอตรวจสอบ" }, recv: "21 ก.ค. 08:30" , barcodeId: null, description: "" },
-  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", type: "Tissue", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "20 ก.ค. 16:47" , barcodeId: null, description: "" },
-  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", type: "Food", custodian: "วิภา", locationId: null, status: { tone: "violet", label: "ส่งต่อแผนก" }, recv: "20 ก.ค. 15:20" , barcodeId: null, description: "" },
-  { id: "SMP-2569-04816", name: "ซีรั่ม – แผนกภูมิคุ้มกัน", type: "Serum", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "20 ก.ค. 14:05" , barcodeId: null, description: "" },
+  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", type: "Blood", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "21 ก.ค. 09:14" , barcodeId: null, description: "", position: null },
+  { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", type: "Urine", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "21 ก.ค. 08:52" , barcodeId: null, description: "", position: null },
+  { id: "SMP-2569-04819", name: "น้ำเสียอุตสาหกรรม", type: "Water", custodian: "สมชาย", locationId: null, status: { tone: "amber", label: "รอตรวจสอบ" }, recv: "21 ก.ค. 08:30" , barcodeId: null, description: "", position: null },
+  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", type: "Tissue", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "20 ก.ค. 16:47" , barcodeId: null, description: "", position: null },
+  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", type: "Food", custodian: "วิภา", locationId: null, status: { tone: "violet", label: "ส่งต่อแผนก" }, recv: "20 ก.ค. 15:20" , barcodeId: null, description: "", position: null },
+  { id: "SMP-2569-04816", name: "ซีรั่ม – แผนกภูมิคุ้มกัน", type: "Serum", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "20 ก.ค. 14:05" , barcodeId: null, description: "", position: null },
 ];
 
 export interface CoCStep {

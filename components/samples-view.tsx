@@ -160,7 +160,9 @@ function SampleDetailPanel({
             ? "—"
             : pathLoading
             ? "กำลังโหลด…"
-            : fullPath ?? "ยังไม่ได้จัดเก็บ"}
+            : sample.locationId
+            ? `${fullPath ?? "…"}${sample.position ? ` · ช่อง ${sample.position}` : ""}`
+            : "ยังไม่ได้จัดเก็บ"}
         </div>
       </Card>
 

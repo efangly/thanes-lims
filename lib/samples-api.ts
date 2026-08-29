@@ -27,6 +27,12 @@ export async function searchSamples(f: SampleFilter, nameById: Map<number, strin
   return rows.map((r) => mapSample(r, nameById));
 }
 
+/** Every active/assigned sample currently sitting in `boxId`, for rendering its Cell grid (ADR-0009). */
+export async function listSamplesInBox(boxId: string, nameById: Map<number, string>): Promise<Sample[]> {
+  const rows = await apiFetch<SampleDTO[]>(`/samples?location_id=${encodeURIComponent(boxId)}`);
+  return rows.map((r) => mapSample(r, nameById));
+}
+
 /**
  * Assigns an auto-generated Barcode ID (SMP-BC-xxxxx) to a sample that has none.
  * Idempotent per sample — the backend returns the existing code unchanged if one

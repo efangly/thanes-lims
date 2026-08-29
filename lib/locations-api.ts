@@ -28,6 +28,11 @@ export async function createRoot(name: string, kind: LocationKind = "sample_stor
   return mapLocation(created);
 }
 
+/** One Location by id — used to resolve a deep-linked node (e.g. a Box, whose Grid the drill-down doesn't carry). */
+export async function getLocation(id: string): Promise<Location> {
+  return mapLocation(await apiFetch<LocationDTO>(`/locations/${encodeURIComponent(id)}`));
+}
+
 /** Resolves a scanned Location Barcode to its node. Throws ApiError `not_found` when the code is unknown. */
 export async function lookupLocationByBarcode(code: string): Promise<Location> {
   const found = await apiFetch<LocationDTO>(`/locations/by-barcode/${encodeURIComponent(code)}`);
@@ -40,6 +45,46 @@ export async function generateChildren(parentId: string, prefix: string, count: 
     body: JSON.stringify({ prefix, count }),
   });
   return naturalSort(created.map(mapLocation));
+}
+
+/**
+ * Creates a Box (a `level_type: "box"` Location with a Grid) under `parentId`,
+ * which must be a Shelf, Slot, or Sub-slot (ADR-0009). A Box never has child
+ * Locations — it holds samples by Cell position.
+ */
+export async function createBox(parentId: string, name: string, rows: number, cols: number): Promise<Location> {
+  const created = await apiFetch<LocationDTO>(`/locations/${parentId}/boxes`, {
+    method: "POST",
+    body: JSON.stringify({ name, rows, cols }),
+  });
+  return mapLocation(created);
+}
+
+/** Grows a Box's Grid. The backend rejects any shrink — `rows`/`cols` must be ≥ current. */
+export async function enlargeBox(boxId: string, rows: number, cols: number): Promise<Location> {
+  const updated = await apiFetch<LocationDTO>(`/locations/${boxId}/grid`, {
+    method: "PATCH",
+    body: JSON.stringify({ rows, cols }),
+  });
+  return mapLocation(updated);
+}
+
+export interface CellMove {
+  sampleId: string;
+  position: string;
+}
+
+/**
+ * Rearranges Cells inside one Box as a single atomic batch (ADR-0009): a drag of
+ * a multi-selection or a two-Cell swap either all lands or none does. A position
+ * clash fails the whole batch with 409. Moving a sample in from another box is
+ * ordinary put-away, not this.
+ */
+export async function moveWithinBox(boxId: string, moves: CellMove[]): Promise<void> {
+  await apiFetch<{ sample_id: string; position: string }[]>(`/locations/${boxId}/moves`, {
+    method: "POST",
+    body: JSON.stringify({ moves: moves.map((m) => ({ sample_id: m.sampleId, position: m.position })) }),
+  });
 }
 
 export async function deleteLocation(id: string): Promise<void> {

@@ -56,6 +56,7 @@ export interface SampleDTO {
   received_at: string;
   barcode_id?: string | null;
   description?: string;
+  position?: string | null;
 }
 export function mapSample(d: SampleDTO, userNames?: Map<number, string>): Sample {
   return {
@@ -68,6 +69,7 @@ export function mapSample(d: SampleDTO, userNames?: Map<number, string>): Sample
     recv: formatDateTime(d.received_at),
     barcodeId: d.barcode_id ?? null,
     description: d.description ?? "",
+    position: d.position ?? null,
   };
 }
 
@@ -78,6 +80,8 @@ export interface LocationDTO {
   kind?: LocationKind;
   level_type: LevelType;
   barcode_code?: string;
+  rows?: number;
+  cols?: number;
 }
 export function mapLocation(d: LocationDTO): Location {
   return {
@@ -87,6 +91,8 @@ export function mapLocation(d: LocationDTO): Location {
     kind: d.kind ?? "sample_storage",
     levelType: d.level_type,
     barcodeCode: d.barcode_code,
+    rows: d.rows,
+    cols: d.cols,
   };
 }
 

@@ -7,29 +7,43 @@ Laboratory Information Management System — tracks samples through intake, test
 ### Storage Location
 
 **Location**:
-A node in the storage hierarchy where a sample can physically sit. Always one of four levels: Cabinet, Shelf, Slot, or Sub-slot, arranged as a strict 4-level tree (a node's children are always exactly one level below it — never skipped).
+A node in the storage hierarchy where a sample can physically sit. In the sample tree it is one of Cabinet, Shelf, Slot, Sub-slot, or Box. The first four form a strict top-down chain (a node's children are exactly one level below it); a Box is different — it can hang off a Shelf, Slot, or Sub-slot, and it is where the chain stops.
 _Avoid_: Storage location (as a distinct term from Location), position, bin
 
 **Cabinet**:
 A root-level Location (no parent). The top of a storage tree, e.g. a fridge or cabinet unit.
 
 **Shelf**, **Slot**, **Sub-slot**:
-Locations one, two, and three levels below a Cabinet respectively. Each level's children are generated in a batch via a "generate children" action (a name prefix + count), not created one at a time.
+Locations one, two, and three levels below a Cabinet respectively. Each level's children are generated in a batch via a "generate children" action (a name prefix + count), not created one at a time. The children of one parent may be mixed — some plain Locations, some Boxes.
+
+**Box**:
+A Location that holds many samples at once, each in its own addressable Cell, rather than one sample outright. A Box has a fixed Grid (rows × columns, set when it is created, only ever enlarged afterwards) and never has child Locations — it is always the bottom of its branch. It carries a Location Barcode like any node.
+_Avoid_: Compartment, container, rack, plate
+
+**Cell**:
+One position inside a Box's Grid, named microplate-style — row letter A–Z, then column number (`A1`, `H12`), with `A1` at the top-left. A Cell is not a Location node; it is the `position` recorded on the sample. A Cell holds at most one active sample.
+_Avoid_: Well, slot (Slot is a tree level), position (that is the field name, Cell is the thing)
+
+**Grid**:
+A Box's shape — its row count and column count. Chosen freely at creation (with 96 = 8×12 and 81 = 9×9 as shortcuts) and only ever grown, never shrunk, so no occupied Cell can fall outside it.
 
 **Leaf**:
-A Location with no children. Only leaves can hold a sample. Leaf-ness is not a stored flag — it's inferred by fetching a Location's children and finding the list empty. Any level (including Cabinet) can be a leaf if it was never subdivided — e.g. a small fridge with no shelves is itself the storage spot.
-_Avoid_: Sub-slot (as a synonym for leaf — most sub-slots are leaves, but a leaf can be any level)
+A Location that can hold a sample directly, one at a time: a node with no children that is not a Box. Leaf-ness is not a stored flag — it's inferred by fetching a Location's children and finding the list empty. Any plain level (including Cabinet) can be a leaf if it was never subdivided — e.g. a small fridge with no shelves is itself the storage spot. A Box is not a leaf — it holds samples by Cell, not directly.
+_Avoid_: Sub-slot (as a synonym for leaf — most sub-slots are leaves, but a leaf can be any plain level)
 
 **Full path**:
 The human-readable chain from a Location's root Cabinet down to itself (e.g. "Fridge-A / Shelf-2 / Slot-4"). Computed live from the tree on every request — never stored. Renaming a node instantly changes the full path of everything beneath it.
 
 **Active sample** (with respect to a Location):
-A sample occupying a leaf whose status is `pending`, `testing`, or `completed` — i.e. still physically present. A sample with status `transferred` has left the building and no longer occupies its leaf, even though the sample record still references it.
+A sample occupying a leaf, or a Box Cell, whose status is `pending`, `testing`, or `completed` — i.e. still physically present. A sample with status `transferred` has left the building and no longer occupies its leaf or Cell, even though the sample record still references it — the Cell shows empty.
 _Avoid_: Occupied, assigned (these don't distinguish active vs. transferred)
 
 **Put-away**:
-The act of assigning a sample to a leaf Location, distinct in time and intent from sample intake. A sample is always created first (unassigned), then put away separately. Put-away can also mean *moving* a sample already at one leaf to another.
+The act of assigning a sample to a leaf Location, or to a specific Cell of a Box, distinct in time and intent from sample intake. A sample is always created first (unassigned), then put away separately. A sample in a Box always has a Cell — there is no "in the box but no position yet" state. Put-away can also mean *moving* a sample already at one spot to another.
 _Avoid_: Assign, store (use "put-away" for the workflow; "assigned to" is fine for the resulting state of a sample)
+
+**Move-within-box**:
+Rearranging samples among the Cells of one Box — the drag-and-drop gesture on the Grid. It never crosses Box boundaries (that is an ordinary Put-away) and is applied as one atomic batch: dragging a group, or swapping two occupied Cells, either all lands or none does.
 
 ## Sample Identity
 
@@ -47,7 +61,7 @@ _Avoid_: Owner, responsible person
 ## Storage Location (two trees)
 
 **Location Kind**:
-Which of the two storage trees a Location belongs to. `sample_storage` is the original tree (Cabinet → Shelf → Slot → Sub-slot) where a Sample can only sit on a Leaf and only one Sample at a time. `equipment_storage` is a second, deeper tree (Building → Room → Zone → Cabinet → Shelf) shared by Equipment and Inventory Items, with no occupancy rule — a room legitimately holds many machines and many boxes at once. The level names Cabinet and Shelf appear in both trees at different depths and only mean something once you know the Kind.
+Which of the two storage trees a Location belongs to. `sample_storage` is the original tree (Cabinet → Shelf → Slot → Sub-slot, with a Box as an optional bottom stop) where a Sample sits either on a Leaf (one at a time) or in a Box Cell (one per Cell). `equipment_storage` is a second, deeper tree (Building → Room → Zone → Cabinet → Shelf) shared by Equipment and Inventory Items, with no occupancy rule — a room legitimately holds many machines and many boxes at once. The level names Cabinet and Shelf appear in both trees at different depths and only mean something once you know the Kind.
 _Avoid_: Location type (Level Type already names the rung; Kind names the tree)
 
 **Location Barcode**:
