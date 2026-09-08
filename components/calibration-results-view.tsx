@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Field, Input, PageHead, Select, Tag } from "@/components/ui";
+import { Button, Card, CardHead, Field, Input, PageHead, Pagination, Select, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage } from "@/lib/api-client";
 import { searchCalibrationResults, type CalibrationEvent } from "@/lib/equipment-api";
@@ -42,8 +42,10 @@ export function CalibrationResultsView() {
 
   const nameById = useMemo(() => new Map(equipment.map((e) => [e.id, e.name])), [equipment]);
 
+  const pager = usePagination(rows, { resetKey: `${q}|${equipmentId}|${result}|${from}|${to}` });
+
   return (
-    <div className="animate-fade">
+    <div className="animate-fade md:flex md:h-full md:flex-col md:overflow-hidden">
       <PageHead
         title="ผลการสอบเทียบ"
         desc="รายการผลสอบเทียบข้ามทุกเครื่องมือ เรียงจากใหม่ไปเก่า"
@@ -60,7 +62,7 @@ export function CalibrationResultsView() {
         }
       />
 
-      <Card>
+      <Card className="md:flex-none">
         <CardHead icon={<Icons.Search />} title="ค้นหา" />
         <div className="grid grid-cols-1 gap-3 px-5 py-4 sm:grid-cols-2 lg:grid-cols-5">
           <Field label="ค้นหา (รหัส/ชื่อ/ผู้สอบเทียบ/ประเภท)">
@@ -92,8 +94,8 @@ export function CalibrationResultsView() {
         </div>
       </Card>
 
-      <Card className="mt-4">
-        <div className="overflow-x-auto">
+      <Card className="mt-4 md:flex md:min-h-0 md:flex-1 md:flex-col">
+        <div className="overflow-x-auto md:min-h-0 md:flex-1">
           <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr>
@@ -131,7 +133,7 @@ export function CalibrationResultsView() {
                   </td>
                 </tr>
               )}
-              {rows.map((ev) => (
+              {pager.pageItems.map((ev) => (
                 <tr key={ev.id} className="transition hover:bg-bg/60">
                   <td className="border-b border-line px-3.5 py-3 font-mono text-[12.5px]">{ev.calibratedAt}</td>
                   <td className="border-b border-line px-3.5 py-3">
@@ -157,6 +159,17 @@ export function CalibrationResultsView() {
             </tbody>
           </table>
         </div>
+        {!loading && !error && (
+          <Pagination
+            page={pager.page}
+            totalPages={pager.totalPages}
+            total={pager.total}
+            rangeStart={pager.rangeStart}
+            rangeEnd={pager.rangeEnd}
+            onPage={pager.setPage}
+            unit="รายการ"
+          />
+        )}
       </Card>
     </div>
   );

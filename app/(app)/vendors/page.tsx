@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
-import { Button, Card, CardHead, Field, Input, PageHead } from "@/components/ui";
+import { Button, Card, CardHead, Field, Input, PageHead, Pagination, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage } from "@/lib/api-client";
 import { createVendor, listVendors, updateVendor, type Vendor, type VendorInput } from "@/lib/vendors-api";
@@ -15,6 +15,14 @@ import { createVendor, listVendors, updateVendor, type Vendor, type VendorInput 
  * conversation (and a backend field) we have not had yet.
  */
 export default function VendorsPage() {
+  return (
+    <Suspense fallback={null}>
+      <VendorsPageInner />
+    </Suspense>
+  );
+}
+
+function VendorsPageInner() {
   const { pushToast } = useLims();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +51,8 @@ export default function VendorsPage() {
     ? vendors.filter((v) => `${v.name} ${v.contactName} ${v.contactPhone} ${v.contactEmail}`.toLowerCase().includes(q))
     : vendors;
 
+  const pager = usePagination(filtered, { resetKey: q });
+
   const handleSaved = (vendor: Vendor, mode: "created" | "updated") => {
     setVendors((prev) =>
       mode === "created" ? [...prev, vendor] : prev.map((v) => (v.id === vendor.id ? vendor : v))
@@ -52,7 +62,7 @@ export default function VendorsPage() {
   };
 
   return (
-    <div className="animate-fade">
+    <div className="animate-fade md:flex md:h-full md:flex-col md:overflow-hidden">
       <PageHead
         title="ผู้ขาย (Vendor)"
         desc="ข้อมูลหลักของผู้ขาย/ผู้ให้บริการ ใช้ร่วมกันทั้งเครื่องมือ สินค้าคงคลัง และใบสั่งซื้อ — แก้ที่นี่ที่เดียว ทุกที่ที่อ้างถึงเปลี่ยนตาม"
@@ -64,7 +74,7 @@ export default function VendorsPage() {
         }
       />
 
-      <Card>
+      <Card className="md:flex md:min-h-0 md:flex-1 md:flex-col">
         <CardHead
           icon={<Icons.Cart />}
           title={`ผู้ขายทั้งหมด${vendors.length > 0 ? ` (${vendors.length})` : ""}`}
@@ -89,7 +99,8 @@ export default function VendorsPage() {
         )}
 
         {filtered.length > 0 && (
-          <div className="overflow-x-auto">
+          <>
+          <div className="overflow-x-auto md:min-h-0 md:flex-1">
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr>
@@ -104,7 +115,7 @@ export default function VendorsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((v) => (
+                {pager.pageItems.map((v) => (
                   <tr key={v.id} className="transition hover:bg-bg/60">
                     <td className="border-b border-line px-3.5 py-3 font-medium">{v.name}</td>
                     <td className="border-b border-line px-3.5 py-3 text-muted">{v.contactName || "—"}</td>
@@ -125,6 +136,16 @@ export default function VendorsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={pager.page}
+            totalPages={pager.totalPages}
+            total={pager.total}
+            rangeStart={pager.rangeStart}
+            rangeEnd={pager.rangeEnd}
+            onPage={pager.setPage}
+            unit="ผู้ขาย"
+          />
+          </>
         )}
       </Card>
 

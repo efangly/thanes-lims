@@ -4,7 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import type { CoCStep, Sample } from "@/lib/data";
-import { Avatar, Button, Card, CardHead, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
+import { Avatar, Button, Card, CardHead, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage, apiFetch } from "@/lib/api-client";
 import { mapCoCStep, type CoCStepDTO } from "@/lib/backend-mappers";
@@ -58,7 +58,7 @@ const SampleTable = memo(function SampleTable({
   onReprint: (id: string) => void;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto lg:min-h-0 lg:flex-1">
       <table className="w-full border-collapse text-[13px]">
         <thead>
           <tr>
@@ -312,6 +312,7 @@ export function SamplesView() {
       }),
     [list, seg]
   );
+  const pager = usePagination(filtered, { resetKey: `${seg}|${barcode}|${location}|${custodianUserId}` });
   const selectedInList = selectedId ? list.find((s) => s.id === selectedId) ?? null : null;
   const active = selectedInList ?? filtered[0] ?? null;
   // "ไม่พบ" เฉพาะตอนค้นด้วยบาร์โค้ดแล้วไม่เจออะไรเลย (ลิงก์ ?s= เก่าที่ถูกกรองออกไม่นับ)
@@ -357,7 +358,7 @@ export function SamplesView() {
   const anyFilter = Boolean(barcode || location || custodianUserId);
 
   return (
-    <div className="animate-fade">
+    <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
       <PageHead
         title="การจัดการตัวอย่าง"
         desc="ติดตามตัวอย่างทั่วทั้งห้องปฏิบัติการ พร้อมกำหนดตำแหน่งจัดเก็บและรักษา Chain of Custody ป้องกันการสูญหายระหว่างแผนก"
@@ -382,8 +383,8 @@ export function SamplesView() {
         <KpiCard accent="violet" label="ส่งต่อระหว่างแผนก" value="4" trend="อยู่ระหว่างส่งมอบ" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Card>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+        <Card className="lg:flex lg:min-h-0 lg:flex-col">
           <CardHead
             icon={<Icons.Sample />}
             title="ทะเบียนตัวอย่าง"
@@ -433,10 +434,21 @@ export function SamplesView() {
             </div>
           )}
 
-          <SampleTable samples={filtered} selectedId={active?.id ?? null} onSelect={select} onReprint={reprint} />
+          <SampleTable samples={pager.pageItems} selectedId={active?.id ?? null} onSelect={select} onReprint={reprint} />
+          <Pagination
+            page={pager.page}
+            totalPages={pager.totalPages}
+            total={pager.total}
+            rangeStart={pager.rangeStart}
+            rangeEnd={pager.rangeEnd}
+            onPage={pager.setPage}
+            unit="ตัวอย่าง"
+          />
         </Card>
 
-        <SampleDetailPanel sample={active} notFound={notFound} onPutAway={() => setPutAwayOpen(true)} />
+        <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+          <SampleDetailPanel sample={active} notFound={notFound} onPutAway={() => setPutAwayOpen(true)} />
+        </div>
       </div>
 
       <PutAwaySampleModal sample={active} open={putAwayOpen} onClose={() => setPutAwayOpen(false)} />

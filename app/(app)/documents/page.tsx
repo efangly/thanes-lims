@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
 import type { Document, DocHistory } from "@/lib/data";
-import { Button, Card, CardHead, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
+import { Button, Card, CardHead, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiFetch } from "@/lib/api-client";
 import { mapDocHistory, type DocHistoryDTO } from "@/lib/backend-mappers";
@@ -34,6 +34,14 @@ function useDocHistory(docId: string | undefined) {
 }
 
 export default function DocumentsPage() {
+  return (
+    <Suspense fallback={null}>
+      <DocumentsPageInner />
+    </Suspense>
+  );
+}
+
+function DocumentsPageInner() {
   const { documents, openModal } = useLims();
   const [seg, setSeg] = useState(0);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
@@ -41,9 +49,10 @@ export default function DocumentsPage() {
   const filtered = documents.filter((d) => (seg === 0 ? true : d.type === SEG_TYPE[seg]));
   const active = selectedDoc && filtered.some((d) => d.id === selectedDoc.id) ? selectedDoc : filtered[0] ?? null;
   const history = useDocHistory(active?.id);
+  const pager = usePagination(filtered, { resetKey: String(seg) });
 
   return (
-    <div className="animate-fade">
+    <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
       <PageHead
         title="การจัดการเอกสาร"
         desc="จัดระเบียบ SOP คู่มือ นโยบาย และแบบฟอร์ม พร้อมติดตามประวัติการแก้ไข ป้องกันเอกสารสูญหาย และจำกัดสิทธิ์เข้าถึงข้อมูลลับตามบทบาท"
@@ -68,17 +77,17 @@ export default function DocumentsPage() {
         <KpiCard accent="red" label="เอกสารจำกัดสิทธิ์" value="11" trend="เข้าถึงตามบทบาท" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Card>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+        <Card className="lg:flex lg:min-h-0 lg:flex-col">
           <CardHead
             icon={<Icons.Doc />}
             title="คลังเอกสาร"
             right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
           />
-          <div>
-            {filtered.map((d, i) => (
+          <div className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+            {pager.pageItems.map((d) => (
               <div
-                key={i}
+                key={d.id}
                 onClick={() => setSelectedDoc(d)}
                 className={`flex cursor-pointer items-center gap-3 border-b border-line px-[18px] py-3 transition last:border-none hover:bg-bg/60 ${
                   active?.id === d.id ? "bg-bg/60" : ""
@@ -103,9 +112,18 @@ export default function DocumentsPage() {
               </div>
             ))}
           </div>
+          <Pagination
+            page={pager.page}
+            totalPages={pager.totalPages}
+            total={pager.total}
+            rangeStart={pager.rangeStart}
+            rangeEnd={pager.rangeEnd}
+            onPage={pager.setPage}
+            unit="เอกสาร"
+          />
         </Card>
 
-        <Card>
+        <Card className="lg:min-h-0 lg:overflow-y-auto">
           <CardHead
             icon={<Icons.Clock />}
             title="ประวัติการแก้ไข"

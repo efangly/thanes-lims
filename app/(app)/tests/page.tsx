@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Donut, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
+import { Button, Card, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 
 const flagColor = { hi: "text-red", lo: "text-amber", ok: "text-green" };
 const SEG_OPTIONS = ["ทั้งหมด", "รอทวนสอบ", "ผิดปกติ"];
 
 export default function TestsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TestsPageInner />
+    </Suspense>
+  );
+}
+
+function TestsPageInner() {
   const { tests, openModal } = useLims();
   const [seg, setSeg] = useState(0);
 
@@ -18,8 +26,10 @@ export default function TestsPage() {
     return true;
   });
 
+  const pager = usePagination(filtered, { resetKey: String(seg) });
+
   return (
-    <div className="animate-fade">
+    <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
       <PageHead
         title="การจัดการทดสอบ & วิเคราะห์ข้อมูล"
         desc="ควบคุมมาตรฐานขั้นตอนการทดสอบให้ครบถ้วนและแม่นยำ บันทึกผล จัดการผลการตรวจวิเคราะห์ และแปลผลด้วยระบบ AI"
@@ -44,14 +54,14 @@ export default function TestsPage() {
         <KpiCard accent="red" label="ผลผิดปกติ (Flag)" value="6" trend="นอกช่วงอ้างอิง" trendDown />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Card>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+        <Card className="lg:flex lg:min-h-0 lg:flex-col">
           <CardHead
             icon={<Icons.Test />}
             title="ผลการทดสอบ"
             right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
           />
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto lg:min-h-0 lg:flex-1">
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr>
@@ -63,7 +73,7 @@ export default function TestsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((t) => (
+                {pager.pageItems.map((t) => (
                   <tr key={t.id} className="transition hover:bg-bg/60">
                     <td className="border-b border-line px-3.5 py-3 font-mono text-[12.5px] font-medium">{t.id}</td>
                     <td className="border-b border-line px-3.5 py-3 font-medium">{t.test}</td>
@@ -79,9 +89,18 @@ export default function TestsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={pager.page}
+            totalPages={pager.totalPages}
+            total={pager.total}
+            rangeStart={pager.rangeStart}
+            rangeEnd={pager.rangeEnd}
+            onPage={pager.setPage}
+            unit="รายการ"
+          />
         </Card>
 
-        <div>
+        <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
           <div className="relative overflow-hidden rounded-[10px] border border-line bg-gradient-to-br from-teal-bg to-panel p-5 text-ink shadow-card">
             <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(10,147,150,0.35),transparent_70%)]" />
             <span className="inline-flex items-center gap-1.5 rounded-full border border-teal/40 bg-teal/20 px-2.5 py-1 font-mono text-[10.5px] tracking-[1px] text-teal">

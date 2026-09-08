@@ -1,6 +1,7 @@
 "use client";
 
-import { forwardRef, type ReactNode, useState } from "react";
+import { forwardRef, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Tag as TagType, TagTone } from "@/lib/data";
 
 /* ---------- Tag / status pill ---------- */
@@ -183,6 +184,153 @@ export function Seg({
           {o}
         </button>
       ))}
+    </div>
+  );
+}
+
+/* ---------- Pagination ---------- */
+/**
+ * Client-side pagination (ADR-0011). The backend returns whole filtered lists with
+ * no `page`/`limit`, so every table slices an already-loaded array. Page number lives
+ * in a URL query param so reload / share / back-forward land on the same page.
+ */
+export const PAGE_SIZE = 12;
+
+export function usePagination<T>(
+  items: T[],
+  opts: { pageSize?: number; paramKey?: string; resetKey?: string } = {}
+) {
+  const { pageSize = PAGE_SIZE, paramKey = "page", resetKey } = opts;
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const rawParam = searchParams.get(paramKey);
+  const parsed = Math.floor(Number(rawParam));
+  const requested = Number.isFinite(parsed) && parsed >= 1 ? parsed : 1;
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const page = Math.min(requested, totalPages);
+
+  const setPage = useCallback(
+    (next: number) => {
+      const sp = new URLSearchParams(Array.from(searchParams.entries()));
+      if (next <= 1) sp.delete(paramKey);
+      else sp.set(paramKey, String(next));
+      const qs = sp.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [router, pathname, searchParams, paramKey]
+  );
+
+  // clamp an out-of-range ?page= down to the last page (list shrank from filtering)
+  useEffect(() => {
+    if (rawParam !== null && requested !== page) setPage(page);
+  }, [rawParam, requested, page, setPage]);
+
+  // reset to page 1 whenever the caller's filter signature changes (skip first mount)
+  const firstRun = useRef(true);
+  useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey]);
+
+  const start = (page - 1) * pageSize;
+  const pageItems = useMemo(() => items.slice(start, start + pageSize), [items, start, pageSize]);
+
+  return {
+    page,
+    totalPages,
+    pageItems,
+    total: items.length,
+    rangeStart: items.length === 0 ? 0 : start + 1,
+    rangeEnd: Math.min(start + pageSize, items.length),
+    setPage,
+  };
+}
+
+function pageWindow(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const out: (number | "…")[] = [1];
+  const lo = Math.max(2, current - 1);
+  const hi = Math.min(total - 1, current + 1);
+  if (lo > 2) out.push("…");
+  for (let i = lo; i <= hi; i++) out.push(i);
+  if (hi < total - 1) out.push("…");
+  out.push(total);
+  return out;
+}
+
+export function Pagination({
+  page,
+  totalPages,
+  total,
+  rangeStart,
+  rangeEnd,
+  onPage,
+  unit = "รายการ",
+  className = "",
+}: {
+  page: number;
+  totalPages: number;
+  total: number;
+  rangeStart: number;
+  rangeEnd: number;
+  onPage: (page: number) => void;
+  unit?: string;
+  className?: string;
+}) {
+  const cell =
+    "grid h-7 min-w-7 place-items-center rounded-md border border-line px-1.5 text-[12px] font-medium transition disabled:cursor-not-allowed disabled:opacity-40";
+  const fmt = (n: number) => n.toLocaleString("th-TH");
+  return (
+    <div
+      className={`flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-2.5 ${className}`}
+    >
+      <span className="text-[11.5px] text-muted">
+        แสดง {fmt(rangeStart)}–{fmt(rangeEnd)} จาก {fmt(total)} {unit}
+      </span>
+      {totalPages > 1 && (
+        <div className="flex items-center gap-1">
+          <button
+            className={`${cell} hover:bg-bg`}
+            onClick={() => onPage(page - 1)}
+            disabled={page <= 1}
+            aria-label="หน้าก่อนหน้า"
+          >
+            ‹
+          </button>
+          {pageWindow(page, totalPages).map((p, i) =>
+            p === "…" ? (
+              <span key={`gap-${i}`} className="px-1 text-[12px] text-muted-2">
+                …
+              </span>
+            ) : (
+              <button
+                key={p}
+                onClick={() => onPage(p)}
+                aria-current={p === page ? "page" : undefined}
+                className={`${cell} ${
+                  p === page ? "border-teal bg-teal text-white" : "text-ink hover:bg-bg"
+                }`}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button
+            className={`${cell} hover:bg-bg`}
+            onClick={() => onPage(page + 1)}
+            disabled={page >= totalPages}
+            aria-label="หน้าถัดไป"
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Input, KpiCard, PageHead, Ring, Seg, Tag } from "@/components/ui";
+import { Button, Card, CardHead, Input, KpiCard, PageHead, Pagination, Ring, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { useFullPath } from "@/lib/use-full-path";
 import { listAllSchedules, type CalibrationSchedule } from "@/lib/equipment-api";
@@ -30,6 +30,14 @@ const auditDocs = [
 ];
 
 export default function EquipmentPage() {
+  return (
+    <Suspense fallback={null}>
+      <EquipmentPageInner />
+    </Suspense>
+  );
+}
+
+function EquipmentPageInner() {
   const router = useRouter();
   const { equipment, openModal } = useLims();
   const [seg, setSeg] = useState(0);
@@ -52,6 +60,8 @@ export default function EquipmentPage() {
     if (needle && !e.name.toLowerCase().includes(needle) && !e.sn.toLowerCase().includes(needle)) return false;
     return true;
   });
+
+  const pager = usePagination(filtered, { resetKey: `${seg}|${needle}` });
 
   return (
     <div className="animate-fade">
@@ -115,7 +125,7 @@ export default function EquipmentPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(({ e, standing }) => (
+              {pager.pageItems.map(({ e, standing }) => (
                 <tr
                   key={e.id}
                   onClick={() => router.push(`/equipment/${e.id}`)}
@@ -146,6 +156,15 @@ export default function EquipmentPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={pager.page}
+          totalPages={pager.totalPages}
+          total={pager.total}
+          rangeStart={pager.rangeStart}
+          rangeEnd={pager.rangeEnd}
+          onPage={pager.setPage}
+          unit="เครื่องมือ"
+        />
       </Card>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Icons } from "@/lib/icons";
 import type { InventoryItem, PurchaseOrder } from "@/lib/data";
-import { Button, Card, CardHead, Donut, KpiCard, PageHead, Seg, Tag } from "@/components/ui";
+import { Button, Card, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiFetch } from "@/lib/api-client";
 import { mapPurchaseOrder, type PurchaseOrderDTO } from "@/lib/backend-mappers";
@@ -51,12 +51,21 @@ function usePurchaseOrders() {
 }
 
 export default function InventoryPage() {
+  return (
+    <Suspense fallback={null}>
+      <InventoryPageInner />
+    </Suspense>
+  );
+}
+
+function InventoryPageInner() {
   const { inventory, openModal } = useLims();
   const [seg, setSeg] = useState(0);
   const [issueItem, setIssueItem] = useState<InventoryItem | null>(null);
   const purchaseOrders = usePurchaseOrders();
 
   const filtered = inventory.filter((i) => (seg === 1 ? i.status.tone === "red" || i.status.tone === "amber" : true));
+  const pager = usePagination(filtered, { resetKey: String(seg) });
 
   const expiringSoon = inventory.filter((i) => expiryInfo(i.earliestExpireDate).soon).length;
 
@@ -75,7 +84,7 @@ export default function InventoryPage() {
     }));
 
   return (
-    <div className="animate-fade">
+    <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
       <PageHead
         title="การจัดการสินค้าคงคลัง"
         desc="บริหารสต็อกวัสดุ สารเคมี และอุปกรณ์ในห้องปฏิบัติการ พร้อมแจ้งเตือนและสั่งซื้อซ้ำอัตโนมัติเมื่อสินค้าใกล้หมด"
@@ -112,14 +121,14 @@ export default function InventoryPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Card>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+        <Card className="lg:flex lg:min-h-0 lg:flex-col">
           <CardHead
             icon={<Icons.Inventory />}
             title="ระดับสต็อกปัจจุบัน"
             right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
           />
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto lg:min-h-0 lg:flex-1">
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr>
@@ -131,7 +140,7 @@ export default function InventoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((i) => {
+                {pager.pageItems.map((i) => {
                   const minPos = (i.min / i.max) * 100;
                   return (
                     <tr key={i.id} className="transition hover:bg-bg/60">
@@ -193,9 +202,18 @@ export default function InventoryPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={pager.page}
+            totalPages={pager.totalPages}
+            total={pager.total}
+            rangeStart={pager.rangeStart}
+            rangeEnd={pager.rangeEnd}
+            onPage={pager.setPage}
+            unit="รายการ"
+          />
         </Card>
 
-        <Card>
+        <Card className="lg:min-h-0 lg:overflow-y-auto">
           <CardHead
             icon={<Icons.Cart />}
             title="คำสั่งซื้ออัตโนมัติ"
