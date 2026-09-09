@@ -89,7 +89,7 @@ export function ResizablePanels({
               {collapsed ? (
                 <button
                   onClick={() => toggleCollapsed(i)}
-                  className="flex w-9 flex-none flex-col items-center gap-2 rounded-[10px] border border-line bg-panel py-3 text-muted transition hover:text-ink"
+                  className="flex w-9 flex-none flex-col items-center gap-2 rounded border border-line bg-panel py-3 text-muted transition hover:text-ink"
                   title={`เปิด ${panel.title}`}
                 >
                   <Icons.Chevron className="h-3.5 w-3.5" />
@@ -117,7 +117,7 @@ export function ResizablePanels({
               {i < panels.length - 1 && !collapsed && !layout.collapsed[i + 1] && (
                 <div
                   onPointerDown={startDrag(i)}
-                  className="w-1.5 flex-none cursor-col-resize self-stretch rounded-full bg-line/60 transition hover:bg-teal"
+                  className="w-1.5 flex-none cursor-col-resize self-stretch rounded-full bg-line-2 transition hover:bg-accent"
                   role="separator"
                   aria-orientation="vertical"
                 />

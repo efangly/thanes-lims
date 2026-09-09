@@ -62,12 +62,12 @@ function VendorsPageInner() {
   };
 
   return (
-    <div className="animate-fade md:flex md:h-full md:flex-col md:overflow-hidden">
+    <div className="md:flex md:h-full md:flex-col md:overflow-hidden">
       <PageHead
         title="ผู้ขาย (Vendor)"
         desc="ข้อมูลหลักของผู้ขาย/ผู้ให้บริการ ใช้ร่วมกันทั้งเครื่องมือ สินค้าคงคลัง และใบสั่งซื้อ — แก้ที่นี่ที่เดียว ทุกที่ที่อ้างถึงเปลี่ยนตาม"
         actions={
-          <Button variant="teal" onClick={() => setEditing("new")}>
+          <Button variant="accent" onClick={() => setEditing("new")}>
             <Icons.Plus className="h-[15px] w-[15px]" />
             เพิ่มผู้ขาย
           </Button>
@@ -220,7 +220,7 @@ function VendorFormModal({
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !form.name?.trim()}>
+          <Button variant="accent" size="sm" onClick={handleSubmit} disabled={submitting || !form.name?.trim()}>
             <Icons.Check className="h-[14px] w-[14px]" />
             {submitting ? "กำลังบันทึก..." : "บันทึก"}
           </Button>

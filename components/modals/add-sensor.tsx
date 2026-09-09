@@ -42,7 +42,7 @@ export function AddSensorModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit}>
+          <Button variant="accent" size="sm" onClick={handleSubmit}>
             <Icons.Plus className="h-[14px] w-[14px]" />
             เพิ่มเซนเซอร์
           </Button>

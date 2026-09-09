@@ -54,7 +54,7 @@ export function OpenTestOrderModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting}>
+          <Button variant="accent" size="sm" onClick={handleSubmit} disabled={submitting}>
             <Icons.Plus className="h-[14px] w-[14px]" />
             {submitting ? "กำลังบันทึก..." : "เปิดคำสั่งทดสอบ"}
           </Button>

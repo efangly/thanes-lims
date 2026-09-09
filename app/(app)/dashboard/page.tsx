@@ -29,11 +29,10 @@ const feedIcons = {
 };
 
 const toneBg: Record<TagTone, string> = {
-  teal: "bg-teal-bg text-teal-d",
+  accent: "bg-accent-bg text-accent-d",
   amber: "bg-amber-bg text-amber",
   red: "bg-red-bg text-red",
   green: "bg-green-bg text-green",
-  violet: "bg-violet-bg text-violet",
   grey: "bg-bg-2 text-muted",
 };
 
@@ -67,7 +66,7 @@ function ModuleCard({
   return (
     <button
       onClick={onClick}
-      className="group rounded-[10px] border border-line bg-panel p-4.25 text-left shadow-card transition hover:-translate-y-0.5 hover:border-teal hover:shadow-[0_8px_24px_rgba(13,27,42,0.1)]"
+      className="group rounded-[10px] border border-line bg-panel p-4.25 text-left transition hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_8px_24px_rgba(13,27,42,0.1)]"
     >
       <div className={`mb-3 grid h-10 w-10 place-items-center rounded-[9px] ${toneBg[tone]}`}>
         <span className="h-5.25 w-5.25">{icon}</span>
@@ -97,7 +96,7 @@ export default function DashboardPage() {
   const inventoryLow = inventory.filter((i) => i.status.tone === "red" || i.status.tone === "amber").length;
 
   return (
-    <div className="animate-fade">
+    <div className="">
       <PageHead
         title="ภาพรวมห้องปฏิบัติการ"
         desc="สรุปสถานะทั้ง 6 โมดูลแบบเรียลไทม์ · ข้อมูลซิงก์จากคลาวด์ ทำงานร่วมกันได้แม้อยู่คนละสถานที่"
@@ -105,7 +104,7 @@ export default function DashboardPage() {
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="teal" icon={<Icons.Sample />} label="ตัวอย่างที่กำลังดำเนินการ" value={String(activeSamples)} unit="ตัวอย่าง" trend={`${samples.length} ตัวอย่างทั้งหมด`} />
+        <KpiCard accent="accent" icon={<Icons.Sample />} label="ตัวอย่างที่กำลังดำเนินการ" value={String(activeSamples)} unit="ตัวอย่าง" trend={`${samples.length} ตัวอย่างทั้งหมด`} />
         <KpiCard
           accent="amber"
           icon={<Icons.Equipment />}
@@ -143,7 +142,7 @@ export default function DashboardPage() {
           <CardHead
             icon={<Icons.Bell />}
             title="ความเคลื่อนไหวล่าสุด"
-            right={<Tag tone="teal" label="LIVE" />}
+            right={<Tag tone="accent" label="LIVE" />}
           />
           <div className="py-1.5">
             {FEED.map((f, i) => (
@@ -166,12 +165,12 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-        <ModuleCard onClick={() => onNavigate("samples")} tone="teal" icon={<Icons.Sample />} th="การจัดการตัวอย่าง" en="Sample Management" desc="บันทึก ติดตาม และรักษา Chain of Custody ตลอดวงจรของตัวอย่าง" stat={`${activeSamples} ตัวอย่างที่ใช้งาน`} />
+        <ModuleCard onClick={() => onNavigate("samples")} tone="accent" icon={<Icons.Sample />} th="การจัดการตัวอย่าง" en="Sample Management" desc="บันทึก ติดตาม และรักษา Chain of Custody ตลอดวงจรของตัวอย่าง" stat={`${activeSamples} ตัวอย่างที่ใช้งาน`} />
         <ModuleCard onClick={() => onNavigate("equipment")} tone="green" icon={<Icons.Equipment />} th="การจัดการเครื่องมือ" en="Equipment Management" desc="ประวัติการใช้งาน สอบเทียบ บำรุงรักษา และพร้อมรับการตรวจสอบ" stat={`${equipment.length} เครื่อง · ${equipmentDue} รอสอบเทียบ`} />
         <ModuleCard onClick={() => onNavigate("environment")} tone="red" icon={<Icons.Env />} th="ควบคุมสภาพแวดล้อม" en="Environmental" desc="ติดตามอุณหภูมิ/ความชื้นเรียลไทม์ แจ้งเตือนเข้าสมาร์ตโฟนทันที" stat={`${alerts.length} การแจ้งเตือนที่ต้องดำเนินการ`} />
         <ModuleCard onClick={() => onNavigate("inventory")} tone="amber" icon={<Icons.Inventory />} th="สินค้าคงคลัง" en="Inventory" desc="บริหารสต็อกวัสดุ สารเคมี พร้อมสั่งซื้อซ้ำอัตโนมัติ" stat={`${inventoryLow} รายการถึงจุดสั่งซื้อ`} />
-        <ModuleCard onClick={() => onNavigate("documents")} tone="violet" icon={<Icons.Doc />} th="การจัดการเอกสาร" en="Documents" desc="SOP คู่มือ นโยบาย พร้อมประวัติแก้ไขและสิทธิ์การเข้าถึง" stat={`${documents.length} เอกสาร`} />
-        <ModuleCard onClick={() => onNavigate("tests")} tone="teal" icon={<Icons.Test />} th="ทดสอบ & วิเคราะห์" en="Test & Analysis" desc="ควบคุมมาตรฐาน บันทึกผล แปลผลด้วย AI (เร็ว ๆ นี้)" stat={`${pendingTests} ผลรออนุมัติ`} />
+        <ModuleCard onClick={() => onNavigate("documents")} tone="grey" icon={<Icons.Doc />} th="การจัดการเอกสาร" en="Documents" desc="SOP คู่มือ นโยบาย พร้อมประวัติแก้ไขและสิทธิ์การเข้าถึง" stat={`${documents.length} เอกสาร`} />
+        <ModuleCard onClick={() => onNavigate("tests")} tone="accent" icon={<Icons.Test />} th="ทดสอบ & วิเคราะห์" en="Test & Analysis" desc="ควบคุมมาตรฐาน บันทึกผล แปลผลด้วย AI (เร็ว ๆ นี้)" stat={`${pendingTests} ผลรออนุมัติ`} />
       </div>
     </div>
   );

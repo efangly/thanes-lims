@@ -41,7 +41,7 @@ export function GenerateReportModal() {
               ))}
             </Select>
           </label>
-          <Button variant="teal" size="sm" onClick={handleGenerate}>
+          <Button variant="accent" size="sm" onClick={handleGenerate}>
             <Icons.Bolt className="h-[14px] w-[14px]" />
             สร้างรายงาน
           </Button>
@@ -51,10 +51,10 @@ export function GenerateReportModal() {
       {stage === "processing" && (
         <div className="flex flex-col items-center gap-4 py-6">
           <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-bg-2">
-            <div className="absolute inset-y-0 w-1/3 rounded-full bg-teal animate-progress-indet" />
+            <div className="absolute inset-y-0 w-1/3 rounded-full bg-accent animate-progress-indet" />
           </div>
           <div className="flex items-center gap-2 font-mono text-[12.5px] text-muted">
-            <span className="h-2 w-2 rounded-full bg-teal animate-pulse-dot" />
+            <span className="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
             กำลังประมวลผล {type}…
           </div>
         </div>
@@ -62,12 +62,12 @@ export function GenerateReportModal() {
 
       {stage === "ready" && (
         <div className="flex flex-col gap-3.5">
-          <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-d">
+          <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-accent-d">
             <Icons.Check className="h-4 w-4" />
             รายงานพร้อมแล้ว
           </div>
           <div className="flex items-center gap-3 rounded-lg border border-line bg-bg p-3.5">
-            <div className="grid h-10 w-10 flex-none place-items-center rounded-lg bg-violet-bg text-violet">
+            <div className="grid h-10 w-10 flex-none place-items-center rounded-lg bg-accent-bg text-accent-d">
               <Icons.Doc className="h-5 w-5" />
             </div>
             <div className="flex-1">
@@ -88,7 +88,7 @@ export function GenerateReportModal() {
               ส่งอีเมล
             </Button>
             <Button
-              variant="teal"
+              variant="accent"
               size="sm"
               className="flex-1"
               onClick={() => {

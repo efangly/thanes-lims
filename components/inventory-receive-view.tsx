@@ -100,7 +100,7 @@ export function InventoryReceiveView() {
   };
 
   return (
-    <div className="animate-fade">
+    <div className="">
       <PageHead
         title="รับของเข้าคลัง"
         desc="รับสินค้าเข้าสต็อกทีละรายการ ทีละล็อต"
@@ -165,7 +165,7 @@ export function InventoryReceiveView() {
                     <Input value={qty} onChange={(e) => setQty(e.target.value)} inputMode="numeric" placeholder="> 0" />
                   </Field>
                 </div>
-                <Button variant="teal" size="sm" onClick={submit} disabled={submitting || !canSubmit}>
+                <Button variant="accent" size="sm" onClick={submit} disabled={submitting || !canSubmit}>
                   {submitting ? "กำลังบันทึก..." : "รับเข้าคลัง"}
                 </Button>
               </>

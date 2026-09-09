@@ -75,7 +75,7 @@ export function AddEquipmentModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !name.trim() || !next.trim()}>
+          <Button variant="accent" size="sm" onClick={handleSubmit} disabled={submitting || !name.trim() || !next.trim()}>
             <Icons.Plus className="h-[14px] w-[14px]" />
             {submitting ? "กำลังบันทึก..." : "เพิ่มเครื่องมือ"}
           </Button>

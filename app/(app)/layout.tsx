@@ -19,12 +19,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (!loading && !user) router.replace("/login");
   }, [loading, user, router]);
 
-  if (loading || !user) return <div className="grid h-screen place-items-center text-muted">กำลังโหลด...</div>;
+  if (loading || !user)
+    return (
+      <div className="grid h-screen place-items-center font-mono text-[12px] uppercase tracking-[1px] text-muted">
+        กำลังโหลด…
+      </div>
+    );
 
   return (
     <ConfirmProvider>
       <LimsDataProvider>
-        <div className="grid h-screen grid-cols-1 overflow-hidden md:grid-cols-[248px_1fr]">
+        <div className="grid h-screen grid-cols-1 overflow-hidden md:grid-cols-[56px_1fr]">
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <div className="flex flex-col overflow-hidden bg-bg">
             <Topbar onMenuClick={() => setSidebarOpen(true)} />

@@ -19,7 +19,7 @@ function BrandBadge({ size = "md" }: { size?: "md" | "sm" }) {
   const icon = size === "md" ? "h-[22px] w-[22px]" : "h-[19px] w-[19px]";
   return (
     <div
-      className={`grid flex-none place-items-center bg-gradient-to-br from-teal to-teal-d shadow-[0_0_0_1px_rgba(255,255,255,0.09)_inset] ${dims}`}
+      className={`grid flex-none place-items-center bg-gradient-to-br from-accent to-accent-d shadow-[0_0_0_1px_rgba(255,255,255,0.09)_inset] ${dims}`}
     >
       <LogoMark className={`text-white ${icon}`} />
     </div>
@@ -59,17 +59,17 @@ export function LoginForm() {
       {/* Full-bleed decorative background */}
       <div
         className="pointer-events-none absolute -left-40 -top-36 h-[480px] w-[480px] rounded-full blur-[60px] dark:blur-[90px]"
-        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-teal) 30%, transparent) 0%, transparent 72%)" }}
+        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 30%, transparent) 0%, transparent 72%)" }}
       />
       <div
         className="pointer-events-none absolute -bottom-52 -right-56 h-[520px] w-[520px] rounded-full blur-[60px] dark:blur-[90px]"
-        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-teal) 20%, transparent) 0%, transparent 72%)" }}
+        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 20%, transparent) 0%, transparent 72%)" }}
       />
 
-      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute -bottom-16 -right-16 h-[340px] w-[340px] stroke-teal fill-none opacity-[0.14]" strokeWidth={1.2}>
+      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute -bottom-16 -right-16 h-[340px] w-[340px] stroke-accent fill-none opacity-[0.14]" strokeWidth={1.2}>
         {flaskPath}
       </svg>
-      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-[-30px] top-[14%] h-[120px] w-[120px] stroke-teal fill-none opacity-[0.16]" strokeWidth={1.4}>
+      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-[-30px] top-[14%] h-[120px] w-[120px] stroke-accent fill-none opacity-[0.16]" strokeWidth={1.4}>
         <path d="M8.5 5.8v3.2" />
         <path d="M8.5 9l6.5 6.5" />
         <path d="M9.5 12h5" />
@@ -78,11 +78,11 @@ export function LoginForm() {
         <circle cx="8.5" cy="4.5" r="1.3" />
       </svg>
 
-      <span className="pointer-events-none absolute left-[20%] top-[22%] h-1.5 w-1.5 rounded-full bg-teal opacity-50" />
-      <span className="pointer-events-none absolute left-[calc(20%-7px)] top-[calc(22%-7px)] h-5 w-5 rounded-full border border-teal/45" />
-      <span className="pointer-events-none absolute left-[68%] top-[16%] h-1.5 w-1.5 rounded-full bg-teal opacity-50" />
-      <span className="pointer-events-none absolute left-[82%] top-[46%] h-1.5 w-1.5 rounded-full bg-teal opacity-50" />
-      <span className="pointer-events-none absolute left-[calc(82%-9px)] top-[calc(46%-9px)] h-6 w-6 rounded-full border border-teal/45" />
+      <span className="pointer-events-none absolute left-[20%] top-[22%] h-1.5 w-1.5 rounded-full bg-accent opacity-50" />
+      <span className="pointer-events-none absolute left-[calc(20%-7px)] top-[calc(22%-7px)] h-5 w-5 rounded-full border border-accent/45" />
+      <span className="pointer-events-none absolute left-[68%] top-[16%] h-1.5 w-1.5 rounded-full bg-accent opacity-50" />
+      <span className="pointer-events-none absolute left-[82%] top-[46%] h-1.5 w-1.5 rounded-full bg-accent opacity-50" />
+      <span className="pointer-events-none absolute left-[calc(82%-9px)] top-[calc(46%-9px)] h-6 w-6 rounded-full border border-accent/45" />
 
       {/* Content */}
       <main className="relative z-[2] mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-4 py-6 sm:py-12 md:flex-row md:items-center md:justify-center md:gap-16 md:px-8 lg:gap-24">
@@ -103,7 +103,7 @@ export function LoginForm() {
           </div>
 
           <h2 className="text-balance font-display text-[clamp(22px,2.6vw,30px)] font-bold leading-[1.22] tracking-[-0.2px] md:text-left">
-            จัดการห้องปฏิบัติการของคุณ <span className="text-teal-d">อย่างแม่นยำ</span> ในที่เดียว
+            จัดการห้องปฏิบัติการของคุณ <span className="text-accent-d">อย่างแม่นยำ</span> ในที่เดียว
           </h2>
           <p className="max-w-[42ch] text-[14px] leading-relaxed text-muted">
             ตัวอย่าง เครื่องมือ สภาพแวดล้อม และเอกสาร — ติดตามได้แบบเรียลไทม์ พร้อมข้อมูลที่เชื่อถือได้ในทุกขั้นตอน
@@ -112,7 +112,7 @@ export function LoginForm() {
           <div className="mt-1 flex flex-wrap items-center justify-center gap-4 md:justify-start">
             {features.map((f) => (
               <div key={f.label} className="flex items-center gap-2 text-[13px] font-medium">
-                <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-teal-bg text-teal-d">
+                <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-accent-bg text-accent-d">
                   <span className="h-[15px] w-[15px]">{f.icon}</span>
                 </span>
                 {f.label}
@@ -124,7 +124,7 @@ export function LoginForm() {
         <div className="w-full max-w-sm md:flex-shrink-0">
           <form
             onSubmit={handleSubmit}
-            className="rounded-[18px] border border-line bg-panel/90 p-5 pb-5 shadow-card backdrop-blur-sm sm:p-7 sm:pb-[26px]"
+            className="rounded-[18px] border border-line bg-panel/90 p-5 pb-5 backdrop-blur-sm sm:p-7 sm:pb-[26px]"
           >
             <h1 className="mb-1 font-display text-[20px] font-semibold">เข้าสู่ระบบ</h1>
             <p className="mb-5 text-[13px] text-muted sm:mb-6">เข้าสู่ระบบเพื่อจัดการห้องปฏิบัติการ</p>
@@ -148,13 +148,13 @@ export function LoginForm() {
                 />
               </Field>
               {error && <p className="text-[12px] text-red">{error}</p>}
-              <Button type="submit" variant="teal" disabled={submitting} className="w-full justify-center">
+              <Button type="submit" variant="accent" disabled={submitting} className="w-full justify-center">
                 {submitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
               </Button>
             </div>
 
             <p className="mt-4 flex items-center justify-center gap-1.5 font-mono text-[10.5px] tracking-[0.5px] text-muted-2 sm:mt-[22px]">
-              <span className="h-[7px] w-[7px] rounded-full bg-teal animate-pulse-dot" />
+              <span className="h-[7px] w-[7px] rounded-full bg-accent animate-pulse-dot" />
               SECURE CONNECTION · TLS 1.3
             </p>
           </form>

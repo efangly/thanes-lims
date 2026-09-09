@@ -35,7 +35,7 @@ export function AlertThresholdsModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSave}>
+          <Button variant="accent" size="sm" onClick={handleSave}>
             <Icons.Check className="h-[14px] w-[14px]" />
             บันทึก
           </Button>

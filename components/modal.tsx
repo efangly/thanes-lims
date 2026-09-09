@@ -59,7 +59,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-60 grid place-items-center bg-black/40 p-4 animate-fade"
+      className="fixed inset-0 z-60 grid place-items-center bg-black/40 p-4"
       onClick={onClose}
     >
       <div
@@ -69,11 +69,11 @@ export function Modal({
         aria-label={title}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className={`flex max-h-[85vh] w-full flex-col rounded-[10px] border border-line bg-panel shadow-card outline-none ${sizeCls[size]}`}
+        className={`flex max-h-[85vh] w-full flex-col rounded-[10px] border border-line bg-panel outline-none ${sizeCls[size]}`}
       >
         <div className="flex items-center justify-between border-b border-line px-4.5 py-3.75">
           <h3 className="flex items-center gap-2.5 font-display text-[15px] font-semibold">
-            {icon && <span className="h-4.25 w-4.25 text-teal-d">{icon}</span>}
+            {icon && <span className="h-4.25 w-4.25 text-accent-d">{icon}</span>}
             {title}
           </h3>
           <button

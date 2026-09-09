@@ -13,9 +13,9 @@ import { StockIssueModal } from "@/components/modals/stock-issue";
 const SEG_OPTIONS = ["ทั้งหมด", "ต้องสั่งซื้อ"];
 
 const DONUT_COLORS = [
-  "var(--color-teal)",
+  "var(--color-accent)",
   "var(--color-amber)",
-  "var(--color-violet)",
+  "var(--color-muted-2)",
   "var(--color-green)",
   "var(--color-red)",
   "var(--color-muted-2)",
@@ -84,7 +84,7 @@ function InventoryPageInner() {
     }));
 
   return (
-    <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
+    <div className="lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
       <PageHead
         title="การจัดการสินค้าคงคลัง"
         desc="บริหารสต็อกวัสดุ สารเคมี และอุปกรณ์ในห้องปฏิบัติการ พร้อมแจ้งเตือนและสั่งซื้อซ้ำอัตโนมัติเมื่อสินค้าใกล้หมด"
@@ -100,7 +100,7 @@ function InventoryPageInner() {
                 รับของเข้าคลัง
               </Button>
             </Link>
-            <Button variant="teal" onClick={() => openModal("add-inventory")}>
+            <Button variant="accent" onClick={() => openModal("add-inventory")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
               เพิ่มรายการ
             </Button>
@@ -109,7 +109,7 @@ function InventoryPageInner() {
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="teal" label="รายการทั้งหมด" value="418" trend="ใน 7 หมวดหมู่" />
+        <KpiCard accent="accent" label="รายการทั้งหมด" value="418" trend="ใน 7 หมวดหมู่" />
         <KpiCard accent="red" label="ถึงจุดสั่งซื้อ" value="2" trend="สั่งซื้ออัตโนมัติแล้ว" trendDown />
         <KpiCard accent="amber" label="ใกล้หมด" value="5" trend="ต่ำกว่า 30%" trendDown />
         <KpiCard
@@ -217,7 +217,7 @@ function InventoryPageInner() {
           <CardHead
             icon={<Icons.Cart />}
             title="คำสั่งซื้ออัตโนมัติ"
-            right={<Tag tone="teal" label="เปิดใช้งาน" />}
+            right={<Tag tone="accent" label="เปิดใช้งาน" />}
           />
           <div className="py-1.5">
             {autoOrders.length === 0 && (
@@ -227,7 +227,7 @@ function InventoryPageInner() {
               const item = inventory.find((i) => i.id === o.item);
               return (
                 <div key={o.id} className="flex items-start gap-3 border-b border-line px-4 py-[13px]">
-                  <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] bg-teal-bg text-teal-d">
+                  <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] bg-accent-bg text-accent-d">
                     <Icons.Cart className="h-[17px] w-[17px]" />
                   </div>
                   <div className="flex-1">

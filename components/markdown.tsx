@@ -40,7 +40,7 @@ function renderInline(text: string): ReactNode {
           href={linkMatch[2]}
           target="_blank"
           rel="noreferrer noopener"
-          className="text-teal-d underline"
+          className="text-accent-d underline"
         >
           {linkMatch[1]}
         </a>

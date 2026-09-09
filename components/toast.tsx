@@ -4,11 +4,10 @@ import { Icons } from "@/lib/icons";
 import { useLims } from "@/components/lims-data-context";
 
 const toneCls = {
-  teal: "bg-teal-bg text-teal-d",
+  accent: "bg-accent-bg text-accent-d",
   amber: "bg-amber-bg text-amber",
   red: "bg-red-bg text-red",
   green: "bg-green-bg text-green",
-  violet: "bg-violet-bg text-violet",
   grey: "bg-bg-2 text-muted",
 };
 
@@ -21,7 +20,7 @@ export function ToastStack() {
         <div
           key={t.id}
           onClick={() => dismissToast(t.id)}
-          className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line bg-panel px-[13px] py-3 shadow-card animate-fade"
+          className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line bg-panel px-[13px] py-3"
         >
           <span className={`grid h-7 w-7 flex-none place-items-center rounded-full ${toneCls[t.tone]}`}>
             <Icons.Check className="h-[14px] w-[14px]" />

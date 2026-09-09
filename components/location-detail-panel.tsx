@@ -100,7 +100,7 @@ function NodeSummary({
         {kind === "sample_storage" && !isBox && (
           <Row label="ตัวอย่างที่ครองอยู่">
             {occ ? (
-              <Link href={`/samples?s=${occ.id}`} className="font-mono text-[12px] text-teal-d hover:underline">
+              <Link href={`/samples?s=${occ.id}`} className="font-mono text-[12px] text-accent-d hover:underline">
                 {occ.id}
               </Link>
             ) : (
@@ -120,7 +120,7 @@ function NodeSummary({
               {items.map((it) => (
                 <li key={it.id} className="flex items-center gap-2 text-[12.5px]">
                   <span className="rounded bg-bg px-1.5 py-0.5 font-mono text-[10px] text-muted-2">{it.tag}</span>
-                  <Link href={it.href} className="font-mono text-teal-d hover:underline">
+                  <Link href={it.href} className="font-mono text-accent-d hover:underline">
                     {it.id}
                   </Link>
                   <span className="truncate text-muted">{it.name}</span>
@@ -172,7 +172,7 @@ function SampleSummary({ sample, onBack }: { sample: Sample; onBack: () => void 
         </Row>
       </div>
       <div className="border-t border-line px-5 py-3">
-        <Link href={`/samples?s=${sample.id}`} className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-d hover:underline">
+        <Link href={`/samples?s=${sample.id}`} className="flex items-center gap-1.5 text-[12.5px] font-medium text-accent-d hover:underline">
           <Icons.Arrow className="h-[13px] w-[13px]" />
           เปิดหน้าตัวอย่างเต็ม (Chain of Custody)
         </Link>

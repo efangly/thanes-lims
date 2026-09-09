@@ -100,13 +100,13 @@ export function RecordCalibrationModal() {
     <Modal open={open} onClose={closeModal} title="บันทึกผลสอบเทียบ" icon={<Icons.Check />} size="md">
       {savedEventId !== null ? (
         <div className="flex flex-col gap-3.5 py-2">
-          <div className="flex items-center gap-2 text-[13px] font-medium text-teal-d">
+          <div className="flex items-center gap-2 text-[13px] font-medium text-accent-d">
             <Icons.Check className="h-4 w-4" />
             บันทึกผลเรียบร้อย — ขั้นต่อไปแนบใบรับรอง (Certificate)
           </div>
           <div className="flex gap-2">
             <Button
-              variant="teal"
+              variant="accent"
               size="sm"
               onClick={() =>
                 openModal("upload-document", {
@@ -215,7 +215,7 @@ export function RecordCalibrationModal() {
                 <Button variant="ghost" size="sm" onClick={closeModal}>
                   ยกเลิก
                 </Button>
-                <Button variant="teal" size="sm" onClick={submit} disabled={submitting || !schedule}>
+                <Button variant="accent" size="sm" onClick={submit} disabled={submitting || !schedule}>
                   {submitting ? "กำลังบันทึก..." : "บันทึกผล"}
                 </Button>
               </div>

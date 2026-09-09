@@ -43,21 +43,21 @@ export function ExportAuditReportModal() {
       {stage !== "ready" ? (
         <div className="flex flex-col items-center gap-4 py-6">
           <div className="h-2 w-full overflow-hidden rounded-full bg-bg-2">
-            <div className="h-full rounded-full bg-teal transition-[width] duration-150" style={{ width: `${pct}%` }} />
+            <div className="h-full rounded-full bg-accent transition-[width] duration-150" style={{ width: `${pct}%` }} />
           </div>
           <div className="flex items-center gap-2 font-mono text-[12.5px] text-muted">
-            <span className="h-2 w-2 rounded-full bg-teal animate-pulse-dot" />
+            <span className="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
             {stage === "collecting" ? "กำลังรวบรวมข้อมูล…" : "กำลังสร้างรายงาน PDF…"}
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-3.5">
-          <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-d">
+          <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-accent-d">
             <Icons.Check className="h-4 w-4" />
             รายงานพร้อมแล้ว
           </div>
           <div className="flex items-center gap-3 rounded-lg border border-line bg-bg p-3.5">
-            <div className="grid h-10 w-10 flex-none place-items-center rounded-lg bg-violet-bg text-violet">
+            <div className="grid h-10 w-10 flex-none place-items-center rounded-lg bg-accent-bg text-accent-d">
               <Icons.Doc className="h-5 w-5" />
             </div>
             <div className="flex-1">
@@ -66,7 +66,7 @@ export function ExportAuditReportModal() {
             </div>
           </div>
           <Button
-            variant="teal"
+            variant="accent"
             size="sm"
             onClick={() => {
               pushToast("ดาวน์โหลดรายงาน Audit แล้ว");

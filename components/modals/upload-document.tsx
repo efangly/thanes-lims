@@ -62,7 +62,7 @@ export function UploadDocumentModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting}>
+          <Button variant="accent" size="sm" onClick={handleSubmit} disabled={submitting}>
             <Icons.Plus className="h-[14px] w-[14px]" />
             {submitting ? "กำลังอัปโหลด..." : "อัปโหลด"}
           </Button>
@@ -70,7 +70,7 @@ export function UploadDocumentModal() {
       }
     >
       <div className="flex flex-col gap-3.5">
-        <label className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-line bg-bg py-6 text-center transition hover:border-teal">
+        <label className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-line bg-bg py-6 text-center transition hover:border-accent">
           <Icons.Doc className="h-6 w-6 text-muted-2" />
           <span className="text-[12.5px] text-muted">{file?.name || "คลิกเพื่อเลือกไฟล์ หรือวางไฟล์ที่นี่"}</span>
           <input

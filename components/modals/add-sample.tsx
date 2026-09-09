@@ -125,7 +125,7 @@ export function AddSampleModal() {
               ยกเลิก
             </Button>
             <Button
-              variant="teal"
+              variant="accent"
               size="sm"
               onClick={handleCreate}
               disabled={submitting || !name.trim() || !custodianId}
@@ -135,7 +135,7 @@ export function AddSampleModal() {
             </Button>
           </>
         ) : (
-          <Button variant="teal" size="sm" onClick={handleClose}>
+          <Button variant="accent" size="sm" onClick={handleClose}>
             <Icons.Check className="h-[14px] w-[14px]" />
             เสร็จสิ้น
           </Button>
@@ -167,7 +167,7 @@ export function AddSampleModal() {
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="เช่น ปริมาตร แหล่งที่มา ข้อควรระวัง"
-              className="w-full resize-none rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal"
+              className="w-full resize-none rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-accent"
             />
           </Field>
           <Field label="ผู้ดูแลปัจจุบัน">
@@ -201,7 +201,7 @@ export function AddSampleModal() {
           <div>
             <div className="mb-1.5 text-[12px] font-medium text-muted">Barcode ID</div>
             {barcodeId ? (
-              <div className="flex items-center gap-2 rounded-lg border border-line bg-teal-bg px-3.5 py-2.5 font-mono text-[13px] font-semibold text-teal-d">
+              <div className="flex items-center gap-2 rounded-lg border border-line bg-accent-bg px-3.5 py-2.5 font-mono text-[13px] font-semibold text-accent-d">
                 <Icons.Check className="h-4 w-4" />
                 {barcodeId}
               </div>

@@ -33,11 +33,11 @@ export function LocationField({
     <Field label={label}>
       {value && !open ? (
         <div className="flex items-center gap-2 rounded-lg border border-line bg-bg px-3 py-2 text-[13px]">
-          <Icons.Loc className="h-[15px] w-[15px] flex-none text-teal-d" />
+          <Icons.Loc className="h-[15px] w-[15px] flex-none text-accent-d" />
           <span className="flex-1 truncate">{valueLabel || value}</span>
           {!disabled && (
             <>
-              <button type="button" onClick={() => setOpen(true)} className="text-[12px] text-teal-d hover:underline">
+              <button type="button" onClick={() => setOpen(true)} className="text-[12px] text-accent-d hover:underline">
                 เปลี่ยน
               </button>
               <button type="button" onClick={() => onChange(null)} className="text-[12px] text-muted hover:underline">

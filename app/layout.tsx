@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
@@ -15,6 +16,15 @@ const anuphan = localFont({
     { path: "../public/fonts/Anuphan-Bold.ttf", weight: "700", style: "normal" },
   ],
   variable: "--font-anuphan",
+  display: "swap",
+});
+
+// Real monospace for all machine data: IDs, barcodes, grid coordinates,
+// quantities, SQL. Replaces the old --font-mono → Anuphan mapping (ADR-0012).
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
   display: "swap",
 });
 
@@ -62,8 +72,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef2f5" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1219" },
+    { media: "(prefers-color-scheme: light)", color: "#f0ece2" },
+    { media: "(prefers-color-scheme: dark)", color: "#141210" },
   ],
 };
 
@@ -71,7 +81,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="th" suppressHydrationWarning className={anuphan.variable}>
+    <html lang="th" suppressHydrationWarning className={`${anuphan.variable} ${plexMono.variable}`}>
       <body>
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>

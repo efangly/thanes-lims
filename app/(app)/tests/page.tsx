@@ -29,7 +29,7 @@ function TestsPageInner() {
   const pager = usePagination(filtered, { resetKey: String(seg) });
 
   return (
-    <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
+    <div className="lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
       <PageHead
         title="การจัดการทดสอบ & วิเคราะห์ข้อมูล"
         desc="ควบคุมมาตรฐานขั้นตอนการทดสอบให้ครบถ้วนและแม่นยำ บันทึกผล จัดการผลการตรวจวิเคราะห์ และแปลผลด้วยระบบ AI"
@@ -39,7 +39,7 @@ function TestsPageInner() {
               <Icons.Doc className="h-[15px] w-[15px]" />
               สร้างรายงาน
             </Button>
-            <Button variant="teal" onClick={() => openModal("open-test-order")}>
+            <Button variant="accent" onClick={() => openModal("open-test-order")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
               เปิดคำสั่งทดสอบ
             </Button>
@@ -48,7 +48,7 @@ function TestsPageInner() {
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="teal" label="คำสั่งทดสอบวันนี้" value="64" trend="▲ 8 เทียบเมื่อวาน" />
+        <KpiCard accent="accent" label="คำสั่งทดสอบวันนี้" value="64" trend="▲ 8 เทียบเมื่อวาน" />
         <KpiCard accent="green" label="อนุมัติแล้ว" value="41" trend="ผ่านการทวนสอบ" />
         <KpiCard accent="amber" label="รอทวนสอบ" value="17" trend="รอผู้อนุมัติ" trendDown />
         <KpiCard accent="red" label="ผลผิดปกติ (Flag)" value="6" trend="นอกช่วงอ้างอิง" trendDown />
@@ -101,9 +101,9 @@ function TestsPageInner() {
         </Card>
 
         <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-          <div className="relative overflow-hidden rounded-[10px] border border-line bg-gradient-to-br from-teal-bg to-panel p-5 text-ink shadow-card">
+          <div className="relative overflow-hidden rounded-[10px] border border-line bg-gradient-to-br from-accent-bg to-panel p-5 text-ink">
             <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(10,147,150,0.35),transparent_70%)]" />
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal/40 bg-teal/20 px-2.5 py-1 font-mono text-[10.5px] tracking-[1px] text-teal">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/20 px-2.5 py-1 font-mono text-[10.5px] tracking-[1px] text-accent">
               <Icons.Ai className="h-3.5 w-3.5" />
               AI ANALYSIS · เร็ว ๆ นี้
             </span>

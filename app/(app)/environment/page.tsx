@@ -50,12 +50,12 @@ function useClock() {
 }
 
 const gaugeStroke = {
-  ok: "var(--color-teal)",
+  ok: "var(--color-accent)",
   warn: "var(--color-amber)",
   crit: "var(--color-red)",
 };
 const gaugeValColor = {
-  ok: "text-teal",
+  ok: "text-accent",
   warn: "text-amber",
   crit: "text-red",
 };
@@ -72,7 +72,7 @@ export default function EnvironmentPage() {
   const { gauges, alerts } = useEnvironmentData();
 
   return (
-    <div className="animate-fade">
+    <div className="">
       <PageHead
         title="การควบคุมอุณหภูมิและสภาพแวดล้อม"
         desc="รายงานอุณหภูมิและความชื้นแบบเรียลไทม์ พร้อมการแจ้งเตือนอัจฉริยะไปยังสมาร์ตโฟนทันทีเมื่อเกินค่ากำหนด ตู้แช่เปิดค้าง หรือระบบไฟฟ้าขัดข้อง"
@@ -82,7 +82,7 @@ export default function EnvironmentPage() {
               <Icons.Bell className="h-[15px] w-[15px]" />
               ตั้งค่าเกณฑ์แจ้งเตือน
             </Button>
-            <Button variant="teal" onClick={() => openModal("add-sensor")}>
+            <Button variant="accent" onClick={() => openModal("add-sensor")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
               เพิ่มเซนเซอร์
             </Button>
@@ -91,10 +91,10 @@ export default function EnvironmentPage() {
       />
 
       {/* SIGNATURE: live instrument readout strip */}
-      <div className="mb-4 overflow-hidden rounded-[10px] bg-[var(--color-readout)] shadow-card">
+      <div className="mb-4 overflow-hidden rounded-[10px] bg-[var(--color-readout)]">
         <div className="flex items-center justify-between border-b border-[var(--color-readout-line)] px-[18px] py-3">
           <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.5px] text-muted">
-            <span className="h-2 w-2 rounded-full bg-teal animate-pulse-dot" />
+            <span className="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
             LIVE ENVIRONMENTAL MONITORING · 4 SENSORS
           </div>
           <div className="font-mono text-[12.5px] tracking-[0.5px] text-ink">
@@ -112,7 +112,7 @@ export default function EnvironmentPage() {
               </div>
               <div className="absolute right-4 top-3.5">
                 <Tag
-                  tone={g.level === "crit" ? "red" : g.level === "warn" ? "amber" : "teal"}
+                  tone={g.level === "crit" ? "red" : g.level === "warn" ? "amber" : "accent"}
                   label={g.level === "crit" ? "วิกฤต" : g.level === "warn" ? "เฝ้าระวัง" : "ปกติ"}
                 />
               </div>

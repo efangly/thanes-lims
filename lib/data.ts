@@ -1,4 +1,4 @@
-export type TagTone = "teal" | "amber" | "red" | "green" | "violet" | "grey";
+export type TagTone = "accent" | "amber" | "red" | "green" | "grey";
 export type Tag = { tone: TagTone; label: string };
 
 export type ModuleId =
@@ -67,11 +67,11 @@ export interface Sample {
 }
 
 export const SAMPLES: Sample[] = [
-  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", type: "Blood", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "21 ก.ค. 09:14" , barcodeId: null, description: "", position: null },
+  { id: "SMP-2569-04821", name: "เลือด EDTA – ผู้ป่วยนอก", type: "Blood", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "accent", label: "กำลังทดสอบ" }, recv: "21 ก.ค. 09:14" , barcodeId: null, description: "", position: null },
   { id: "SMP-2569-04820", name: "ปัสสาวะ 24 ชม.", type: "Urine", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "21 ก.ค. 08:52" , barcodeId: null, description: "", position: null },
   { id: "SMP-2569-04819", name: "น้ำเสียอุตสาหกรรม", type: "Water", custodian: "สมชาย", locationId: null, status: { tone: "amber", label: "รอตรวจสอบ" }, recv: "21 ก.ค. 08:30" , barcodeId: null, description: "", position: null },
-  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", type: "Tissue", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "teal", label: "กำลังทดสอบ" }, recv: "20 ก.ค. 16:47" , barcodeId: null, description: "", position: null },
-  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", type: "Food", custodian: "วิภา", locationId: null, status: { tone: "violet", label: "ส่งต่อแผนก" }, recv: "20 ก.ค. 15:20" , barcodeId: null, description: "", position: null },
+  { id: "SMP-2569-04818", name: "เนื้อเยื่อชิ้นเนื้อ", type: "Tissue", custodian: "พิมพ์ชนก", locationId: null, status: { tone: "accent", label: "กำลังทดสอบ" }, recv: "20 ก.ค. 16:47" , barcodeId: null, description: "", position: null },
+  { id: "SMP-2569-04817", name: "ตัวอย่างอาหาร – นม", type: "Food", custodian: "วิภา", locationId: null, status: { tone: "grey", label: "ส่งต่อแผนก" }, recv: "20 ก.ค. 15:20" , barcodeId: null, description: "", position: null },
   { id: "SMP-2569-04816", name: "ซีรั่ม – แผนกภูมิคุ้มกัน", type: "Serum", custodian: "ธเนศ", locationId: null, status: { tone: "green", label: "เสร็จสิ้น" }, recv: "20 ก.ค. 14:05" , barcodeId: null, description: "", position: null },
 ];
 
@@ -234,11 +234,11 @@ export interface TestResult {
 }
 
 export const TESTS: TestResult[] = [
-  { id: "TST-88401", sample: "SMP-2569-04821", test: "CBC – Complete Blood Count", analyst: "พิมพ์ชนก", result: "WBC 11.4", flag: "hi", ref: "4.0–10.0 ×10⁹/L", status: { tone: "teal", label: "กำลังวิเคราะห์" } },
+  { id: "TST-88401", sample: "SMP-2569-04821", test: "CBC – Complete Blood Count", analyst: "พิมพ์ชนก", result: "WBC 11.4", flag: "hi", ref: "4.0–10.0 ×10⁹/L", status: { tone: "accent", label: "กำลังวิเคราะห์" } },
   { id: "TST-88400", sample: "SMP-2569-04820", test: "Urinalysis – Protein", analyst: "ธเนศ", result: "Neg", flag: "ok", ref: "Negative", status: { tone: "green", label: "อนุมัติแล้ว" } },
   { id: "TST-88399", sample: "SMP-2569-04819", test: "COD – น้ำเสีย", analyst: "สมชาย", result: "340 mg/L", flag: "hi", ref: "≤ 120 mg/L", status: { tone: "amber", label: "รอทวนสอบ" } },
   { id: "TST-88398", sample: "SMP-2569-04817", test: "ปริมาณจุลินทรีย์ – นม", analyst: "วิภา", result: "2.1×10³", flag: "ok", ref: "≤ 1×10⁴ CFU/mL", status: { tone: "green", label: "อนุมัติแล้ว" } },
-  { id: "TST-88397", sample: "SMP-2569-04818", test: "Histopathology Grade", analyst: "พิมพ์ชนก", result: "Grade II", flag: "lo", ref: "ดูรายงาน", status: { tone: "teal", label: "กำลังวิเคราะห์" } },
+  { id: "TST-88397", sample: "SMP-2569-04818", test: "Histopathology Grade", analyst: "พิมพ์ชนก", result: "Grade II", flag: "lo", ref: "ดูรายงาน", status: { tone: "accent", label: "กำลังวิเคราะห์" } },
 ];
 
 export interface FeedItem {
@@ -250,7 +250,7 @@ export interface FeedItem {
 
 export const FEED: FeedItem[] = [
   { tone: "red", icon: "Env", html: { text: "", bold: "Freezer-B", tail: " อุณหภูมิสูงเกินกำหนด (-11.2°C)" }, time: "2 นาทีที่แล้ว" },
-  { tone: "teal", icon: "Sample", html: { text: "รับตัวอย่าง ", bold: "SMP-2569-04821", tail: " เข้าระบบ" }, time: "9 นาทีที่แล้ว" },
+  { tone: "accent", icon: "Sample", html: { text: "รับตัวอย่าง ", bold: "SMP-2569-04821", tail: " เข้าระบบ" }, time: "9 นาทีที่แล้ว" },
   { tone: "amber", icon: "Equipment", html: { text: "", bold: "UV-Vis Spec", tail: " เลยกำหนดสอบเทียบ" }, time: "25 นาทีที่แล้ว" },
   { tone: "red", icon: "Inventory", html: { text: "", bold: "Ethanol 99.9%", tail: " ต่ำกว่าจุดสั่งซื้อ — สั่งซื้ออัตโนมัติแล้ว" }, time: "1 ชม.ที่แล้ว" },
   { tone: "green", icon: "Check", html: { text: "อนุมัติผล ", bold: "TST-88400", tail: " Urinalysis" }, time: "1 ชม.ที่แล้ว" },
@@ -268,11 +268,11 @@ export interface Notification {
 
 export const NOTIFICATIONS: Notification[] = [
   { id: "NTF-001", tone: "red", icon: "Env", title: "Freezer-B อุณหภูมิสูงเกินกำหนด", message: "ตรวจพบ -11.2°C (กำหนด ≤ -18°C) — ตรวจสอบด่วน", time: "2 นาทีที่แล้ว", read: false },
-  { id: "NTF-002", tone: "teal", icon: "Sample", title: "รับตัวอย่างใหม่เข้าระบบ", message: "SMP-2569-04821 เข้าสู่ขั้นตอนกำลังทดสอบ", time: "9 นาทีที่แล้ว", read: false },
+  { id: "NTF-002", tone: "accent", icon: "Sample", title: "รับตัวอย่างใหม่เข้าระบบ", message: "SMP-2569-04821 เข้าสู่ขั้นตอนกำลังทดสอบ", time: "9 นาทีที่แล้ว", read: false },
   { id: "NTF-003", tone: "amber", icon: "Equipment", title: "เครื่องมือใกล้ครบกำหนดสอบเทียบ", message: "UV-Vis Spectrophotometer เลยกำหนดสอบเทียบ", time: "25 นาทีที่แล้ว", read: false },
   { id: "NTF-004", tone: "red", icon: "Inventory", title: "สินค้าต่ำกว่าจุดสั่งซื้อ", message: "Ethanol 99.9% AR เหลือ 3 L — สั่งซื้ออัตโนมัติแล้ว", time: "1 ชม.ที่แล้ว", read: false },
   { id: "NTF-005", tone: "green", icon: "Test", title: "อนุมัติผลทดสอบแล้ว", message: "TST-88400 Urinalysis ผ่านการทวนสอบ", time: "1 ชม.ที่แล้ว", read: true },
-  { id: "NTF-006", tone: "violet", icon: "Doc", title: "เอกสารรอทบทวน", message: "SOP – การเก็บและขนส่งตัวอย่างเลือด ครบกำหนดทบทวนประจำปี", time: "3 ชม.ที่แล้ว", read: true },
+  { id: "NTF-006", tone: "grey", icon: "Doc", title: "เอกสารรอทบทวน", message: "SOP – การเก็บและขนส่งตัวอย่างเลือด ครบกำหนดทบทวนประจำปี", time: "3 ชม.ที่แล้ว", read: true },
 ];
 
 export interface PurchaseOrder {
@@ -286,7 +286,7 @@ export interface PurchaseOrder {
 
 export const PURCHASE_ORDERS: PurchaseOrder[] = [
   { id: "PO-2569-0231", item: "Ethanol 99.9% AR", qty: "20 L", vendor: "บจก. เคมีภัณฑ์ไทย", date: "21 ก.ค. 2569", status: { tone: "amber", label: "รออนุมัติ" } },
-  { id: "PO-2569-0230", item: "Pipette Tips 1000µL", qty: "30 กล่อง", vendor: "บจก. แล็บซัพพลาย", date: "20 ก.ค. 2569", status: { tone: "teal", label: "ส่งให้ผู้ขายแล้ว" } },
+  { id: "PO-2569-0230", item: "Pipette Tips 1000µL", qty: "30 กล่อง", vendor: "บจก. แล็บซัพพลาย", date: "20 ก.ค. 2569", status: { tone: "accent", label: "ส่งให้ผู้ขายแล้ว" } },
   { id: "PO-2569-0225", item: "PCR Master Mix", qty: "15 ชุด", vendor: "บจก. ไบโอเทค โซลูชัน", date: "15 ก.ค. 2569", status: { tone: "green", label: "ได้รับแล้ว" } },
   { id: "PO-2569-0219", item: "Nitrile Gloves M", qty: "50 กล่อง", vendor: "บจก. เซฟตี้ โปร", date: "08 ก.ค. 2569", status: { tone: "green", label: "ได้รับแล้ว" } },
   { id: "PO-2569-0211", item: "Sodium Chloride NaCl", qty: "25 kg", vendor: "บจก. เคมีภัณฑ์ไทย", date: "29 มิ.ย. 2569", status: { tone: "green", label: "ได้รับแล้ว" } },

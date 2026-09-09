@@ -10,9 +10,9 @@ export function formatDateTime(iso: string): string {
 
 const SAMPLE_STATUS: Record<string, Tag> = {
   pending: { tone: "amber", label: "รอตรวจสอบ" },
-  testing: { tone: "teal", label: "กำลังทดสอบ" },
+  testing: { tone: "accent", label: "กำลังทดสอบ" },
   completed: { tone: "green", label: "เสร็จสิ้น" },
-  transferred: { tone: "violet", label: "ส่งต่อแผนก" },
+  transferred: { tone: "grey", label: "ส่งต่อแผนก" },
 };
 
 const EQUIPMENT_STATUS: Record<string, Tag> = {
@@ -30,7 +30,7 @@ const INVENTORY_STATUS: Record<string, Tag> = {
 };
 
 const TEST_STATUS: Record<string, Tag> = {
-  analyzing: { tone: "teal", label: "กำลังวิเคราะห์" },
+  analyzing: { tone: "accent", label: "กำลังวิเคราะห์" },
   pending_verification: { tone: "amber", label: "รอทวนสอบ" },
   approved: { tone: "green", label: "อนุมัติแล้ว" },
 };
@@ -326,7 +326,7 @@ export function mapCoCStep(d: CoCStepDTO): CoCStep {
 
 const PO_STATUS: Record<string, Tag> = {
   pending_approval: { tone: "amber", label: "รออนุมัติ" },
-  sent_to_vendor: { tone: "teal", label: "ส่งให้ผู้ขายแล้ว" },
+  sent_to_vendor: { tone: "accent", label: "ส่งให้ผู้ขายแล้ว" },
   received: { tone: "green", label: "ได้รับแล้ว" },
   cancelled: { tone: "red", label: "ยกเลิก" },
 };

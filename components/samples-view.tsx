@@ -4,14 +4,33 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import type { CoCStep, Sample } from "@/lib/data";
-import { Avatar, Button, Card, CardHead, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
+import {
+  Avatar,
+  Button,
+  Card,
+  CardHead,
+  PageHead,
+  Pagination,
+  ReadoutStrip,
+  Seg,
+  Tag,
+  usePagination,
+} from "@/components/ui";
+import { ResizablePanels, type PanelDef } from "@/components/resizable-panels";
+import { usePanelLayout } from "@/lib/use-panel-layout";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage, apiFetch } from "@/lib/api-client";
 import { mapCoCStep, type CoCStepDTO } from "@/lib/backend-mappers";
 import { useFullPath } from "@/lib/use-full-path";
 import { PutAwaySampleModal } from "@/components/modals/put-away-sample";
 import { ScanInput } from "@/components/scan-input";
-import { hasSampleFilter, loadStickerPrefs, openStickerInNewTab, searchSamples, type SampleFilter } from "@/lib/samples-api";
+import {
+  hasSampleFilter,
+  loadStickerPrefs,
+  openStickerInNewTab,
+  searchSamples,
+  type SampleFilter,
+} from "@/lib/samples-api";
 
 const cocIcons = {
   Plus: <Icons.Plus />,
@@ -23,6 +42,9 @@ const cocIcons = {
 
 const SEG_OPTIONS = ["ทั้งหมด", "กำลังทดสอบ", "รอตรวจ"];
 
+const PANEL_DEFAULTS = { widths: [1, 1.35, 1], collapsed: [false, false, false] };
+const PANEL_KEY = "lims.samples.panels";
+
 function useCoC(sampleId: string | undefined) {
   const [steps, setSteps] = useState<CoCStep[]>([]);
   useEffect(() => {
@@ -30,7 +52,6 @@ function useCoC(sampleId: string | undefined) {
       setSteps([]);
       return;
     }
-    // เก็บ steps เดิมไว้ระหว่างโหลดตัวใหม่ กันแฟลชสถานะว่างตอนสลับตัวอย่าง
     let cancelled = false;
     apiFetch<CoCStepDTO[]>(`/samples/${sampleId}/coc`)
       .then((r) => {
@@ -46,179 +67,200 @@ function useCoC(sampleId: string | undefined) {
   return steps;
 }
 
-const SampleTable = memo(function SampleTable({
+/* ---------- Panel 1: compact registry list ---------- */
+const SampleList = memo(function SampleList({
   samples,
   selectedId,
   onSelect,
-  onReprint,
 }: {
   samples: Sample[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  onReprint: (id: string) => void;
 }) {
+  if (samples.length === 0) {
+    return (
+      <div className="px-4 py-8 text-center text-[12.5px] text-muted">ไม่พบตัวอย่างที่ตรงกับเงื่อนไข</div>
+    );
+  }
   return (
-    <div className="overflow-x-auto lg:min-h-0 lg:flex-1">
-      <table className="w-full border-collapse text-[13px]">
-        <thead>
-          <tr>
-            {["รหัสตัวอย่าง", "Barcode ID", "ตัวอย่าง", "ผู้ดูแลปัจจุบัน", "สถานะ"].map((h) => (
-              <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {samples.map((s) => (
-            <tr
-              key={s.id}
+    <ul>
+      {samples.map((s) => {
+        const isSel = selectedId === s.id;
+        return (
+          <li key={s.id}>
+            <button
               onClick={() => onSelect(s.id)}
-              className={`cursor-pointer transition hover:bg-bg/60 ${selectedId === s.id ? "bg-bg/60" : ""}`}
+              className={`flex w-full items-center gap-3 border-b border-line px-4 py-2.5 text-left transition ${
+                isSel ? "bg-accent-bg" : "hover:bg-bg-2"
+              }`}
             >
-              <td className="border-b border-line px-3.5 py-3">
-                <div className="font-mono text-[12.5px] font-medium text-ink">{s.id}</div>
-                <div className="text-[11.5px] text-muted">{s.recv}</div>
-              </td>
-              <td className="whitespace-nowrap border-b border-line px-3.5 py-3">
-                {s.barcodeId ? (
-                  <span className="flex items-center gap-1.5">
-                    <span className="font-mono text-[12px] text-ink">{s.barcodeId}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onReprint(s.id);
-                      }}
-                      aria-label="พิมพ์สติ๊กเกอร์ซ้ำ"
-                      title="พิมพ์สติ๊กเกอร์ซ้ำ"
-                      className="grid h-6 w-6 place-items-center rounded text-muted transition hover:bg-bg hover:text-ink"
-                    >
-                      <Icons.Doc className="h-[13px] w-[13px]" />
-                    </button>
-                  </span>
-                ) : (
-                  <span className="text-[11.5px] text-muted-2">—</span>
-                )}
-              </td>
-              <td className="border-b border-line px-3.5 py-3">
-                <div className="font-medium">{s.name}</div>
-                <div className="text-[11.5px] text-muted">{s.type}</div>
-              </td>
-              <td className="border-b border-line px-3.5 py-3">
-                <span className="flex items-center gap-2">
-                  <Avatar initials={s.custodian?.[0] ?? "?"} size="xs" />
-                  {s.custodian}
-                </span>
-              </td>
-              <td className="border-b border-line px-3.5 py-3">
-                <Tag {...s.status} />
-              </td>
-            </tr>
-          ))}
-          {samples.length === 0 && (
-            <tr>
-              <td colSpan={5} className="border-b border-line px-3.5 py-8 text-center text-[12.5px] text-muted">
-                ไม่พบตัวอย่างที่ตรงกับเงื่อนไข
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-mono text-[12px] font-medium text-ink">{s.id}</span>
+                <span className="block truncate text-[12px] text-muted">{s.name}</span>
+              </span>
+              <Tag {...s.status} />
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 });
 
-function SampleDetailPanel({
+/* ---------- Panel 2: sample record ---------- */
+function SampleRecord({
   sample,
   notFound,
   onPutAway,
+  onReprint,
 }: {
   sample: Sample | null;
   notFound: boolean;
   onPutAway: () => void;
+  onReprint: (id: string) => void;
 }) {
-  const cocSteps = useCoC(sample?.id);
   const { path: fullPath, loading: pathLoading } = useFullPath(sample?.locationId);
 
+  if (!sample) {
+    return (
+      <Card>
+        <div className="px-5 py-10 text-center text-[12.5px] text-muted">
+          {notFound ? "ไม่พบตัวอย่างนี้" : "เลือกตัวอย่างจากทะเบียน"}
+        </div>
+      </Card>
+    );
+  }
+
   return (
-    <div>
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardHead
+          icon={<Icons.Sample />}
+          title={sample.id}
+          right={<Tag {...sample.status} />}
+        />
+        <div className="divide-y divide-line">
+          <Row label="ตัวอย่าง" value={`${sample.name} · ${sample.type}`} />
+          <Row
+            label="Barcode ID"
+            value={
+              sample.barcodeId ? (
+                <span className="flex items-center justify-end gap-1.5">
+                  <span className="font-mono text-[12px]">{sample.barcodeId}</span>
+                  <button
+                    onClick={() => onReprint(sample.id)}
+                    title="พิมพ์สติ๊กเกอร์ซ้ำ"
+                    className="grid h-6 w-6 place-items-center rounded text-muted transition hover:bg-bg-2 hover:text-ink"
+                  >
+                    <Icons.Doc className="h-[13px] w-[13px]" />
+                  </button>
+                </span>
+              ) : (
+                "—"
+              )
+            }
+          />
+          <Row
+            label="ผู้ดูแลปัจจุบัน"
+            value={
+              <span className="flex items-center justify-end gap-2">
+                <Avatar initials={sample.custodian?.[0] ?? "?"} size="xs" />
+                {sample.custodian}
+              </span>
+            }
+          />
+          <Row label="รับเข้า" value={sample.recv} />
+        </div>
+      </Card>
+
       <Card>
         <CardHead
           icon={<Icons.Loc />}
           title="ตำแหน่งจัดเก็บ"
           right={
-            <Button variant="ghost" size="sm" onClick={onPutAway} disabled={!sample}>
+            <Button variant="ghost" size="sm" onClick={onPutAway}>
               <Icons.Loc className="h-[13px] w-[13px]" />
-              {sample?.locationId ? "ย้ายตำแหน่ง" : "จัดเก็บ"}
+              {sample.locationId ? "ย้ายตำแหน่ง" : "จัดเก็บ"}
             </Button>
           }
         />
         <div className="px-5 py-3.5 font-mono text-[13px]">
-          {notFound
-            ? "ไม่พบตัวอย่างนี้"
-            : !sample
-            ? "—"
-            : pathLoading
+          {pathLoading
             ? "กำลังโหลด…"
             : sample.locationId
-            ? `${fullPath ?? "…"}${sample.position ? ` · ช่อง ${sample.position}` : ""}`
-            : "ยังไม่ได้จัดเก็บ"}
+              ? `${fullPath ?? "…"}${sample.position ? ` · ช่อง ${sample.position}` : ""}`
+              : "ยังไม่ได้จัดเก็บ"}
         </div>
       </Card>
 
-      {sample?.description && (
-        <Card className="mt-4">
+      {sample.description && (
+        <Card>
           <CardHead icon={<Icons.Doc />} title="รายละเอียด" />
           <div className="whitespace-pre-wrap px-5 py-3.5 text-[13px] text-ink">{sample.description}</div>
         </Card>
       )}
-
-      <Card className="mt-4">
-        <CardHead
-          icon={<Icons.Shield />}
-          title="Chain of Custody"
-          right={<span className="font-mono text-[11.5px] text-muted">{sample?.id ?? "—"}</span>}
-        />
-        <div className="px-5 pb-3.5 pt-1.5">
-          {cocSteps.length === 0 && (
-            <div className="py-4 text-center text-[12.5px] text-muted">
-              {notFound ? "ไม่พบตัวอย่างนี้" : "ไม่มีข้อมูล Chain of Custody"}
-            </div>
-          )}
-          {cocSteps.map((c, i) => {
-            const isLast = i === cocSteps.length - 1;
-            const dotCls =
-              c.state === "done"
-                ? "bg-teal border-teal text-white"
-                : c.state === "now"
-                ? "bg-panel border-amber text-amber animate-ring"
-                : "bg-teal-bg border-teal text-teal-d";
-            return (
-              <div key={i} className="relative flex gap-3.5 py-3">
-                {!isLast && <span className="absolute left-[15px] top-[34px] -bottom-3 w-0.5 bg-line" />}
-                <div className={`z-10 grid h-8 w-8 flex-none place-items-center rounded-full border-2 ${dotCls}`}>
-                  <span className="h-[15px] w-[15px]">{cocIcons[c.icon]}</span>
-                </div>
-                <div>
-                  <div className="text-[13px] font-medium">{c.title}</div>
-                  <div className="mt-0.5 font-mono text-[11.5px] text-muted">{c.meta}</div>
-                  {c.who !== "—" && (
-                    <div className="mt-[3px] flex items-center gap-1.5 text-[12px] text-muted">
-                      <Icons.User className="h-3 w-3 opacity-60" />
-                      ผู้ดูแล: {c.who}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-1.5 px-5 pb-4 text-[11.5px] text-muted-2">
-          <Icons.Shield className="h-[13px] w-[13px]" />
-          ทุกการเปลี่ยนมือถูกบันทึกอัตโนมัติ ป้องกันข้อมูลสูญหาย
-        </div>
-      </Card>
     </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 px-5 py-2.5">
+      <span className="flex-none text-[12px] text-muted">{label}</span>
+      <span className="text-right text-[13px] text-ink">{value}</span>
+    </div>
+  );
+}
+
+/* ---------- Panel 3: chain of custody ---------- */
+function CustodyPanel({ sample, notFound }: { sample: Sample | null; notFound: boolean }) {
+  const cocSteps = useCoC(sample?.id);
+  return (
+    <Card>
+      <CardHead
+        icon={<Icons.Shield />}
+        title="Chain of Custody"
+        right={<span className="font-mono text-[11.5px] text-muted">{sample?.id ?? "—"}</span>}
+      />
+      <div className="px-5 pb-3.5 pt-1.5">
+        {cocSteps.length === 0 && (
+          <div className="py-4 text-center text-[12.5px] text-muted">
+            {notFound ? "ไม่พบตัวอย่างนี้" : "ไม่มีข้อมูล Chain of Custody"}
+          </div>
+        )}
+        {cocSteps.map((c, i) => {
+          const isLast = i === cocSteps.length - 1;
+          const dotCls =
+            c.state === "done"
+              ? "bg-accent border-accent text-white"
+              : c.state === "now"
+                ? "bg-panel border-amber text-amber animate-ring"
+                : "bg-accent-bg border-accent text-accent-d";
+          return (
+            <div key={i} className="relative flex gap-3.5 py-3">
+              {!isLast && <span className="absolute left-[15px] top-[34px] -bottom-3 w-0.5 bg-line" />}
+              <div className={`z-10 grid h-8 w-8 flex-none place-items-center rounded border-2 ${dotCls}`}>
+                <span className="h-[15px] w-[15px]">{cocIcons[c.icon]}</span>
+              </div>
+              <div>
+                <div className="text-[13px] font-medium">{c.title}</div>
+                <div className="mt-0.5 font-mono text-[11.5px] text-muted">{c.meta}</div>
+                {c.who !== "—" && (
+                  <div className="mt-[3px] flex items-center gap-1.5 text-[12px] text-muted">
+                    <Icons.User className="h-3 w-3 opacity-60" />
+                    ผู้ดูแล: {c.who}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-1.5 px-5 pb-4 text-[11.5px] text-muted-2">
+        <Icons.Shield className="h-[13px] w-[13px]" />
+        ทุกการเปลี่ยนมือถูกบันทึกอัตโนมัติ ป้องกันข้อมูลสูญหาย
+      </div>
+    </Card>
   );
 }
 
@@ -234,7 +276,6 @@ function useSampleRegistry(filter: SampleFilter) {
   const [error, setError] = useState<string | null>(null);
   const nameById = useMemo(() => new Map(users.map((u) => [u.id, u.name])), [users]);
   const active = hasSampleFilter(filter);
-  // stable key so the effect only re-runs when a filter value actually changes
   const key = `${filter.barcodeId ?? ""}|${filter.location ?? ""}|${filter.custodianUserId ?? ""}`;
 
   useEffect(() => {
@@ -278,8 +319,8 @@ function useSampleRegistry(filter: SampleFilter) {
 }
 
 /**
- * หน้า `/samples` หน้าเดียว — ตัวอย่างที่เลือกเก็บใน query param `?s=<id>`
- * (แหล่งความจริงเดียว) ไม่ใช้ selection state ที่ sync กับ URL อีก จึงไม่ remount route ตอนสลับตัวอย่าง
+ * หน้า `/samples` — เบราว์เซอร์ 3 พาเนล (ADR-0010 / ADR-0012): ทะเบียน | บันทึกตัวอย่าง |
+ * Chain of Custody. ตัวอย่างที่เลือกเก็บใน `?s=<id>` (แหล่งความจริงเดียว, ADR-0005).
  */
 export function SamplesView() {
   const router = useRouter();
@@ -288,13 +329,20 @@ export function SamplesView() {
   const { openModal, pushToast, users } = useLims();
   const [seg, setSeg] = useState(0);
   const [putAwayOpen, setPutAwayOpen] = useState(false);
+  const [mobilePane, setMobilePane] = useState(0);
 
   const [barcode, setBarcode] = useState("");
   const [location, setLocation] = useState("");
   const [custodianUserId, setCustodianUserId] = useState("");
 
+  const { layout, setWidth, toggleCollapsed } = usePanelLayout(PANEL_DEFAULTS, PANEL_KEY);
+
   const filter = useMemo<SampleFilter>(
-    () => ({ barcodeId: barcode || undefined, location: location || undefined, custodianUserId: custodianUserId || undefined }),
+    () => ({
+      barcodeId: barcode || undefined,
+      location: location || undefined,
+      custodianUserId: custodianUserId || undefined,
+    }),
     [barcode, location, custodianUserId]
   );
   const { list, loading, error } = useSampleRegistry(filter);
@@ -315,12 +363,18 @@ export function SamplesView() {
   const pager = usePagination(filtered, { resetKey: `${seg}|${barcode}|${location}|${custodianUserId}` });
   const selectedInList = selectedId ? list.find((s) => s.id === selectedId) ?? null : null;
   const active = selectedInList ?? filtered[0] ?? null;
-  // "ไม่พบ" เฉพาะตอนค้นด้วยบาร์โค้ดแล้วไม่เจออะไรเลย (ลิงก์ ?s= เก่าที่ถูกกรองออกไม่นับ)
   const notFound = Boolean(barcode) && !loading && filtered.length === 0;
+
+  const counts = useMemo(() => {
+    const testing = list.filter((s) => s.status.label === "กำลังทดสอบ").length;
+    const waiting = list.filter((s) => s.status.label.includes("รอตรวจ")).length;
+    return { total: list.length, testing, waiting };
+  }, [list]);
 
   const select = useCallback(
     (id: string) => {
       router.replace(`/samples?s=${id}`, { scroll: false });
+      setMobilePane(1);
     },
     [router]
   );
@@ -341,7 +395,6 @@ export function SamplesView() {
     return true;
   }, []);
 
-  // เด้งไปตัวอย่างแรกอัตโนมัติเมื่อยังไม่ได้เลือก
   const firstId = filtered[0]?.id;
   const hasSelectedInList = Boolean(selectedInList);
   useEffect(() => {
@@ -357,18 +410,105 @@ export function SamplesView() {
   };
   const anyFilter = Boolean(barcode || location || custodianUserId);
 
+  const registryPanel = (
+    <Card className="overflow-hidden">
+      <CardHead
+        icon={<Icons.Sample />}
+        title="ทะเบียนตัวอย่าง"
+        right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
+      />
+      <div className="flex flex-col gap-3 border-b border-line px-4 py-3">
+        <ScanInput onScan={scanResolve} placeholder="สแกน Barcode ID แล้วกด Enter" label="สแกนบาร์โค้ด" />
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[12px] font-medium text-muted">ชื่อตู้ / ตำแหน่งจัดเก็บ</span>
+          <input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="เช่น Fridge-A / Slot-4"
+            className="w-full rounded border border-line-2 bg-panel px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-ink focus:outline focus:outline-1 focus:outline-ink"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[12px] font-medium text-muted">ผู้ดูแล</span>
+          <select
+            value={custodianUserId}
+            onChange={(e) => setCustodianUserId(e.target.value)}
+            className="w-full rounded border border-line-2 bg-panel px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-ink focus:outline focus:outline-1 focus:outline-ink"
+          >
+            <option value="">ทั้งหมด</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      {anyFilter && (
+        <div className="flex items-center justify-between border-b border-line bg-bg-2 px-4 py-2 text-[11.5px] text-muted">
+          <span>
+            {loading ? "กำลังค้นหา…" : `พบ ${filtered.length} รายการ`}
+            {barcode && ` · "${barcode}"`}
+          </span>
+          <button onClick={clearFilters} className="font-medium text-accent-d hover:underline">
+            ล้างตัวกรอง
+          </button>
+        </div>
+      )}
+      <div className="max-h-[58vh] overflow-y-auto">
+        <SampleList samples={pager.pageItems} selectedId={active?.id ?? null} onSelect={select} />
+      </div>
+      <Pagination
+        page={pager.page}
+        totalPages={pager.totalPages}
+        total={pager.total}
+        rangeStart={pager.rangeStart}
+        rangeEnd={pager.rangeEnd}
+        onPage={pager.setPage}
+        unit="ตัวอย่าง"
+      />
+    </Card>
+  );
+
+  const recordPanel = (
+    <div className="flex flex-col gap-4">
+      <ReadoutStrip
+        className="rounded border border-line bg-panel px-4"
+        items={[
+          { label: "ทั้งหมด", value: String(counts.total) },
+          { label: "กำลังทดสอบ", value: String(counts.testing), tone: "amber" },
+          { label: "รอตรวจ", value: String(counts.waiting) },
+        ]}
+      />
+      <SampleRecord
+        sample={active}
+        notFound={notFound}
+        onPutAway={() => setPutAwayOpen(true)}
+        onReprint={reprint}
+      />
+    </div>
+  );
+
+  const custodyPanel = <CustodyPanel sample={active} notFound={notFound} />;
+
+  const panels: PanelDef[] = [
+    { key: "registry", title: "ทะเบียน", icon: <Icons.Sample />, content: registryPanel },
+    { key: "record", title: "บันทึกตัวอย่าง", icon: <Icons.Doc />, content: recordPanel },
+    { key: "custody", title: "Chain of Custody", icon: <Icons.Shield />, content: custodyPanel },
+  ];
+
   return (
-    <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
+    <div>
       <PageHead
         title="การจัดการตัวอย่าง"
-        desc="ติดตามตัวอย่างทั่วทั้งห้องปฏิบัติการ พร้อมกำหนดตำแหน่งจัดเก็บและรักษา Chain of Custody ป้องกันการสูญหายระหว่างแผนก"
+        desc="ติดตามตัวอย่างทั่วทั้งห้องปฏิบัติการ พร้อมกำหนดตำแหน่งจัดเก็บและรักษา Chain of Custody"
         actions={
           <>
             <Button variant="ghost" size="sm" onClick={() => openModal("scan-barcode")}>
               <Icons.Arrow className="h-[15px] w-[15px]" />
               ย้ายตำแหน่ง (สแกน)
             </Button>
-            <Button variant="teal" onClick={() => openModal("add-sample")}>
+            <Button variant="accent" onClick={() => openModal("add-sample")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
               รับตัวอย่างใหม่
             </Button>
@@ -376,80 +516,14 @@ export function SamplesView() {
         }
       />
 
-      <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="teal" label="รับเข้าวันนี้" value="12" trend="▲ 3 เทียบเมื่อวาน" />
-        <KpiCard accent="green" label="เสร็จสิ้น" value="186" trend="75% ของทั้งหมด" />
-        <KpiCard accent="amber" label="รอตรวจสอบ" value="9" trend="ต้องดำเนินการ" trendDown />
-        <KpiCard accent="violet" label="ส่งต่อระหว่างแผนก" value="4" trend="อยู่ระหว่างส่งมอบ" />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
-        <Card className="lg:flex lg:min-h-0 lg:flex-col">
-          <CardHead
-            icon={<Icons.Sample />}
-            title="ทะเบียนตัวอย่าง"
-            right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
-          />
-
-          <div className="grid grid-cols-1 gap-3 border-b border-line px-5 py-3.5 sm:grid-cols-[1.2fr_1fr_1fr]">
-            <ScanInput
-              onScan={scanResolve}
-              placeholder="สแกน Barcode ID แล้วกด Enter"
-              label="สแกนบาร์โค้ด"
-            />
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[12px] font-medium text-muted">ชื่อตู้ / ตำแหน่งจัดเก็บ</span>
-              <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="เช่น Fridge-A / Slot-4"
-                className="w-full rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[12px] font-medium text-muted">ผู้ดูแล</span>
-              <select
-                value={custodianUserId}
-                onChange={(e) => setCustodianUserId(e.target.value)}
-                className="w-full rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal"
-              >
-                <option value="">ทั้งหมด</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          {anyFilter && (
-            <div className="flex items-center justify-between border-b border-line bg-bg/40 px-5 py-2 text-[11.5px] text-muted">
-              <span>
-                {loading ? "กำลังค้นหา…" : `พบ ${filtered.length} รายการ`}
-                {barcode && ` · บาร์โค้ด "${barcode}"`}
-              </span>
-              <button onClick={clearFilters} className="font-medium text-teal-d hover:underline">
-                ล้างตัวกรอง
-              </button>
-            </div>
-          )}
-
-          <SampleTable samples={pager.pageItems} selectedId={active?.id ?? null} onSelect={select} onReprint={reprint} />
-          <Pagination
-            page={pager.page}
-            totalPages={pager.totalPages}
-            total={pager.total}
-            rangeStart={pager.rangeStart}
-            rangeEnd={pager.rangeEnd}
-            onPage={pager.setPage}
-            unit="ตัวอย่าง"
-          />
-        </Card>
-
-        <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-          <SampleDetailPanel sample={active} notFound={notFound} onPutAway={() => setPutAwayOpen(true)} />
-        </div>
-      </div>
+      <ResizablePanels
+        panels={panels}
+        layout={layout}
+        setWidth={setWidth}
+        toggleCollapsed={toggleCollapsed}
+        mobilePane={mobilePane}
+        onMobilePane={setMobilePane}
+      />
 
       <PutAwaySampleModal sample={active} open={putAwayOpen} onClose={() => setPutAwayOpen(false)} />
     </div>

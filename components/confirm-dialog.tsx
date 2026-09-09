@@ -46,7 +46,7 @@ export function ConfirmDialog({
           <Button ref={cancelRef} variant="ghost" size="sm" onClick={onCancel}>
             {options.cancelText ?? "ยกเลิก"}
           </Button>
-          <Button ref={confirmRef} variant={danger ? "danger" : "teal"} size="sm" onClick={onConfirm}>
+          <Button ref={confirmRef} variant={danger ? "danger" : "accent"} size="sm" onClick={onConfirm}>
             {options.confirmText ?? "ยืนยัน"}
           </Button>
         </>

@@ -68,7 +68,7 @@ export function ScanInput({
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && <span className="text-[12px] font-medium text-muted">{label}</span>}
       <div className="relative">
-        <Icons.Arrow className="pointer-events-none absolute left-3 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-teal-d" />
+        <Icons.Arrow className="pointer-events-none absolute left-3 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-accent-d" />
         <input
           ref={inputRef}
           value={value}
@@ -82,7 +82,7 @@ export function ScanInput({
           autoFocus={autoFocus}
           disabled={disabled || busy}
           aria-label={label ?? "ช่องสแกนบาร์โค้ด"}
-          className="w-full rounded-lg border border-line bg-bg py-2 pl-9 pr-[92px] font-mono text-[13px] text-ink outline-none transition focus:border-teal disabled:opacity-60"
+          className="w-full rounded-lg border border-line bg-bg py-2 pl-9 pr-[92px] font-mono text-[13px] text-ink outline-none transition focus:border-accent disabled:opacity-60"
         />
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-2">
           {busy ? "กำลังค้นหา…" : "กด Enter"}

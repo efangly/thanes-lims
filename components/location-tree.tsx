@@ -67,8 +67,12 @@ function OccupancyBadge({ kind, node, samples }: { kind: LocationKind; node: Loc
     const total = node.rows * node.cols;
     return (
       <span
-        className={`flex-none rounded-full px-1.5 py-0.5 font-mono text-[10px] ${
-          used === 0 ? "bg-bg text-muted-2" : used >= total ? "bg-red-bg text-red" : "bg-teal-bg text-teal-d"
+        className={`flex-none rounded border bg-transparent px-1 font-mono text-[10px] ${
+          used === 0
+            ? "border-line-2 text-muted-2"
+            : used >= total
+              ? "border-red/40 text-red"
+              : "border-accent-d/40 text-accent-d"
         }`}
       >
         {used}/{total}
@@ -78,7 +82,7 @@ function OccupancyBadge({ kind, node, samples }: { kind: LocationKind; node: Loc
 
   // A plain node only ever has a direct occupant when it is a leaf.
   if (occupantOf(samples, node.id)) {
-    return <span className="h-[7px] w-[7px] flex-none rounded-full bg-teal" title="มีตัวอย่างจัดเก็บอยู่" />;
+    return <span className="h-[7px] w-[7px] flex-none rounded-full bg-accent" title="มีตัวอย่างจัดเก็บอยู่" />;
   }
   return null;
 }
@@ -109,8 +113,8 @@ function TreeNode({
   return (
     <li>
       <div
-        className={`group flex items-center gap-1.5 rounded-md py-1.5 pr-2 text-[13px] transition ${
-          isSelected ? "bg-teal-bg text-teal-d" : "hover:bg-bg"
+        className={`group flex items-center gap-1.5 rounded py-1.5 pr-2 text-[13px] transition ${
+          isSelected ? "bg-accent-bg text-accent-d" : "hover:bg-bg"
         }`}
         style={{ paddingLeft: 8 + depth * 14 }}
       >
@@ -126,7 +130,7 @@ function TreeNode({
           </button>
         )}
 
-        <Icons.Loc className={`h-[14px] w-[14px] flex-none ${isSelected ? "text-teal-d" : "text-muted-2"}`} />
+        <Icons.Loc className={`h-[14px] w-[14px] flex-none ${isSelected ? "text-accent-d" : "text-muted-2"}`} />
 
         <button onClick={() => onSelect(node)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
           <span className="truncate font-medium">{node.name}</span>

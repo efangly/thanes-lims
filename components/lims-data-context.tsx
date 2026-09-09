@@ -138,7 +138,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
   const pushToast = useCallback(
-    (message: string, tone: TagTone = "teal") => {
+    (message: string, tone: TagTone = "accent") => {
       const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       setToasts((prev) => [...prev, { id, tone, message }]);
       setTimeout(() => dismissToast(id), 3500);

@@ -45,7 +45,7 @@ export function CalibrationResultsView() {
   const pager = usePagination(rows, { resetKey: `${q}|${equipmentId}|${result}|${from}|${to}` });
 
   return (
-    <div className="animate-fade md:flex md:h-full md:flex-col md:overflow-hidden">
+    <div className="md:flex md:h-full md:flex-col md:overflow-hidden">
       <PageHead
         title="ผลการสอบเทียบ"
         desc="รายการผลสอบเทียบข้ามทุกเครื่องมือ เรียงจากใหม่ไปเก่า"
@@ -54,7 +54,7 @@ export function CalibrationResultsView() {
             <Link href="/equipment" className="text-[12.5px] text-muted hover:text-ink">
               ← ทะเบียนเครื่องมือ
             </Link>
-            <Button variant="teal" onClick={() => openModal("record-calibration")}>
+            <Button variant="accent" onClick={() => openModal("record-calibration")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
               บันทึกผลสอบเทียบ
             </Button>

@@ -119,7 +119,7 @@ export function StockIssueModal({
               ยกเลิก
             </Button>
             <Button
-              variant="teal"
+              variant="accent"
               size="sm"
               onClick={() => handleIssue(false)}
               disabled={submitting || loading || lines.length === 0}

@@ -62,7 +62,7 @@ export function AssignSampleToLocationModal({
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !currentSampleId}>
+          <Button variant="accent" size="sm" onClick={handleSubmit} disabled={submitting || !currentSampleId}>
             {submitting ? "กำลังบันทึก..." : "ผูก Sample"}
           </Button>
         </>

@@ -152,7 +152,7 @@ export function LocationPicker({
               disabled={disabled || entering !== null || blocked}
               className="flex w-full items-center gap-2.5 border-b border-line px-3.5 py-2.5 text-left text-[13px] transition last:border-b-0 hover:bg-bg disabled:opacity-50"
             >
-              <Icons.Loc className="h-[15px] w-[15px] flex-none text-teal-d" />
+              <Icons.Loc className="h-[15px] w-[15px] flex-none text-accent-d" />
               <span className="flex-1">{node.name}</span>
               {blocked && <span className="text-[11px] text-amber">มีตัวอย่างครองอยู่</span>}
               <span className="font-mono text-[11px] text-muted">

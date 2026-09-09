@@ -7,78 +7,81 @@
   Design tokens exposed as CSS variables so both Tailwind utilities
   (via @theme) and inline SVG styles can read them. Light values live
   in :root, dark overrides in .dark.
+
+  Design language (ADR-0012): "lab instrument" — paper ground, near-black
+  ink, hairline rules, a single cobalt "label-tape" accent, and status
+  colours borrowed from printed hazard/label conventions (desaturated).
 */
 :root {
-  --tok-ink: #0d1b2a;
-  --tok-ink-2: #132a3e;
-  --tok-panel: #ffffff;
-  --tok-bg: #eef2f5;
-  --tok-bg-2: #e3e9ee;
-  --tok-line: #d3dde4;
-  --tok-line-2: #c2cfd8;
+  --tok-ink: #1c1a17;
+  --tok-ink-2: #2b2823;
+  --tok-panel: #faf8f3;
+  --tok-bg: #f0ece2;
+  --tok-bg-2: #e6e1d3;
+  --tok-line: #dad4c4;
+  --tok-line-2: #c7c0aa;
 
-  --tok-teal: #0a9396;
-  --tok-teal-d: #077377;
-  --tok-teal-bg: #e4f4f4;
-  --tok-amber: #c9770a;
-  --tok-amber-bg: #fbeecf;
-  --tok-red: #c1443a;
-  --tok-red-bg: #f8e2df;
-  --tok-green: #2e7d52;
-  --tok-green-bg: #e0f0e6;
-  --tok-violet: #5b53a6;
-  --tok-violet-bg: #eae8f4;
+  /* single accent — cobalt label tape */
+  --tok-accent: #2f4b8f;
+  --tok-accent-d: #253a6c;
+  --tok-accent-bg: #e5e8f2;
+  --tok-amber: #a8720f;
+  --tok-amber-bg: #f5ecd6;
+  --tok-red: #a83a2f;
+  --tok-red-bg: #f3e1dc;
+  --tok-green: #3f6b3a;
+  --tok-green-bg: #e3ecdd;
 
-  --tok-text: #0d1b2a;
-  --tok-muted: #5f7383;
-  --tok-muted-2: #8496a3;
+  --tok-text: #1c1a17;
+  --tok-muted: #6b6454;
+  --tok-muted-2: #938b77;
 
-  --tok-sidebar: #ffffff;
-  --tok-sidebar-text: #4a5c6b;
-  --tok-sidebar-muted: #8496a3;
+  --tok-sidebar: #f4f0e6;
+  --tok-sidebar-text: #4a4638;
+  --tok-sidebar-muted: #938b77;
 
   /* Non-Tailwind helpers read directly by inline styles/classes */
-  --color-sidebar-line: rgba(13, 27, 42, 0.08);
-  --color-sidebar-hover: rgba(13, 27, 42, 0.045);
-  --color-readout: #ffffff;
-  --color-readout-line: rgba(13, 27, 42, 0.08);
-  --shadow-card: 0 1px 2px rgba(13, 27, 42, 0.06), 0 8px 24px rgba(13, 27, 42, 0.06);
+  --color-sidebar-line: rgba(28, 26, 23, 0.1);
+  --color-sidebar-hover: rgba(28, 26, 23, 0.05);
+  --color-readout: #faf8f3;
+  --color-readout-line: rgba(28, 26, 23, 0.1);
+  --graph-line: rgba(28, 26, 23, 0.06);
+  --shadow-card: none;
 }
 
 .dark {
-  --tok-ink: #e7eef3;
-  --tok-ink-2: #cdd9e2;
-  --tok-panel: #131c26;
-  --tok-bg: #0b1219;
-  --tok-bg-2: #1a2530;
-  --tok-line: #23303c;
-  --tok-line-2: #2e3d4a;
+  --tok-ink: #ece7da;
+  --tok-ink-2: #d4cfc0;
+  --tok-panel: #1c1a16;
+  --tok-bg: #141210;
+  --tok-bg-2: #232019;
+  --tok-line: #332f26;
+  --tok-line-2: #423d31;
 
-  --tok-teal: #2dd4d7;
-  --tok-teal-d: #4fdfe2;
-  --tok-teal-bg: #0e2a2b;
-  --tok-amber: #e0a13c;
-  --tok-amber-bg: #2e2413;
-  --tok-red: #e5695f;
-  --tok-red-bg: #2e1917;
-  --tok-green: #47b07a;
-  --tok-green-bg: #14261c;
-  --tok-violet: #8f88cf;
-  --tok-violet-bg: #201e30;
+  --tok-accent: #7d9bdb;
+  --tok-accent-d: #9db3e5;
+  --tok-accent-bg: #1c2434;
+  --tok-amber: #d19a4a;
+  --tok-amber-bg: #2c2413;
+  --tok-red: #d76a5c;
+  --tok-red-bg: #2e1a16;
+  --tok-green: #6fa969;
+  --tok-green-bg: #1b2417;
 
-  --tok-text: #e7eef3;
-  --tok-muted: #8fa3b3;
-  --tok-muted-2: #6b7f8d;
+  --tok-text: #ece7da;
+  --tok-muted: #9a9280;
+  --tok-muted-2: #6f6857;
 
-  --tok-sidebar: #0a1219;
-  --tok-sidebar-text: #b3c3ce;
-  --tok-sidebar-muted: #6b8291;
+  --tok-sidebar: #100e0b;
+  --tok-sidebar-text: #b8b19e;
+  --tok-sidebar-muted: #6f6857;
 
-  --color-sidebar-line: rgba(255, 255, 255, 0.06);
-  --color-sidebar-hover: rgba(255, 255, 255, 0.04);
-  --color-readout: #0a1219;
-  --color-readout-line: rgba(255, 255, 255, 0.07);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --color-sidebar-line: rgba(255, 255, 255, 0.07);
+  --color-sidebar-hover: rgba(255, 255, 255, 0.045);
+  --color-readout: #100e0b;
+  --color-readout-line: rgba(255, 255, 255, 0.08);
+  --graph-line: rgba(255, 255, 255, 0.05);
+  --shadow-card: none;
 }
 
 /*
@@ -96,17 +99,15 @@
   --color-line: var(--tok-line);
   --color-line-2: var(--tok-line-2);
 
-  --color-teal: var(--tok-teal);
-  --color-teal-d: var(--tok-teal-d);
-  --color-teal-bg: var(--tok-teal-bg);
+  --color-accent: var(--tok-accent);
+  --color-accent-d: var(--tok-accent-d);
+  --color-accent-bg: var(--tok-accent-bg);
   --color-amber: var(--tok-amber);
   --color-amber-bg: var(--tok-amber-bg);
   --color-red: var(--tok-red);
   --color-red-bg: var(--tok-red-bg);
   --color-green: var(--tok-green);
   --color-green-bg: var(--tok-green-bg);
-  --color-violet: var(--tok-violet);
-  --color-violet-bg: var(--tok-violet-bg);
 
   --color-text: var(--tok-text);
   --color-muted: var(--tok-muted);
@@ -118,7 +119,7 @@
 
   --font-sans: var(--font-anuphan), system-ui, sans-serif;
   --font-display: var(--font-anuphan), system-ui, sans-serif;
-  --font-mono: var(--font-anuphan), monospace;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
 }
 
 * {
@@ -153,35 +154,33 @@ body {
   background: transparent;
 }
 
-/* Keyframes reused across components */
+/* Engineering-paper grid — only for genuine grid surfaces (BoxGrid, empty
+   panel areas), never as a whole-app texture. */
+.bg-graph {
+  background-image:
+    repeating-linear-gradient(0deg, var(--graph-line) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(90deg, var(--graph-line) 0 1px, transparent 1px 22px);
+}
+
+/* Functional motion only (ADR-0012): sync pulse, alert ring, barcode scan.
+   Decorative page fade-in and the chatbot indeterminate bar were removed. */
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-teal) 55%, transparent); }
-  70% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-teal) 0%, transparent); }
-  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-teal) 0%, transparent); }
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-green) 55%, transparent); }
+  70% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-green) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-green) 0%, transparent); }
 }
 @keyframes ring {
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-amber) 40%, transparent); }
   70% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-amber) 0%, transparent); }
   100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-amber) 0%, transparent); }
 }
-@keyframes fade {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 @keyframes scan-line {
   0% { top: 4%; }
   50% { top: 92%; }
   100% { top: 4%; }
 }
-@keyframes progress-indet {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(250%); }
-}
 
 .animate-pulse-dot { animation: pulse 2.4s infinite; }
 .animate-ring { animation: ring 2s infinite; }
-.animate-fade { animation: fade 0.25s ease; }
 .animate-scan-line { animation: scan-line 1.4s ease-in-out infinite; }
-.animate-progress-indet { animation: progress-indet 1.1s ease-in-out infinite; }
 
-.shadow-card { box-shadow: var(--shadow-card); }

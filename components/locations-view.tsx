@@ -262,7 +262,7 @@ export function LocationsView() {
                     placeholder={kind === "sample_storage" ? "เช่น Fridge-B" : "เช่น อาคารวิจัย 1"}
                   />
                 </Field>
-                <Button variant="teal" size="sm" onClick={handleCreateRoot} disabled={creating || !rootName.trim()}>
+                <Button variant="accent" size="sm" onClick={handleCreateRoot} disabled={creating || !rootName.trim()}>
                   <Icons.Plus className="h-[14px] w-[14px]" />
                   {creating ? "กำลังสร้าง..." : `สร้าง${rootLabel(kind)}`}
                 </Button>
@@ -277,7 +277,7 @@ export function LocationsView() {
                     <Field label="จำนวน">
                       <Input type="number" min={1} value={count} onChange={(e) => setCount(e.target.value)} className="w-24" />
                     </Field>
-                    <Button variant="teal" size="sm" onClick={handleGenerateChildren} disabled={generating || !prefix.trim()}>
+                    <Button variant="accent" size="sm" onClick={handleGenerateChildren} disabled={generating || !prefix.trim()}>
                       <Icons.Plus className="h-[14px] w-[14px]" />
                       {generating ? "กำลังสร้าง..." : "Generate"}
                     </Button>
@@ -297,7 +297,7 @@ export function LocationsView() {
                       <Field label="คอลัมน์">
                         <Input type="number" min={1} max={99} value={boxCols} onChange={(e) => setBoxCols(e.target.value)} className="w-20" />
                       </Field>
-                      <Button variant="teal" size="sm" onClick={handleCreateBox} disabled={creatingBox || !boxName.trim()}>
+                      <Button variant="accent" size="sm" onClick={handleCreateBox} disabled={creatingBox || !boxName.trim()}>
                         <Icons.Plus className="h-[14px] w-[14px]" />
                         {creatingBox ? "กำลังสร้าง..." : "สร้างกล่อง"}
                       </Button>
@@ -310,7 +310,7 @@ export function LocationsView() {
                             setBoxRows(String(g.rows));
                             setBoxCols(String(g.cols));
                           }}
-                          className="rounded-md border border-line px-2 py-0.5 text-[11px] text-muted transition hover:bg-bg"
+                          className="rounded border border-line px-2 py-0.5 text-[11px] text-muted transition hover:bg-bg"
                         >
                           {g.label}
                         </button>
@@ -347,7 +347,7 @@ export function LocationsView() {
               const cellsUsed = isBox ? boxOccupants(samples, node.id).size : 0;
               return (
                 <div key={node.id} className="flex items-center gap-2.5 border-b border-line px-[18px] py-3 last:border-b-0">
-                  <Icons.Loc className="h-[15px] w-[15px] flex-none text-teal-d" />
+                  <Icons.Loc className="h-[15px] w-[15px] flex-none text-accent-d" />
                   <div className="flex-1">
                     <div className="text-[13px] font-medium">{node.name}</div>
                     <div className="font-mono text-[11px] text-muted">
@@ -384,7 +384,7 @@ export function LocationsView() {
                 )}
               </div>
               {!occupantOf(samples, currentNode.id) && (
-                <Button variant="teal" size="sm" onClick={() => openAssign(currentNode)}>
+                <Button variant="accent" size="sm" onClick={() => openAssign(currentNode)}>
                   <Icons.Sample className="h-[13px] w-[13px]" />
                   ผูก Sample
                 </Button>
@@ -433,7 +433,7 @@ export function LocationsView() {
   );
 
   return (
-    <div className="animate-fade">
+    <div className="">
       <PageHead
         title="ตำแหน่งจัดเก็บ"
         desc={KIND_DESC[kind]}

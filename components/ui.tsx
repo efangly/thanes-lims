@@ -4,23 +4,23 @@ import { forwardRef, type ReactNode, useCallback, useEffect, useMemo, useRef, us
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Tag as TagType, TagTone } from "@/lib/data";
 
-/* ---------- Tag / status pill ---------- */
-const toneMap: Record<TagTone, { bg: string; text: string; dot: string }> = {
-  teal: { bg: "bg-teal-bg", text: "text-teal-d", dot: "bg-teal" },
-  amber: { bg: "bg-amber-bg", text: "text-amber", dot: "bg-amber" },
-  red: { bg: "bg-red-bg", text: "text-red", dot: "bg-red" },
-  green: { bg: "bg-green-bg", text: "text-green", dot: "bg-green" },
-  violet: { bg: "bg-violet-bg", text: "text-violet", dot: "bg-violet" },
-  grey: { bg: "bg-bg-2", text: "text-muted", dot: "bg-muted-2" },
+/* ---------- Tag / status label-chip ----------
+   A specimen-label chip: hairline border, transparent ground, mono caps,
+   a leading square marker in the tone colour. Not a filled pill. */
+const toneMap: Record<TagTone, string> = {
+  accent: "text-accent-d border-accent-d/35",
+  amber: "text-amber border-amber/35",
+  red: "text-red border-red/35",
+  green: "text-green border-green/35",
+  grey: "text-muted border-line-2",
 };
 
 export function Tag({ tone, label }: TagType) {
-  const t = toneMap[tone];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-[3px] text-[11.5px] font-medium font-mono whitespace-nowrap ${t.bg} ${t.text}`}
+      className={`inline-flex items-center gap-1.5 rounded border bg-transparent px-1.5 py-[2px] font-mono text-[10.5px] font-medium uppercase tracking-[0.4px] whitespace-nowrap ${toneMap[tone]}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
+      <span className="h-[6px] w-[6px] flex-none bg-current" />
       {label}
     </span>
   );
@@ -35,9 +35,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div
-      className={`rounded-[10px] border border-line bg-panel shadow-card ${className}`}
-    >
+    <div className={`rounded border border-line bg-panel ${className}`}>
       {children}
     </div>
   );
@@ -55,7 +53,7 @@ export function CardHead({
   return (
     <div className="flex items-center justify-between border-b border-line px-[18px] py-[15px]">
       <h3 className="flex items-center gap-2.5 font-display text-[15px] font-semibold">
-        {icon && <span className="h-[17px] w-[17px] text-teal-d">{icon}</span>}
+        {icon && <span className="h-[17px] w-[17px] text-accent-d">{icon}</span>}
         {title}
       </h3>
       {right}
@@ -65,15 +63,15 @@ export function CardHead({
 
 /* ---------- KPI card ---------- */
 const kpiAccent: Record<string, string> = {
-  teal: "before:bg-teal",
+  accent: "before:bg-accent",
   amber: "before:bg-amber",
   red: "before:bg-red",
   green: "before:bg-green",
-  violet: "before:bg-violet",
+  grey: "before:bg-line-2",
 };
 
 export function KpiCard({
-  accent = "teal",
+  accent = "accent",
   label,
   value,
   unit,
@@ -91,21 +89,54 @@ export function KpiCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-[10px] border border-line bg-panel p-4 shadow-card before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] ${kpiAccent[accent]}`}
+      className={`relative overflow-hidden rounded border border-line bg-panel p-4 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[2px] ${kpiAccent[accent]}`}
     >
-      <div className="flex items-center gap-1.5 text-[11.5px] text-muted">
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.5px] text-muted">
         {icon && <span className="h-3.5 w-3.5">{icon}</span>}
         {label}
       </div>
-      <div className="mt-2 font-display text-[27px] font-semibold tracking-tight">
+      <div className="mt-2 font-mono text-[24px] font-medium tracking-tight">
         {value}
-        {unit && <small className="ml-1 text-[13px] font-normal text-muted-2 font-sans">{unit}</small>}
+        {unit && <small className="ml-1 font-sans text-[13px] font-normal text-muted-2">{unit}</small>}
       </div>
       {trend && (
         <div className={`mt-1 font-mono text-[11px] ${trendDown ? "text-red" : "text-green"}`}>
           {trend}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ---------- Readout strip ----------
+   Instrument-style metric row: a single hairline-ruled band of label / value
+   pairs sitting at the top of a work area. Replaces the KPI card grid inside
+   the 3-panel layout (ADR-0012). */
+export function ReadoutStrip({
+  items,
+  className = "",
+}: {
+  items: { label: string; value: string; unit?: string; tone?: "amber" | "red" | "green" }[];
+  className?: string;
+}) {
+  const toneText: Record<string, string> = {
+    amber: "text-amber",
+    red: "text-red",
+    green: "text-green",
+  };
+  return (
+    <div
+      className={`flex flex-wrap items-stretch divide-x divide-line border-b border-line ${className}`}
+    >
+      {items.map((it) => (
+        <div key={it.label} className="flex flex-col gap-0.5 px-4 py-2 first:pl-0">
+          <span className="text-[10px] uppercase tracking-[0.6px] text-muted-2">{it.label}</span>
+          <span className={`font-mono text-[15px] font-medium ${it.tone ? toneText[it.tone] : "text-ink"}`}>
+            {it.value}
+            {it.unit && <span className="ml-1 text-[11px] text-muted-2">{it.unit}</span>}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -123,7 +154,7 @@ export function PageHead({
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <div className="font-display text-[22px] font-semibold tracking-[-0.2px]">{title}</div>
+        <div className="font-display text-[21px] font-semibold">{title}</div>
         <div className="mt-[3px] max-w-[640px] text-[13px] text-muted">{desc}</div>
       </div>
       {actions && <div className="flex gap-2.5">{actions}</div>}
@@ -136,21 +167,21 @@ export const Button = forwardRef<
   HTMLButtonElement,
   {
     children: ReactNode;
-    variant?: "ink" | "ghost" | "teal" | "danger";
+    variant?: "ink" | "ghost" | "accent" | "danger";
     size?: "md" | "sm";
   } & React.ButtonHTMLAttributes<HTMLButtonElement>
 >(function Button({ children, variant = "ink", size = "md", className = "", ...props }, ref) {
   const variants = {
-    ink: "bg-ink text-panel hover:brightness-125",
-    teal: "bg-teal text-white hover:brightness-110",
-    ghost: "bg-panel text-ink border border-line hover:bg-bg",
-    danger: "bg-red text-white hover:brightness-110",
+    ink: "bg-ink text-panel hover:bg-ink-2",
+    accent: "bg-accent text-white hover:bg-accent-d",
+    ghost: "bg-panel text-ink border border-line-2 hover:bg-bg-2",
+    danger: "bg-red text-white hover:brightness-95",
   };
   const sizes = { md: "px-[15px] py-[9px] text-[13px]", sm: "px-[11px] py-1.5 text-[12px]" };
   return (
     <button
       ref={ref}
-      className={`inline-flex items-center gap-[7px] rounded-lg font-medium transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center gap-[7px] rounded font-medium transition active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
@@ -172,13 +203,13 @@ export function Seg({
   const active = value ?? internal;
   const setActive = (i: number) => (onChange ? onChange(i) : setInternal(i));
   return (
-    <div className="inline-flex rounded-lg border border-line bg-bg p-[3px]">
+    <div className="inline-flex rounded border border-line bg-bg p-[2px]">
       {options.map((o, i) => (
         <button
           key={o}
           onClick={() => setActive(i)}
-          className={`rounded-md px-[13px] py-1.5 text-[12.5px] font-medium transition ${
-            active === i ? "bg-panel text-ink shadow-sm" : "text-muted"
+          className={`rounded-[2px] px-[13px] py-1.5 text-[12.5px] font-medium transition ${
+            active === i ? "bg-panel text-ink ring-1 ring-line-2" : "text-muted hover:text-ink"
           }`}
         >
           {o}
@@ -284,7 +315,7 @@ export function Pagination({
   className?: string;
 }) {
   const cell =
-    "grid h-7 min-w-7 place-items-center rounded-md border border-line px-1.5 text-[12px] font-medium transition disabled:cursor-not-allowed disabled:opacity-40";
+    "grid h-7 min-w-7 place-items-center rounded-[2px] border border-line px-1.5 font-mono text-[12px] font-medium transition disabled:cursor-not-allowed disabled:opacity-40";
   const fmt = (n: number) => n.toLocaleString("th-TH");
   return (
     <div
@@ -314,7 +345,7 @@ export function Pagination({
                 onClick={() => onPage(p)}
                 aria-current={p === page ? "page" : undefined}
                 className={`${cell} ${
-                  p === page ? "border-teal bg-teal text-white" : "text-ink hover:bg-bg"
+                  p === page ? "border-ink bg-ink text-panel" : "text-ink hover:bg-bg-2"
                 }`}
               >
                 {p}
@@ -352,7 +383,7 @@ export function Field({
 }
 
 const fieldCls =
-  "w-full rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal";
+  "w-full rounded border border-line-2 bg-panel px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-ink focus:outline focus:outline-1 focus:outline-ink";
 
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${fieldCls} ${props.className ?? ""}`} />;
@@ -364,10 +395,10 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
 
 /* ---------- Avatar ---------- */
 export function Avatar({ initials, size = "sm" }: { initials: string; size?: "sm" | "xs" }) {
-  const s = size === "sm" ? "h-8 w-8 text-xs" : "h-6 w-6 text-[10px]";
+  const s = size === "sm" ? "h-8 w-8 text-[11px]" : "h-6 w-6 text-[9px]";
   return (
     <span
-      className={`inline-grid place-items-center rounded-full bg-gradient-to-br from-[#3a6ea5] to-[#2b4d73] font-display font-semibold text-white ${s}`}
+      className={`inline-grid place-items-center rounded bg-ink font-mono font-medium text-panel ${s}`}
     >
       {initials}
     </span>
@@ -490,7 +521,7 @@ export function BarChart({
           <div key={d.label} className="flex h-full flex-1 flex-col items-center gap-2">
             <div className="flex w-full flex-1 flex-col justify-end gap-0.5">
               <div className="w-full rounded-t-[3px] bg-amber" style={{ height: d.b }} />
-              <div className="w-full rounded-t-[3px] bg-teal" style={{ height: d.a }} />
+              <div className="w-full rounded-t-[3px] bg-accent" style={{ height: d.a }} />
             </div>
             <div className="font-mono text-[11px] text-muted">{d.label}</div>
           </div>
@@ -498,7 +529,7 @@ export function BarChart({
       </div>
       <div className="mt-3.5 flex gap-[18px] text-[12px] text-muted">
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-[3px] bg-teal" />
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-accent" />
           {legendA}
         </span>
         <span className="flex items-center gap-1.5">

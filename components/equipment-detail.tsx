@@ -65,7 +65,7 @@ export function EquipmentDetail({ id }: { id: string }) {
 
   if (notFound) {
     return (
-      <div className="animate-fade">
+      <div className="">
         <BackLink />
         <Card className="mt-4">
           <div className="px-5 py-10 text-center text-[13px] text-muted">ไม่พบเครื่องมือรหัส {id}</div>
@@ -75,7 +75,7 @@ export function EquipmentDetail({ id }: { id: string }) {
   }
   if (!eq) {
     return (
-      <div className="animate-fade">
+      <div className="">
         <BackLink />
         <div className="mt-4 px-5 py-10 text-center text-[13px] text-muted">กำลังโหลด…</div>
       </div>
@@ -83,7 +83,7 @@ export function EquipmentDetail({ id }: { id: string }) {
   }
 
   return (
-    <div className="animate-fade">
+    <div className="">
       <BackLink />
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <h1 className="text-[19px] font-semibold">{eq.name}</h1>
@@ -134,7 +134,7 @@ function AssetCard({
   eq: Eq;
   onSaved: (e: Eq) => void;
   save: (id: string, patch: EquipmentPatch) => Promise<Eq>;
-  pushToast: (m: string, tone?: "red" | "teal") => void;
+  pushToast: (m: string, tone?: "red" | "accent") => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -206,7 +206,7 @@ function AssetCard({
               <Button variant="ghost" size="sm" onClick={() => setEditing(false)} disabled={busy}>
                 ยกเลิก
               </Button>
-              <Button variant="teal" size="sm" onClick={submit} disabled={busy}>
+              <Button variant="accent" size="sm" onClick={submit} disabled={busy}>
                 {busy ? "กำลังบันทึก..." : "บันทึก"}
               </Button>
             </span>
@@ -317,7 +317,7 @@ function DocumentsCard({ id, openModal }: { id: string; openModal: ReturnType<ty
         {docs?.length === 0 && <div className="px-5 py-4 text-[12.5px] text-muted">ยังไม่มีเอกสารแนบ</div>}
         {docs?.map((d) => (
           <div key={d.id} className="flex items-center gap-3 border-b border-line px-5 py-3 last:border-none">
-            <Icons.Doc className="h-4 w-4 flex-none text-violet" />
+            <Icons.Doc className="h-4 w-4 flex-none text-accent-d" />
             <div className="flex-1">
               <div className="text-[13px] font-medium">{d.name}</div>
               <div className="text-[11.5px] text-muted">
@@ -352,7 +352,7 @@ function CalibrationHistoryCard({ id }: { id: string }) {
         right={
           <Link
             href={`/equipment/calibration-results?equipment_id=${encodeURIComponent(id)}`}
-            className="text-[12px] font-medium text-teal-d hover:underline"
+            className="text-[12px] font-medium text-accent-d hover:underline"
           >
             ดูทั้งหมด
           </Link>
@@ -384,7 +384,7 @@ function CalibrationSchedulesCard({
   pushToast,
 }: {
   id: string;
-  pushToast: (m: string, tone?: "red" | "teal") => void;
+  pushToast: (m: string, tone?: "red" | "accent") => void;
 }) {
   const confirm = useConfirm();
   const [rows, setRows] = useState<CalibrationSchedule[] | null>(null);
@@ -458,7 +458,7 @@ function CalibrationSchedulesCard({
             <button
               onClick={() => setEditing(s)}
               disabled={busyId === s.id}
-              className="text-[12px] text-teal-d hover:underline"
+              className="text-[12px] text-accent-d hover:underline"
             >
               แก้ไข
             </button>
@@ -499,7 +499,7 @@ function ScheduleFormModal({
   schedule: CalibrationSchedule | null;
   onClose: () => void;
   onSaved: () => void;
-  pushToast: (m: string, tone?: "red" | "teal") => void;
+  pushToast: (m: string, tone?: "red" | "accent") => void;
 }) {
   const [label, setLabel] = useState(schedule?.label ?? "");
   const [nextDue, setNextDue] = useState(schedule ? schedule.nextDueDate.slice(0, 10) : "");
@@ -538,7 +538,7 @@ function ScheduleFormModal({
           <Button variant="ghost" size="sm" onClick={onClose} disabled={busy}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={submit} disabled={busy || !label.trim() || !nextDue}>
+          <Button variant="accent" size="sm" onClick={submit} disabled={busy || !label.trim() || !nextDue}>
             {busy ? "กำลังบันทึก..." : "บันทึก"}
           </Button>
         </>

@@ -109,7 +109,7 @@ export function AddInventoryModal() {
             <Button variant="ghost" size="sm" onClick={closeModal}>
               ยกเลิก
             </Button>
-            <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !valid}>
+            <Button variant="accent" size="sm" onClick={handleSubmit} disabled={submitting || !valid}>
               <Icons.Plus className="h-[14px] w-[14px]" />
               {submitting ? "กำลังบันทึก..." : existing ? "บันทึก" : "เพิ่มรายการ"}
             </Button>
@@ -119,13 +119,13 @@ export function AddInventoryModal() {
     >
       {createdId ? (
         <div className="flex flex-col gap-3.5 py-2">
-          <div className="flex items-center gap-2 text-[13px] font-medium text-teal-d">
+          <div className="flex items-center gap-2 text-[13px] font-medium text-accent-d">
             <Icons.Check className="h-4 w-4" />
             สร้างรายการ {createdId} แล้ว — ยังไม่มีสต็อก รับของเข้าคลังเลยไหม?
           </div>
           <div className="flex gap-2">
             <Link href={`/inventory/receive?item=${createdId}`} onClick={closeModal}>
-              <Button variant="teal" size="sm">
+              <Button variant="accent" size="sm">
                 รับของเข้าคลัง
               </Button>
             </Link>

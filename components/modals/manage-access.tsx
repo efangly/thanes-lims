@@ -43,7 +43,7 @@ export function ManageAccessModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSave}>
+          <Button variant="accent" size="sm" onClick={handleSave}>
             <Icons.Check className="h-[14px] w-[14px]" />
             บันทึกการเปลี่ยนแปลง
           </Button>
@@ -74,7 +74,7 @@ export function ManageAccessModal() {
                       type="checkbox"
                       checked={matrix[role][perm]}
                       onChange={() => toggle(role, perm)}
-                      className="h-4 w-4 accent-teal"
+                      className="h-4 w-4 accent-accent"
                     />
                   </td>
                 ))}

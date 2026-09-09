@@ -177,7 +177,7 @@ export function BoxGrid({
   };
 
   const grid = (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto bg-graph p-2">
       <table className="border-separate border-spacing-1">
         <thead>
           <tr>
@@ -226,13 +226,13 @@ export function BoxGrid({
           กริด <span className="font-medium text-ink">{rows}×{cols}</span> · ใช้ไปแล้ว{" "}
           <span className="font-medium text-ink">{used}</span>/{total} ช่อง
           {mode === "manage" && selected.size > 0 && (
-            <span className="ml-2 text-teal-d">— เลือก {selected.size} ช่อง ลากเพื่อย้ายทั้งกลุ่ม</span>
+            <span className="ml-2 text-accent-d">— เลือก {selected.size} ช่อง ลากเพื่อย้ายทั้งกลุ่ม</span>
           )}
         </div>
         {mode === "manage" && onEnlarge && !enlarging && (
           <button
             onClick={() => setEnlarging(true)}
-            className="flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[12px] text-muted transition hover:bg-bg"
+            className="flex items-center gap-1 rounded border border-line px-2 py-1 text-[12px] text-muted transition hover:bg-bg"
           >
             <Icons.Plus className="h-3 w-3" />
             ขยายกริด
@@ -241,7 +241,7 @@ export function BoxGrid({
       </div>
 
       {enlarging && (
-        <div className="flex flex-wrap items-end gap-2 rounded-lg border border-line bg-bg px-3 py-2.5">
+        <div className="flex flex-wrap items-end gap-2 rounded border border-line bg-bg px-3 py-2.5">
           <label className="flex flex-col gap-1 text-[11px] text-muted">
             แถว (≤ 26)
             <input
@@ -250,7 +250,7 @@ export function BoxGrid({
               max={26}
               value={nextRows}
               onChange={(e) => setNextRows(e.target.value)}
-              className="w-20 rounded-md border border-line bg-panel px-2 py-1 text-[13px] text-ink"
+              className="w-20 rounded border border-line bg-panel px-2 py-1 text-[13px] text-ink"
             />
           </label>
           <label className="flex flex-col gap-1 text-[11px] text-muted">
@@ -261,13 +261,13 @@ export function BoxGrid({
               max={99}
               value={nextCols}
               onChange={(e) => setNextCols(e.target.value)}
-              className="w-20 rounded-md border border-line bg-panel px-2 py-1 text-[13px] text-ink"
+              className="w-20 rounded border border-line bg-panel px-2 py-1 text-[13px] text-ink"
             />
           </label>
           <button
             onClick={submitEnlarge}
             disabled={busy}
-            className="rounded-md bg-teal px-2.5 py-1.5 text-[12px] font-medium text-white disabled:opacity-50"
+            className="rounded bg-accent px-2.5 py-1.5 text-[12px] font-medium text-white disabled:opacity-50"
           >
             บันทึก
           </button>
@@ -288,7 +288,7 @@ export function BoxGrid({
           {grid}
           <DragOverlay>
             {activeId ? (
-              <div className="grid h-8 min-w-[34px] place-items-center rounded-md border border-teal bg-teal/20 text-[9px] font-mono text-teal-d shadow-lg">
+              <div className="grid h-8 min-w-[34px] place-items-center rounded border border-accent bg-accent/20 text-[9px] font-mono text-accent-d shadow-lg">
                 {movingSet.size > 1 ? `×${movingSet.size}` : activeId}
               </div>
             ) : null}
@@ -305,7 +305,7 @@ export function BoxGrid({
             .map(([pos, s]) => (
               <li key={pos} className="flex items-center gap-2">
                 <span className="font-mono text-muted-2">{pos}</span>
-                <Link href={`/samples?s=${s.id}`} className="font-mono text-teal-d hover:underline">
+                <Link href={`/samples?s=${s.id}`} className="font-mono text-accent-d hover:underline">
                   {s.id}
                 </Link>
                 <span className="truncate text-muted">{s.name}</span>
@@ -347,16 +347,16 @@ function Cell({
   };
 
   const cls = [
-    "grid h-8 w-full min-w-[34px] place-items-center rounded-md border text-[9px] font-mono transition",
+    "grid h-8 w-full min-w-[34px] place-items-center rounded border text-[9px] font-mono transition",
     isDropTarget
       ? dropValid
-        ? "border-teal bg-teal/25 text-teal-d ring-1 ring-teal"
+        ? "border-accent bg-accent/25 text-accent-d ring-1 ring-accent"
         : "border-red bg-red-bg text-red ring-1 ring-red"
       : selected
-        ? "border-teal bg-teal/15 text-teal-d ring-1 ring-teal"
+        ? "border-accent bg-accent/15 text-accent-d ring-1 ring-accent"
         : sample
-          ? "border-teal-d/30 bg-teal/10 text-teal-d hover:bg-teal/20"
-          : "border-dashed border-line text-muted-2 hover:border-teal hover:text-teal-d",
+          ? "border-accent-d/30 bg-accent/10 text-accent-d hover:bg-accent/20"
+          : "border-dashed border-line text-muted-2 hover:border-accent hover:text-accent-d",
     isMoving && draggable.isDragging ? "opacity-30" : "",
     disabled ? "cursor-not-allowed opacity-50" : sample && mode === "manage" ? "cursor-grab" : "cursor-pointer",
   ].join(" ");

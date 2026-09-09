@@ -52,7 +52,7 @@ function DocumentsPageInner() {
   const pager = usePagination(filtered, { resetKey: String(seg) });
 
   return (
-    <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
+    <div className="lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
       <PageHead
         title="การจัดการเอกสาร"
         desc="จัดระเบียบ SOP คู่มือ นโยบาย และแบบฟอร์ม พร้อมติดตามประวัติการแก้ไข ป้องกันเอกสารสูญหาย และจำกัดสิทธิ์เข้าถึงข้อมูลลับตามบทบาท"
@@ -62,7 +62,7 @@ function DocumentsPageInner() {
               <Icons.Lock className="h-[15px] w-[15px]" />
               จัดการสิทธิ์เข้าถึง
             </Button>
-            <Button variant="teal" onClick={() => openModal("upload-document")}>
+            <Button variant="accent" onClick={() => openModal("upload-document")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
               อัปโหลดเอกสาร
             </Button>
@@ -71,8 +71,8 @@ function DocumentsPageInner() {
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="violet" label="เอกสารทั้งหมด" value="142" trend="ควบคุมเวอร์ชัน" />
-        <KpiCard accent="teal" label="SOP ที่ใช้งาน" value="38" trend="ทบทวนครบตามรอบ" />
+        <KpiCard accent="grey" label="เอกสารทั้งหมด" value="142" trend="ควบคุมเวอร์ชัน" />
+        <KpiCard accent="accent" label="SOP ที่ใช้งาน" value="38" trend="ทบทวนครบตามรอบ" />
         <KpiCard accent="amber" label="รอทบทวน/อนุมัติ" value="4" trend="ภายในเดือนนี้" trendDown />
         <KpiCard accent="red" label="เอกสารจำกัดสิทธิ์" value="11" trend="เข้าถึงตามบทบาท" />
       </div>
@@ -93,7 +93,7 @@ function DocumentsPageInner() {
                   active?.id === d.id ? "bg-bg/60" : ""
                 }`}
               >
-                <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-violet-bg text-violet">
+                <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-accent-bg text-accent-d">
                   <Icons.Doc className="h-[17px] w-[17px]" />
                 </div>
                 <div className="flex-1">
@@ -141,7 +141,7 @@ function DocumentsPageInner() {
                   {!isLast && <span className="absolute left-[15px] top-[34px] -bottom-3 w-0.5 bg-line" />}
                   <div
                     className={`z-10 grid h-8 w-8 flex-none place-items-center rounded-full border-2 ${
-                      isFirst ? "border-teal bg-teal text-white" : "border-line-2 bg-bg text-muted"
+                      isFirst ? "border-accent bg-accent text-white" : "border-line-2 bg-bg text-muted"
                     }`}
                   >
                     {isFirst ? <Icons.Check className="h-[15px] w-[15px]" /> : <Icons.Doc className="h-[15px] w-[15px]" />}

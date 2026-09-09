@@ -9,11 +9,10 @@ import { MODULE_META, type ModuleId } from "@/lib/data";
 import { useLims, type ModalKey } from "@/components/lims-data-context";
 
 const toneCls = {
-  teal: "bg-teal-bg text-teal-d",
+  accent: "bg-accent-bg text-accent-d",
   amber: "bg-amber-bg text-amber",
   red: "bg-red-bg text-red",
   green: "bg-green-bg text-green",
-  violet: "bg-violet-bg text-violet",
   grey: "bg-bg-2 text-muted",
 };
 
@@ -94,24 +93,22 @@ export function Topbar({
   const addModal = addModalByModule[active];
 
   return (
-    <div className="flex h-[60px] flex-none items-center gap-4 border-b border-line bg-panel px-6">
+    <div className="flex h-[52px] flex-none items-center gap-4 border-b border-line bg-panel px-5">
       <button
         onClick={onMenuClick}
         aria-label="เปิดเมนู"
-        className="grid h-[38px] w-[38px] flex-none place-items-center rounded-lg border border-line text-muted transition hover:bg-bg md:hidden"
+        className="grid h-[38px] w-[38px] flex-none place-items-center rounded border border-line text-muted transition hover:bg-bg md:hidden"
       >
         <Icons.Menu className="h-[18px] w-[18px]" />
       </button>
 
-      <div className="flex flex-col leading-[1.15]">
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.5px] text-muted-2">
-          {meta.code}
-        </span>
-        <span className="font-display text-[16px] font-semibold text-ink">{meta.title}</span>
+      <div className="flex items-baseline gap-2.5">
+        <span className="font-mono text-[11px] uppercase tracking-[1px] text-muted-2">{meta.code}</span>
+        <span className="font-display text-[15px] font-semibold text-ink">{meta.title}</span>
       </div>
 
       <div ref={searchRef} className="relative ml-auto hidden w-[280px] md:block">
-        <div className="flex items-center gap-2.5 rounded-lg border border-line bg-bg px-[13px] py-2 text-muted">
+        <div className="flex items-center gap-2.5 rounded border border-line bg-bg px-[13px] py-2 text-muted">
           <Icons.Search className="h-[15px] w-[15px] flex-none" />
           <input
             value={query}
@@ -125,7 +122,7 @@ export function Topbar({
           />
         </div>
         {searchOpen && query.trim() && (
-          <div className="absolute right-0 top-[46px] z-50 w-full overflow-hidden rounded-lg border border-line bg-panel shadow-card">
+          <div className="absolute right-0 top-[46px] z-50 w-full overflow-hidden rounded border border-line bg-panel">
             {results.length === 0 ? (
               <div className="px-4 py-4 text-center text-[12.5px] text-muted">ไม่พบผลลัพธ์</div>
             ) : (
@@ -139,7 +136,7 @@ export function Topbar({
                   }}
                   className="flex w-full items-center gap-2.5 border-b border-line px-3.5 py-2.5 text-left transition last:border-none hover:bg-bg"
                 >
-                  <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-bg-2 text-muted">
+                  <span className="grid h-7 w-7 flex-none place-items-center rounded bg-bg-2 text-muted">
                     <span className="h-[14px] w-[14px]">{r.icon}</span>
                   </span>
                   <span className="min-w-0 flex-1">
@@ -159,7 +156,7 @@ export function Topbar({
       <div ref={bellRef} className="relative">
         <button
           onClick={() => setBellOpen((v) => !v)}
-          className="relative grid h-[38px] w-[38px] place-items-center rounded-lg border border-line text-muted transition hover:bg-bg"
+          className="relative grid h-[38px] w-[38px] place-items-center rounded border border-line text-muted transition hover:bg-bg"
         >
           <Icons.Bell className="h-[17px] w-[17px]" />
           {unreadCount > 0 && (
@@ -169,12 +166,12 @@ export function Topbar({
           )}
         </button>
         {bellOpen && (
-          <div className="absolute right-0 top-[46px] z-50 w-[340px] overflow-hidden rounded-lg border border-line bg-panel shadow-card">
+          <div className="absolute right-0 top-[46px] z-50 w-[340px] overflow-hidden rounded border border-line bg-panel">
             <div className="flex items-center justify-between border-b border-line px-4 py-3">
               <h4 className="font-display text-[13.5px] font-semibold">การแจ้งเตือน</h4>
               <button
                 onClick={markAllRead}
-                className="text-[11.5px] font-medium text-teal-d hover:underline"
+                className="text-[11.5px] font-medium text-accent-d hover:underline"
               >
                 ทำเครื่องหมายว่าอ่านแล้วทั้งหมด
               </button>
@@ -187,16 +184,16 @@ export function Topbar({
                   <button
                     key={n.id}
                     onClick={() => markNotificationRead(n.id)}
-                    className={`flex w-full items-start gap-2.5 border-b border-line px-4 py-3 text-left transition last:border-none hover:bg-bg/60 ${
+                    className={`flex w-full items-start gap-2.5 border-b border-line px-4 py-3 text-left transition last:border-none hover:bg-bg-2 ${
                       n.read ? "opacity-60" : ""
                     }`}
                   >
-                    <span className={`grid h-8 w-8 flex-none place-items-center rounded-[9px] ${toneCls[n.tone]}`}>
+                    <span className={`grid h-8 w-8 flex-none place-items-center rounded ${toneCls[n.tone]}`}>
                       <span className="h-4 w-4">{notifIcons[n.icon]}</span>
                     </span>
                     <span className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
-                        {!n.read && <span className="h-1.5 w-1.5 flex-none rounded-full bg-teal" />}
+                        {!n.read && <span className="h-1.5 w-1.5 flex-none rounded-full bg-accent" />}
                         <span className="truncate">{n.title}</span>
                       </div>
                       <div className="mt-0.5 text-[11.5px] text-muted">{n.message}</div>

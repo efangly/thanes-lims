@@ -19,7 +19,7 @@ const SEG_OPTIONS = ["ทั้งหมด", "ต้องดำเนินก
 const calAlerts = [
   { tone: "red", icon: <Icons.Equipment />, title: "UV-Vis Spectrophotometer", msg: "เลยกำหนดสอบเทียบ 2 วัน — ระงับการใช้งานชั่วคราว", time: "เลยกำหนด", cls: "bg-red-bg text-red" },
   { tone: "amber", icon: <Icons.Equipment />, title: "เครื่องชั่งวิเคราะห์ Mettler", msg: "ถึงกำหนดสอบเทียบใน 7 วัน (28 ก.ค.)", time: "ใน 7 วัน", cls: "bg-amber-bg text-amber" },
-  { tone: "teal", icon: <Icons.Check />, title: "เครื่องปั่นเหวี่ยง Hettich", msg: "บำรุงรักษาเชิงป้องกันเสร็จสิ้น", time: "วันนี้", cls: "bg-teal-bg text-teal-d" },
+  { tone: "accent", icon: <Icons.Check />, title: "เครื่องปั่นเหวี่ยง Hettich", msg: "บำรุงรักษาเชิงป้องกันเสร็จสิ้น", time: "วันนี้", cls: "bg-accent-bg text-accent-d" },
 ];
 
 const auditDocs = [
@@ -64,7 +64,7 @@ function EquipmentPageInner() {
   const pager = usePagination(filtered, { resetKey: `${seg}|${needle}` });
 
   return (
-    <div className="animate-fade">
+    <div className="">
       <PageHead
         title="การจัดการเครื่องมือ"
         desc="บันทึกประวัติการใช้งาน ใบรับรองสอบเทียบ ประวัติบำรุงรักษา พร้อมแจ้งเตือนอัตโนมัติเมื่อถึงกำหนด — พร้อมรับการตรวจสอบ (Audit) เสมอ"
@@ -82,7 +82,7 @@ function EquipmentPageInner() {
               <Icons.Doc className="h-[15px] w-[15px]" />
               ส่งออกรายงาน Audit
             </Button>
-            <Button variant="teal" onClick={() => openModal("add-equipment")}>
+            <Button variant="accent" onClick={() => openModal("add-equipment")}>
               <Icons.Plus className="h-[15px] w-[15px]" />
               เพิ่มเครื่องมือ
             </Button>
@@ -94,7 +94,7 @@ function EquipmentPageInner() {
         <KpiCard accent="green" label="เครื่องมือทั้งหมด" value="32" trend="พร้อมใช้ 28 เครื่อง" />
         <KpiCard accent="amber" label="ใกล้กำหนดสอบเทียบ" value="3" trend="ภายใน 7 วัน" trendDown />
         <KpiCard accent="red" label="เลยกำหนด" value="1" trend="UV-Vis Spec" trendDown />
-        <KpiCard accent="teal" label="งานบำรุงรักษาเดือนนี้" value="6" trend="เสร็จแล้ว 4" />
+        <KpiCard accent="accent" label="งานบำรุงรักษาเดือนนี้" value="6" trend="เสร็จแล้ว 4" />
       </div>
 
       <Card>
@@ -195,7 +195,7 @@ function EquipmentPageInner() {
           <div>
             {auditDocs.map((d, i) => (
               <div key={i} className="flex items-center gap-3 border-b border-line px-[18px] py-3 transition last:border-none hover:bg-bg/60">
-                <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-violet-bg text-violet">
+                <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-accent-bg text-accent-d">
                   <Icons.Doc className="h-[17px] w-[17px]" />
                 </div>
                 <div className="flex-1">
