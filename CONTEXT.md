@@ -87,6 +87,12 @@ A record that a calibration was actually performed: what type, what was measured
 **Calibration Certificate**:
 The document evidencing one Calibration Event, attached to that Event after it is logged. Belongs to exactly one Event.
 
+## Documents
+
+**Preview**:
+Rendering a Document's file in the page without downloading it — the object storage presigned URL embedded straight in an iframe. Only for file kinds the browser renders on its own (PDF, images, plain text); every other kind falls back to a download button. Never a file conversion — the system does not turn a `.docx` into something viewable.
+_Avoid_: View, render (Preview is the inline look that may degrade to a download button)
+
 ## Inventory
 
 **Inventory Lot**:

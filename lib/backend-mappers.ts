@@ -209,6 +209,7 @@ export interface DocumentDTO {
   issued_at: string;
   access_level: string;
   locked: boolean;
+  filename?: string;
   equipment_id?: string | null;
   calibration_event_id?: number | null;
 }
@@ -222,6 +223,7 @@ export function mapDocument(d: DocumentDTO): Document {
     date: formatDate(d.issued_at),
     access: mapAccessLevel(d.access_level),
     locked: d.locked,
+    fileName: d.filename && d.filename !== "." ? d.filename : "",
     equipmentId: d.equipment_id ?? null,
     calibrationEventId: d.calibration_event_id ?? null,
   };

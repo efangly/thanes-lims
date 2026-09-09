@@ -110,6 +110,21 @@ export const Icons = {
       <path d="M9 6l6 6-6 6" />
     </svg>
   ),
+  Download: (p: IconProps) => (
+    <svg {...base(p)}>
+      <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+    </svg>
+  ),
+  ExternalLink: (p: IconProps) => (
+    <svg {...base(p)}>
+      <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+    </svg>
+  ),
+  Refresh: (p: IconProps) => (
+    <svg {...base(p)}>
+      <path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" />
+    </svg>
+  ),
   Drop: (p: IconProps) => (
     <svg {...base(p)}>
       <path d="M12 2.7S5 10 5 14a7 7 0 0 0 14 0c0-4-7-11.3-7-11.3z" />

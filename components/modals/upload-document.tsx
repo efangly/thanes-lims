@@ -7,7 +7,15 @@ import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage } from "@/lib/api-client";
 
-const TYPES = ["SOP", "Manual", "Policy", "Form", "Record"];
+// value = the canonical document.Type the Go backend accepts (lowercase, see
+// internal/domain/document/document.go); label = what the operator sees.
+const TYPES = [
+  { value: "sop", label: "SOP" },
+  { value: "manual", label: "คู่มือ (Manual)" },
+  { value: "policy", label: "นโยบาย (Policy)" },
+  { value: "form", label: "แบบฟอร์ม (Form)" },
+  { value: "record", label: "บันทึก (Record)" },
+];
 const ACCESS = ["ทั่วไป", "จำกัด – QA", "จำกัด – ผู้บริหาร"];
 
 export function UploadDocumentModal() {
@@ -18,14 +26,14 @@ export function UploadDocumentModal() {
   const presetType = modalContext.docType ?? null;
   const equipmentId = modalContext.equipmentId ?? null;
   const [name, setName] = useState("");
-  const [type, setType] = useState(TYPES[0]);
+  const [type, setType] = useState(TYPES[0].value);
   const [access, setAccess] = useState(ACCESS[0]);
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setName("");
-    setType(TYPES[0]);
+    setType(TYPES[0].value);
     setAccess(ACCESS[0]);
     setFile(null);
   };
@@ -92,8 +100,8 @@ export function UploadDocumentModal() {
             <Field label="ประเภทเอกสาร">
               <Select value={type} onChange={(e) => setType(e.target.value)}>
                 {TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                  <option key={t.value} value={t.value}>
+                    {t.label}
                   </option>
                 ))}
               </Select>

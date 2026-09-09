@@ -1,9 +1,28 @@
 "use client";
 
-import { Fragment, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { Icons } from "@/lib/icons";
 import { Seg } from "@/components/ui";
 import type { PanelLayout } from "@/lib/use-panel-layout";
+
+/**
+ * `lg` breakpoint (1024px) as a live boolean. Used so only ONE of the two
+ * layouts below is actually mounted — rendering both (and just CSS-hiding one)
+ * means every `panel.content` mounts twice, which doubles data fetches and,
+ * worse, mounts two of any stateful child (e.g. a preview `<iframe>` whose PDF
+ * viewer mutates the DOM, which then crashes React's reconciler).
+ */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(true);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return isDesktop;
+}
 
 export interface PanelDef {
   key: string;
@@ -34,6 +53,7 @@ export function ResizablePanels({
   onMobilePane: (i: number) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isDesktop = useIsDesktop();
 
   const startDrag = (index: number) => (e: React.PointerEvent) => {
     e.preventDefault();
@@ -70,18 +90,24 @@ export function ResizablePanels({
     window.addEventListener("pointerup", onUp);
   };
 
-  return (
-    <>
-      {/* Mobile: one pane at a time */}
-      <div className="lg:hidden">
+  if (!isDesktop) {
+    return (
+      <div>
         <div className="mb-3">
           <Seg options={panels.map((p) => p.title)} value={mobilePane} onChange={onMobilePane} />
         </div>
         {panels[mobilePane]?.content}
       </div>
+    );
+  }
 
-      {/* Desktop: 3 columns + splitters */}
-      <div ref={containerRef} className="hidden items-stretch gap-1 lg:flex">
+  return (
+    <>
+      {/* Desktop: N columns + splitters. `h-full min-h-0` so a page that hands
+          this a bounded flex-1 slot (e.g. `/documents`) gets full-height panels;
+          on a page with no height constraint (e.g. `/locations`) it collapses to
+          content height as before. */}
+      <div ref={containerRef} className="flex h-full min-h-0 items-stretch gap-1">
         {panels.map((panel, i) => {
           const collapsed = layout.collapsed[i];
           return (
@@ -96,8 +122,11 @@ export function ResizablePanels({
                   <span className="[writing-mode:vertical-rl] text-[11px] font-medium">{panel.title}</span>
                 </button>
               ) : (
-                <div className="min-w-0" style={{ flexGrow: layout.widths[i], flexShrink: 1, flexBasis: 0 }}>
-                  <div className="mb-1.5 flex items-center justify-between px-1">
+                <div
+                  className="flex min-w-0 flex-col"
+                  style={{ flexGrow: layout.widths[i], flexShrink: 1, flexBasis: 0 }}
+                >
+                  <div className="mb-1.5 flex flex-none items-center justify-between px-1">
                     <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.7px] text-muted">
                       {panel.icon}
                       {panel.title}
@@ -110,7 +139,7 @@ export function ResizablePanels({
                       <Icons.Chevron className="h-3 w-3 rotate-180" />
                     </button>
                   </div>
-                  {panel.content}
+                  <div className="min-h-0 flex-1">{panel.content}</div>
                 </div>
               )}
 

@@ -196,16 +196,18 @@ export interface Document {
   date: string;
   access: string;
   locked: boolean;
+  /** Stored file's base name with extension (e.g. "sop.pdf"); "" when unknown. */
+  fileName: string;
   equipmentId: string | null;
   calibrationEventId: number | null;
 }
 
 export const DOCUMENTS: Document[] = [
-  { id: "DOC-0001", name: "SOP – การเก็บและขนส่งตัวอย่างเลือด", type: "SOP", ver: "v3.2", by: "ธเนศ", date: "18 ก.ค. 2569", access: "ทั่วไป", locked: false, equipmentId: null, calibrationEventId: null },
-  { id: "DOC-0002", name: "คู่มือการใช้เครื่อง Real-Time PCR", type: "Manual", ver: "v1.4", by: "พิมพ์ชนก", date: "14 ก.ค. 2569", access: "ทั่วไป", locked: false, equipmentId: null, calibrationEventId: null },
-  { id: "DOC-0003", name: "นโยบายความปลอดภัยข้อมูลผู้ป่วย", type: "Policy", ver: "v2.0", by: "ผู้ดูแลระบบ", date: "02 ก.ค. 2569", access: "จำกัด – ผู้บริหาร", locked: true, equipmentId: null, calibrationEventId: null },
-  { id: "DOC-0004", name: "แบบฟอร์มขอสอบเทียบเครื่องมือ", type: "Form", ver: "v1.1", by: "สมชาย", date: "28 มิ.ย. 2569", access: "ทั่วไป", locked: false, equipmentId: null, calibrationEventId: null },
-  { id: "DOC-0005", name: "บันทึกการตรวจสอบภายใน (Audit)", type: "Record", ver: "v5.7", by: "ธเนศ", date: "20 ก.ค. 2569", access: "จำกัด – QA", locked: true, equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0001", name: "SOP – การเก็บและขนส่งตัวอย่างเลือด", type: "sop", ver: "v3.2", by: "ธเนศ", date: "18 ก.ค. 2569", access: "ทั่วไป", locked: false, fileName: "sop-blood-collection.pdf", equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0002", name: "คู่มือการใช้เครื่อง Real-Time PCR", type: "manual", ver: "v1.4", by: "พิมพ์ชนก", date: "14 ก.ค. 2569", access: "ทั่วไป", locked: false, fileName: "rt-pcr-manual.pdf", equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0003", name: "นโยบายความปลอดภัยข้อมูลผู้ป่วย", type: "policy", ver: "v2.0", by: "ผู้ดูแลระบบ", date: "02 ก.ค. 2569", access: "จำกัด – ผู้บริหาร", locked: true, fileName: "data-security-policy.pdf", equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0004", name: "แบบฟอร์มขอสอบเทียบเครื่องมือ", type: "form", ver: "v1.1", by: "สมชาย", date: "28 มิ.ย. 2569", access: "ทั่วไป", locked: false, fileName: "calibration-request.docx", equipmentId: null, calibrationEventId: null },
+  { id: "DOC-0005", name: "บันทึกการตรวจสอบภายใน (Audit)", type: "record", ver: "v5.7", by: "ธเนศ", date: "20 ก.ค. 2569", access: "จำกัด – QA", locked: true, fileName: "internal-audit-log.xlsx", equipmentId: null, calibrationEventId: null },
 ];
 
 export interface DocHistory {

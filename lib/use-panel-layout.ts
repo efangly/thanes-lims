@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 
 /**
  * Remembers the width (fractional flex-grow) and collapsed state of each panel in
- * the `/locations` 3-panel browser across sessions (ADR-0010). One localStorage
- * key, shared by both Location Kinds. SSR-safe: starts from `defaults` and only
- * reads storage after mount so the server and first client render agree.
+ * a multi-panel browser across sessions. The `/locations` 3-panel browser
+ * (ADR-0010) and the `/documents` 2-panel browser (ADR-0013) each pass their own
+ * `storageKey`. SSR-safe: starts from `defaults` and only reads storage after
+ * mount so the server and first client render agree.
  */
 export interface PanelLayout {
   /** flex-grow weight per panel; only used while the panel is not collapsed */
@@ -15,7 +16,7 @@ export interface PanelLayout {
   collapsed: boolean[];
 }
 
-const KEY = "lims.locations.panels";
+const DEFAULT_KEY = "lims.locations.panels";
 
 function sane(raw: unknown, n: number): PanelLayout | null {
   if (!raw || typeof raw !== "object") return null;
@@ -27,27 +28,30 @@ function sane(raw: unknown, n: number): PanelLayout | null {
   return { widths: o.widths, collapsed: o.collapsed };
 }
 
-export function usePanelLayout(defaults: PanelLayout) {
+export function usePanelLayout(defaults: PanelLayout, storageKey: string = DEFAULT_KEY) {
   const n = defaults.widths.length;
   const [layout, setLayout] = useState<PanelLayout>(defaults);
 
   useEffect(() => {
     try {
-      const stored = sane(JSON.parse(localStorage.getItem(KEY) ?? "null"), n);
+      const stored = sane(JSON.parse(localStorage.getItem(storageKey) ?? "null"), n);
       if (stored) setLayout(stored);
     } catch {
       /* private mode / blocked storage — keep defaults */
     }
-  }, [n]);
+  }, [n, storageKey]);
 
-  const persist = useCallback((next: PanelLayout) => {
-    setLayout(next);
-    try {
-      localStorage.setItem(KEY, JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const persist = useCallback(
+    (next: PanelLayout) => {
+      setLayout(next);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+    },
+    [storageKey]
+  );
 
   const setWidth = useCallback(
     (index: number, width: number) =>
