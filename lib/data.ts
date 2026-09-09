@@ -15,7 +15,7 @@ export type ModuleId =
 
 export const MODULE_META: Record<ModuleId, { code: string; title: string }> = {
   dashboard: { code: "MODULE 00", title: "แดชบอร์ด" },
-  "ai-chat": { code: "AI ASSISTANT", title: "ผู้ช่วยอัจฉริยะ" },
+  "ai-chat": { code: "QUERY CONSOLE", title: "คอนโซลสอบถามข้อมูล" },
   samples: { code: "MODULE 01", title: "การจัดการตัวอย่าง" },
   locations: { code: "ข้อมูลหลัก", title: "ตำแหน่งจัดเก็บ" },
   equipment: { code: "MODULE 02", title: "การจัดการเครื่องมือ" },
