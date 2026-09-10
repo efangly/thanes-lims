@@ -1,4 +1,4 @@
-import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, Gauge, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, PurchaseOrder, Sample, Tag, TestResult } from "@/lib/data";
+import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, FeedItem, Gauge, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
@@ -266,6 +266,8 @@ export function mapGauge(d: GaugeDTO): Gauge {
     val: d.value !== undefined ? d.value.toFixed(1) : "—",
     unit: d.unit,
     range: `ช่วง ${d.range_min} / ${d.range_max}`,
+    rangeMin: d.range_min,
+    rangeMax: d.range_max,
     level: d.level,
     trend: [],
   };
@@ -305,6 +307,38 @@ export interface DocHistoryDTO {
 }
 export function mapDocHistory(d: DocHistoryDTO): DocHistory {
   return { ver: d.version, change: d.change, date: formatDate(d.date), who: d.who };
+}
+
+const ACTIVITY_ICONS: FeedItem["icon"][] = ["Env", "Sample", "Equipment", "Inventory", "Check"];
+
+export interface ActivityDTO {
+  id: string;
+  tone: string;
+  icon: string;
+  text: string;
+  occurred_at: string;
+}
+export function mapActivity(d: ActivityDTO): FeedItem {
+  return {
+    id: d.id,
+    tone: (["teal", "amber", "red", "green", "violet", "grey"].includes(d.tone) ? d.tone : "grey") as FeedItem["tone"],
+    icon: ACTIVITY_ICONS.includes(d.icon as FeedItem["icon"]) ? (d.icon as FeedItem["icon"]) : "Check",
+    text: d.text,
+    time: formatDateTime(d.occurred_at),
+  };
+}
+
+export interface TestVolumeDTO {
+  date: string;
+  completed: number;
+  pending: number;
+}
+export function mapTestVolume(d: TestVolumeDTO): TestVolumePoint {
+  return {
+    label: new Date(d.date).toLocaleDateString("th-TH", { day: "2-digit" }),
+    completed: d.completed,
+    pending: d.pending,
+  };
 }
 
 export interface CoCStepDTO {

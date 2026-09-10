@@ -64,6 +64,10 @@ function DocumentsPageInner() {
   const history = useDocHistory(active?.id);
   const pager = usePagination(filtered, { resetKey: String(seg) });
 
+  const sopCount = documents.filter((d) => d.type === "sop").length;
+  const lockedCount = documents.filter((d) => d.locked).length;
+  const restrictedCount = documents.filter((d) => d.locked || d.access !== "ทั่วไป").length;
+
   const selectDoc = (d: Document) => {
     setMobilePane(1);
     router.replace(`/documents?doc=${encodeURIComponent(d.id)}`, { scroll: false });
@@ -199,10 +203,10 @@ function DocumentsPageInner() {
       />
 
       <div className="mb-[22px] grid flex-none grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="violet" label="เอกสารทั้งหมด" value="142" trend="ควบคุมเวอร์ชัน" />
-        <KpiCard accent="teal" label="SOP ที่ใช้งาน" value="38" trend="ทบทวนครบตามรอบ" />
-        <KpiCard accent="amber" label="รอทบทวน/อนุมัติ" value="4" trend="ภายในเดือนนี้" trendDown />
-        <KpiCard accent="red" label="เอกสารจำกัดสิทธิ์" value="11" trend="เข้าถึงตามบทบาท" />
+        <KpiCard accent="violet" label="เอกสารทั้งหมด" value={String(documents.length)} trend="ควบคุมเวอร์ชัน" />
+        <KpiCard accent="teal" label="SOP ที่ใช้งาน" value={String(sopCount)} trend="ขั้นตอนปฏิบัติงานมาตรฐาน" />
+        <KpiCard accent="amber" label="เอกสารที่ล็อก" value={String(lockedCount)} trend="แก้ไขไม่ได้" trendDown={lockedCount > 0} />
+        <KpiCard accent="red" label="เอกสารจำกัดสิทธิ์" value={String(restrictedCount)} trend="เข้าถึงตามบทบาท" />
       </div>
 
       <div className="lg:min-h-0 lg:flex-1">

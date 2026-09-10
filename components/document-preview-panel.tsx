@@ -119,7 +119,7 @@ export function DocumentPreviewPanel({ doc }: { doc: Document | null }) {
           รายละเอียดเอกสาร
         </button>
         {showDetail && (
-          <dl className="grid max-w-[620px] grid-cols-2 gap-x-8 gap-y-2 px-[18px] pb-3.5 text-[12.5px]">
+          <dl className="grid gap-x-8 gap-y-3 px-[18px] pb-4 text-[12.5px] [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
             <Detail label="รหัสเอกสาร" value={<span className="font-mono">{doc.id}</span>} />
             <Detail label="เวอร์ชันปัจจุบัน" value={<span className="font-mono">{doc.ver}</span>} />
             <Detail label="แก้ไขล่าสุดโดย" value={doc.by} />

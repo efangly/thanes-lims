@@ -511,16 +511,19 @@ export function BarChart({
 }
 
 /* ---------- Big area chart (env 24h) ---------- */
-export function AreaChart() {
-  const pts = [4, 4.2, 4, 4.5, 4.3, 4.8, 5.2, 6.1, 6.9, 6.6, 6.2, 5.8, 5.4, 5, 4.6, 4.4];
+export function AreaChart({ points, limit }: { points: number[]; limit?: number }) {
+  const pts = points;
   const w = 560;
   const h = 150;
-  const max = 8;
-  const min = 2;
-  const step = w / (pts.length - 1);
-  const line = pts.map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / (max - min)) * h).toFixed(1)}`).join(" ");
+  const pad = 8;
+  const values = limit !== undefined ? [...pts, limit] : pts;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const span = max - min || 1;
+  const step = w / (pts.length - 1 || 1);
+  const y = (v: number) => pad + (h - 2 * pad) * (1 - (v - min) / span);
+  const line = pts.map((v, i) => `${(i * step).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const area = `0,${h} ${line} ${w},${h}`;
-  const limitY = h - ((8 - min) / (max - min)) * h;
   return (
     <>
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-[150px] w-full">
@@ -530,7 +533,9 @@ export function AreaChart() {
             <stop offset="1" stopColor="var(--color-amber)" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <line x1="0" y1={limitY} x2={w} y2={limitY} stroke="var(--color-red)" strokeWidth={1.5} strokeDasharray="5 4" opacity={0.55} />
+        {limit !== undefined && (
+          <line x1="0" y1={y(limit)} x2={w} y2={y(limit)} stroke="var(--color-red)" strokeWidth={1.5} strokeDasharray="5 4" opacity={0.55} />
+        )}
         <polygon points={area} fill="url(#areaGrad)" />
         <polyline points={line} fill="none" stroke="var(--color-amber)" strokeWidth={2.5} strokeLinejoin="round" />
       </svg>

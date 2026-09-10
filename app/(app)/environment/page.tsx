@@ -71,6 +71,11 @@ export default function EnvironmentPage() {
   const { openModal } = useLims();
   const { gauges, alerts } = useEnvironmentData();
 
+  const today = new Date().toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
+  // เลือก gauge ที่น่าสนใจสุดสำหรับกราฟแนวโน้ม: crit ก่อน แล้ว warn แล้วตัวแรก
+  const trendGauge =
+    gauges.find((g) => g.level === "crit") ?? gauges.find((g) => g.level === "warn") ?? gauges[0] ?? null;
+
   return (
     <div className="animate-fade">
       <PageHead
@@ -95,10 +100,10 @@ export default function EnvironmentPage() {
         <div className="flex items-center justify-between border-b border-[var(--color-readout-line)] px-[18px] py-3">
           <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.5px] text-muted">
             <span className="h-2 w-2 rounded-full bg-teal animate-pulse-dot" />
-            LIVE ENVIRONMENTAL MONITORING · 4 SENSORS
+            LIVE ENVIRONMENTAL MONITORING · {gauges.length} SENSORS
           </div>
           <div className="font-mono text-[12.5px] tracking-[0.5px] text-ink">
-            21 ก.ค. 2569 · {time}
+            {today} · {time}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -131,15 +136,24 @@ export default function EnvironmentPage() {
         <Card>
           <CardHead
             icon={<Icons.Env />}
-            title="แนวโน้มอุณหภูมิ 24 ชั่วโมง — Fridge-A"
-            right={<Tag tone="amber" label="เข้าใกล้ขีดจำกัด" />}
+            title={trendGauge ? `แนวโน้ม 24 ชั่วโมง — ${trendGauge.loc}` : "แนวโน้ม 24 ชั่วโมง"}
+            right={
+              trendGauge ? (
+                <Tag
+                  tone={trendGauge.level === "crit" ? "red" : trendGauge.level === "warn" ? "amber" : "teal"}
+                  label={trendGauge.level === "crit" ? "วิกฤต" : trendGauge.level === "warn" ? "เฝ้าระวัง" : "ปกติ"}
+                />
+              ) : undefined
+            }
           />
           <div className="px-5 py-[18px]">
-            <AreaChart />
-            <div className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-muted-2">
-              <Icons.Bolt className="h-[13px] w-[13px]" />
-              ตรวจพบการเปิดตู้ 3 ครั้งในช่วง 14:00–15:00 ทำให้อุณหภูมิสูงขึ้น
-            </div>
+            {trendGauge && trendGauge.trend.length > 1 ? (
+              <AreaChart points={trendGauge.trend} limit={trendGauge.rangeMax} />
+            ) : (
+              <div className="py-10 text-center text-[12.5px] text-muted">
+                {gauges.length === 0 ? "กำลังโหลด…" : "ยังไม่มีข้อมูลแนวโน้มเพียงพอ"}
+              </div>
+            )}
           </div>
         </Card>
 

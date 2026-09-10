@@ -6,8 +6,7 @@ import { Icons } from "@/lib/icons";
 import type { InventoryItem, PurchaseOrder } from "@/lib/data";
 import { Button, Card, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
-import { apiFetch } from "@/lib/api-client";
-import { mapPurchaseOrder, type PurchaseOrderDTO } from "@/lib/backend-mappers";
+import { listPurchaseOrders } from "@/lib/purchase-orders-api";
 import { StockIssueModal } from "@/components/modals/stock-issue";
 
 const SEG_OPTIONS = ["ทั้งหมด", "ต้องสั่งซื้อ"];
@@ -43,8 +42,8 @@ function expiryInfo(iso: string | null): { label: string; tone: "red" | "amber" 
 function usePurchaseOrders() {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   useEffect(() => {
-    apiFetch<PurchaseOrderDTO[]>("/purchase-orders")
-      .then((r) => setOrders(r.map(mapPurchaseOrder)))
+    listPurchaseOrders()
+      .then(setOrders)
       .catch(() => {});
   }, []);
   return orders;
@@ -68,6 +67,9 @@ function InventoryPageInner() {
   const pager = usePagination(filtered, { resetKey: String(seg) });
 
   const expiringSoon = inventory.filter((i) => expiryInfo(i.earliestExpireDate).soon).length;
+  const reorderCount = inventory.filter((i) => i.status.tone === "red").length;
+  const lowCount = inventory.filter((i) => i.status.tone === "amber").length;
+  const catCount = new Set(inventory.map((i) => i.cat)).size;
 
   const autoOrders = purchaseOrders.filter(
     (o) => o.status.label === "รออนุมัติ" || o.status.label === "ส่งให้ผู้ขายแล้ว"
@@ -109,9 +111,9 @@ function InventoryPageInner() {
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="teal" label="รายการทั้งหมด" value="418" trend="ใน 7 หมวดหมู่" />
-        <KpiCard accent="red" label="ถึงจุดสั่งซื้อ" value="2" trend="สั่งซื้ออัตโนมัติแล้ว" trendDown />
-        <KpiCard accent="amber" label="ใกล้หมด" value="5" trend="ต่ำกว่า 30%" trendDown />
+        <KpiCard accent="teal" label="รายการทั้งหมด" value={String(inventory.length)} trend={`ใน ${catCount} หมวดหมู่`} />
+        <KpiCard accent="red" label="ถึงจุดสั่งซื้อ" value={String(reorderCount)} trend="ต้องสั่งซื้อด่วน" trendDown={reorderCount > 0} />
+        <KpiCard accent="amber" label="ใกล้หมด" value={String(lowCount)} trend="ต่ำกว่าจุดสั่งซื้อขั้นต่ำ" trendDown={lowCount > 0} />
         <KpiCard
           accent={expiringSoon > 0 ? "red" : "green"}
           label="ล็อตใกล้หมดอายุ"

@@ -16,18 +16,10 @@ function LocationCell({ locationId }: { locationId: string | null }) {
 
 const SEG_OPTIONS = ["ทั้งหมด", "ต้องดำเนินการ"];
 
-const calAlerts = [
-  { tone: "red", icon: <Icons.Equipment />, title: "UV-Vis Spectrophotometer", msg: "เลยกำหนดสอบเทียบ 2 วัน — ระงับการใช้งานชั่วคราว", time: "เลยกำหนด", cls: "bg-red-bg text-red" },
-  { tone: "amber", icon: <Icons.Equipment />, title: "เครื่องชั่งวิเคราะห์ Mettler", msg: "ถึงกำหนดสอบเทียบใน 7 วัน (28 ก.ค.)", time: "ใน 7 วัน", cls: "bg-amber-bg text-amber" },
-  { tone: "teal", icon: <Icons.Check />, title: "เครื่องปั่นเหวี่ยง Hettich", msg: "บำรุงรักษาเชิงป้องกันเสร็จสิ้น", time: "วันนี้", cls: "bg-teal-bg text-teal-d" },
-];
-
-const auditDocs = [
-  { name: "ใบรับรองสอบเทียบ Real-Time PCR", type: "Calibration Cert", note: "ออกโดยหน่วยงานภายนอก" },
-  { name: "คู่มือการใช้งาน + บันทึกฝึกอบรม", type: "Manual + Training", note: "พนักงาน 6 คนผ่านการอบรม" },
-  { name: "ประวัติการบำรุงรักษา 12 เดือน", type: "Maintenance Log", note: "ไม่มีเหตุขัดข้องค้าง" },
-  { name: "บันทึกปัญหาที่พบ & การแก้ไข", type: "Issue Log", note: "2 รายการปิดแล้ว" },
-];
+const alertCls: Record<"red" | "amber", string> = {
+  red: "bg-red-bg text-red",
+  amber: "bg-amber-bg text-amber",
+};
 
 export default function EquipmentPage() {
   return (
@@ -39,7 +31,7 @@ export default function EquipmentPage() {
 
 function EquipmentPageInner() {
   const router = useRouter();
-  const { equipment, openModal } = useLims();
+  const { equipment, documents, openModal } = useLims();
   const [seg, setSeg] = useState(0);
   const [q, setQ] = useState("");
   const [schedules, setSchedules] = useState<CalibrationSchedule[]>([]);
@@ -62,6 +54,26 @@ function EquipmentPageInner() {
   });
 
   const pager = usePagination(filtered, { resetKey: `${seg}|${needle}` });
+
+  const readyCount = rows.filter(({ standing }) => standing.status.tone === "green").length;
+  const dueSoonCount = rows.filter(({ standing }) => standing.status.tone === "amber").length;
+  const overdueCount = rows.filter(({ standing }) => standing.status.tone === "red").length;
+  const noScheduleCount = rows.filter(({ standing }) => !standing.hasSchedule).length;
+
+  // การแจ้งเตือนสอบเทียบ — เครื่องที่ใกล้กำหนดหรือเลยกำหนด (ADR-0006 derive จาก schedule)
+  const calAlerts = rows
+    .filter(({ standing }) => standing.status.tone === "amber" || standing.status.tone === "red")
+    .sort((a, b) => (b.standing.status.tone === "red" ? 1 : 0) - (a.standing.status.tone === "red" ? 1 : 0))
+    .map(({ e, standing }) => ({
+      id: e.id,
+      tone: standing.status.tone as "red" | "amber",
+      title: e.name,
+      msg: standing.status.tone === "red" ? "เลยกำหนดสอบเทียบ" : "ใกล้ถึงกำหนดสอบเทียบ",
+      time: standing.nextDueLabel,
+    }));
+
+  // เอกสารประกอบเครื่องมือ — เอกสารจริงที่ผูกกับเครื่องมือ
+  const equipmentDocs = documents.filter((d) => d.equipmentId !== null);
 
   return (
     <div className="animate-fade">
@@ -91,10 +103,10 @@ function EquipmentPageInner() {
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="green" label="เครื่องมือทั้งหมด" value="32" trend="พร้อมใช้ 28 เครื่อง" />
-        <KpiCard accent="amber" label="ใกล้กำหนดสอบเทียบ" value="3" trend="ภายใน 7 วัน" trendDown />
-        <KpiCard accent="red" label="เลยกำหนด" value="1" trend="UV-Vis Spec" trendDown />
-        <KpiCard accent="teal" label="งานบำรุงรักษาเดือนนี้" value="6" trend="เสร็จแล้ว 4" />
+        <KpiCard accent="green" label="เครื่องมือทั้งหมด" value={String(equipment.length)} trend={`พร้อมใช้ ${readyCount} เครื่อง`} />
+        <KpiCard accent="amber" label="ใกล้กำหนดสอบเทียบ" value={String(dueSoonCount)} trend="ภายใน 14 วัน" trendDown={dueSoonCount > 0} />
+        <KpiCard accent="red" label="เลยกำหนด" value={String(overdueCount)} trend={overdueCount > 0 ? "ต้องดำเนินการด่วน" : "ไม่มีรายการ"} trendDown={overdueCount > 0} />
+        <KpiCard accent="teal" label="ยังไม่ตั้งรอบสอบเทียบ" value={String(noScheduleCount)} trend="รอกำหนดรอบ" />
       </div>
 
       <Card>
@@ -169,43 +181,55 @@ function EquipmentPageInner() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHead icon={<Icons.Clock />} title="การแจ้งเตือนสอบเทียบ & บำรุงรักษา" />
+          <CardHead icon={<Icons.Clock />} title="การแจ้งเตือนสอบเทียบ" />
           <div>
-            {calAlerts.map((a, i) => (
-              <div key={i} className="flex items-start gap-3 border-b border-line px-4 py-[13px] last:border-none">
-                <div className={`grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] ${a.cls}`}>
-                  <span className="h-[17px] w-[17px]">{a.icon}</span>
+            {calAlerts.length === 0 && (
+              <div className="px-4 py-6 text-center text-[12.5px] text-muted">ไม่มีเครื่องมือที่ใกล้กำหนดหรือเลยกำหนดสอบเทียบ</div>
+            )}
+            {calAlerts.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => router.push(`/equipment/${a.id}`)}
+                className="flex w-full items-start gap-3 border-b border-line px-4 py-[13px] text-left transition last:border-none hover:bg-bg/60"
+              >
+                <div className={`grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] ${alertCls[a.tone]}`}>
+                  <span className="h-[17px] w-[17px]">
+                    <Icons.Equipment />
+                  </span>
                 </div>
                 <div className="flex-1">
                   <div className="text-[13px] font-medium">{a.title}</div>
                   <div className="mt-0.5 text-[11.5px] text-muted">{a.msg}</div>
                 </div>
                 <div className="whitespace-nowrap font-mono text-[10.5px] text-muted-2">{a.time}</div>
-              </div>
+              </button>
             ))}
           </div>
         </Card>
 
         <Card>
-          <CardHead
-            icon={<Icons.Doc />}
-            title="เอกสารประกอบเครื่องมือ (Audit Ready)"
-            right={<Tag tone="green" label="ครบถ้วน" />}
-          />
+          <CardHead icon={<Icons.Doc />} title="เอกสารประกอบเครื่องมือ" />
           <div>
-            {auditDocs.map((d, i) => (
-              <div key={i} className="flex items-center gap-3 border-b border-line px-[18px] py-3 transition last:border-none hover:bg-bg/60">
+            {equipmentDocs.length === 0 && (
+              <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">ยังไม่มีเอกสารที่ผูกกับเครื่องมือ</div>
+            )}
+            {equipmentDocs.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => router.push(`/equipment/${d.equipmentId}`)}
+                className="flex w-full items-center gap-3 border-b border-line px-[18px] py-3 text-left transition last:border-none hover:bg-bg/60"
+              >
                 <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-violet-bg text-violet">
                   <Icons.Doc className="h-[17px] w-[17px]" />
                 </div>
                 <div className="flex-1">
                   <div className="font-medium">{d.name}</div>
-                  <div className="text-[11.5px] text-muted">{d.note}</div>
+                  <div className="text-[11.5px] text-muted">{equipment.find((e) => e.id === d.equipmentId)?.name ?? d.equipmentId}</div>
                 </div>
                 <span className="rounded-[5px] border border-line bg-bg px-[7px] py-0.5 font-mono text-[11px] text-muted">
                   {d.type}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </Card>

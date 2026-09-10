@@ -285,7 +285,7 @@ export function SamplesView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedId = searchParams.get("s");
-  const { openModal, pushToast, users } = useLims();
+  const { openModal, pushToast, users, samples: allSamples } = useLims();
   const [seg, setSeg] = useState(0);
   const [putAwayOpen, setPutAwayOpen] = useState(false);
 
@@ -313,6 +313,17 @@ export function SamplesView() {
     [list, seg]
   );
   const pager = usePagination(filtered, { resetKey: `${seg}|${barcode}|${location}|${custodianUserId}` });
+
+  const kpi = useMemo(
+    () => ({
+      total: allSamples.length,
+      testing: allSamples.filter((s) => s.status.label === "กำลังทดสอบ").length,
+      completed: allSamples.filter((s) => s.status.label === "เสร็จสิ้น").length,
+      pending: allSamples.filter((s) => s.status.label === "รอตรวจสอบ").length,
+      transferred: allSamples.filter((s) => s.status.label === "ส่งต่อแผนก").length,
+    }),
+    [allSamples]
+  );
   const selectedInList = selectedId ? list.find((s) => s.id === selectedId) ?? null : null;
   const active = selectedInList ?? filtered[0] ?? null;
   // "ไม่พบ" เฉพาะตอนค้นด้วยบาร์โค้ดแล้วไม่เจออะไรเลย (ลิงก์ ?s= เก่าที่ถูกกรองออกไม่นับ)
@@ -377,10 +388,15 @@ export function SamplesView() {
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="teal" label="รับเข้าวันนี้" value="12" trend="▲ 3 เทียบเมื่อวาน" />
-        <KpiCard accent="green" label="เสร็จสิ้น" value="186" trend="75% ของทั้งหมด" />
-        <KpiCard accent="amber" label="รอตรวจสอบ" value="9" trend="ต้องดำเนินการ" trendDown />
-        <KpiCard accent="violet" label="ส่งต่อระหว่างแผนก" value="4" trend="อยู่ระหว่างส่งมอบ" />
+        <KpiCard accent="teal" label="ตัวอย่างทั้งหมด" value={String(kpi.total)} trend={`กำลังทดสอบ ${kpi.testing} ตัวอย่าง`} />
+        <KpiCard
+          accent="green"
+          label="เสร็จสิ้น"
+          value={String(kpi.completed)}
+          trend={kpi.total > 0 ? `${Math.round((kpi.completed / kpi.total) * 100)}% ของทั้งหมด` : "—"}
+        />
+        <KpiCard accent="amber" label="รอตรวจสอบ" value={String(kpi.pending)} trend="ต้องดำเนินการ" trendDown={kpi.pending > 0} />
+        <KpiCard accent="violet" label="ส่งต่อระหว่างแผนก" value={String(kpi.transferred)} trend="อยู่ระหว่างส่งมอบ" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">

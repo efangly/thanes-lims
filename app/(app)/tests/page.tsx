@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Button, Card, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
@@ -28,6 +28,25 @@ function TestsPageInner() {
 
   const pager = usePagination(filtered, { resetKey: String(seg) });
 
+  const kpi = useMemo(() => {
+    const approved = tests.filter((t) => t.status.label === "อนุมัติแล้ว").length;
+    const pending = tests.filter((t) => t.status.label === "รอทวนสอบ").length;
+    const analyzing = tests.filter((t) => t.status.label === "กำลังวิเคราะห์").length;
+    const flagged = tests.filter((t) => t.flag !== "ok").length;
+    return { total: tests.length, approved, pending, analyzing, flagged };
+  }, [tests]);
+
+  const donutItems = useMemo(() => {
+    if (tests.length === 0) return [];
+    const pct = (label: string) =>
+      Math.round((tests.filter((t) => t.status.label === label).length / tests.length) * 100);
+    return [
+      { label: "อนุมัติแล้ว", color: "var(--color-green)", value: pct("อนุมัติแล้ว") },
+      { label: "กำลังวิเคราะห์", color: "var(--color-teal)", value: pct("กำลังวิเคราะห์") },
+      { label: "รอทวนสอบ", color: "var(--color-amber)", value: pct("รอทวนสอบ") },
+    ].filter((d) => d.value > 0);
+  }, [tests]);
+
   return (
     <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
       <PageHead
@@ -48,10 +67,10 @@ function TestsPageInner() {
       />
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard accent="teal" label="คำสั่งทดสอบวันนี้" value="64" trend="▲ 8 เทียบเมื่อวาน" />
-        <KpiCard accent="green" label="อนุมัติแล้ว" value="41" trend="ผ่านการทวนสอบ" />
-        <KpiCard accent="amber" label="รอทวนสอบ" value="17" trend="รอผู้อนุมัติ" trendDown />
-        <KpiCard accent="red" label="ผลผิดปกติ (Flag)" value="6" trend="นอกช่วงอ้างอิง" trendDown />
+        <KpiCard accent="teal" label="ผลทดสอบทั้งหมด" value={String(kpi.total)} trend={`กำลังวิเคราะห์ ${kpi.analyzing} รายการ`} />
+        <KpiCard accent="green" label="อนุมัติแล้ว" value={String(kpi.approved)} trend="ผ่านการทวนสอบ" />
+        <KpiCard accent="amber" label="รอทวนสอบ" value={String(kpi.pending)} trend="รอผู้อนุมัติ" trendDown={kpi.pending > 0} />
+        <KpiCard accent="red" label="ผลผิดปกติ (Flag)" value={String(kpi.flagged)} trend="นอกช่วงอ้างอิง" trendDown={kpi.flagged > 0} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
@@ -109,38 +128,19 @@ function TestsPageInner() {
             </span>
             <h3 className="relative mb-1.5 mt-3.5 font-display text-[16px] text-ink">วิเคราะห์และแปลผลด้วย AI</h3>
             <p className="relative text-[12.5px] leading-relaxed text-muted">
-              ระบบ AI ช่วยตรวจจับความผิดปกติ แนวโน้ม และให้คำแนะนำการทวนสอบผลอัตโนมัติ (ฟังก์ชันเสริมในอนาคต)
+              ระบบ AI ช่วยตรวจจับความผิดปกติ แนวโน้ม และให้คำแนะนำการทวนสอบผลอัตโนมัติ —
+              อยู่ระหว่างการพัฒนา ยังไม่เปิดใช้งาน
             </p>
-            <div className="relative mt-3.5 rounded-lg border border-line bg-bg-2 px-3.5 py-3">
-              <div className="flex items-center gap-2 text-[12px] font-medium text-ink">
-                <Icons.Bolt className="h-3.5 w-3.5" />
-                ตรวจพบแนวโน้ม
-              </div>
-              <div className="mt-1.5 text-[11.5px] text-muted">
-                ค่า COD ของน้ำเสีย (TST-88399) สูงกว่าค่าเฉลี่ย 7 วันถึง 2.8 เท่า — แนะนำให้ทวนสอบซ้ำและตรวจสอบแหล่งที่มา
-              </div>
-            </div>
-            <div className="relative mt-3.5 rounded-lg border border-line bg-bg-2 px-3.5 py-3">
-              <div className="flex items-center gap-2 text-[12px] font-medium text-ink">
-                <Icons.Check className="h-3.5 w-3.5" />
-                ควบคุมคุณภาพ
-              </div>
-              <div className="mt-1.5 text-[11.5px] text-muted">
-                ผลทดสอบ 98.2% อยู่ในเกณฑ์ควบคุม (QC) — ไม่พบสัญญาณ drift ของเครื่องมือ
-              </div>
-            </div>
           </div>
 
           <Card className="mt-4">
             <CardHead icon={<Icons.Test />} title="สัดส่วนผลตามสถานะ" />
             <div className="px-[18px] py-3.5">
-              <Donut
-                items={[
-                  { label: "อนุมัติแล้ว", color: "var(--color-green)", value: 64 },
-                  { label: "รอทวนสอบ", color: "var(--color-amber)", value: 27 },
-                  { label: "ผิดปกติ", color: "var(--color-red)", value: 9 },
-                ]}
-              />
+              {donutItems.length > 0 ? (
+                <Donut items={donutItems} />
+              ) : (
+                <div className="py-6 text-center text-[12.5px] text-muted">ยังไม่มีผลทดสอบ</div>
+              )}
             </div>
           </Card>
         </div>

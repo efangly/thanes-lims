@@ -57,6 +57,71 @@ lot ไม่ใช่ที่ item
 
 ---
 
+# งานฝาก backend รอบ "ลบ mockup ออกจาก frontend" (2026-09-09)
+
+frontend ลบข้อมูล mockup ทั้งหมดออกจากจอแล้ว การ์ด KPI / Donut / พาเนล ที่คำนวณจาก list ที่โหลดอยู่แล้ว
+ได้ (`/samples`, `/tests`, `/inventory`, `/documents`, `/equipment` + `/calibration-schedules`) ทำเสร็จแล้ว
+ที่เหลือด้านล่างยังไม่มี endpoint รองรับ — ระหว่างนี้ frontend แสดง empty state / ป้าย "เร็ว ๆ นี้" ไว้
+
+## 3. ฟีดความเคลื่อนไหวล่าสุด — dashboard "ความเคลื่อนไหวล่าสุด"
+
+การ์ดนี้เคยเป็น array mock (`FEED`) ตอนนี้เรียก `GET /activity?limit=8` แล้ว `.catch` → แสดง "ยังไม่มีความเคลื่อนไหว"
+
+```
+GET /activity?limit=<n>
+permission: อ่านทั่วไป (เหมือน /notifications)
+
+200 → [ { "id": "act-123",
+          "tone": "red|amber|teal|green|violet|grey",
+          "icon": "Env|Sample|Equipment|Inventory|Check",
+          "text": "Freezer-B อุณหภูมิสูงเกินกำหนด (-11.2°C)",
+          "occurred_at": "2026-09-09T08:14:00Z" }, ... ]
+```
+
+เหตุการณ์ข้ามโมดูล (รับตัวอย่าง, เลยกำหนดสอบเทียบ, สต็อกต่ำ, อนุมัติผล, alert สภาพแวดล้อม) เรียงใหม่→เก่า
+ถ้ามี event log อยู่แล้วก็ project ออกมาเป็นรูปนี้ได้เลย
+
+## 4. ปริมาณงานทดสอบรายวัน — dashboard กราฟแท่ง
+
+เคย hardcode 7 แท่ง ตอนนี้เรียก `GET /tests/volume?days=7` แล้ว `.catch` → "ยังไม่มีข้อมูลปริมาณงานทดสอบ"
+
+```
+GET /tests/volume?days=<n>
+200 → [ { "date": "2026-09-03", "completed": 41, "pending": 12 }, ... ]  // เรียงเก่า→ใหม่, n จุด
+```
+
+`completed` = ผลที่ approved ในวันนั้น, `pending` = ที่เปิด/ยังไม่ approved — นับจาก TestResult ตามวันที่
+
+## 5. วันที่บน TestResult / Sample (สำหรับ KPI "วันนี้")
+
+การ์ด KPI "คำสั่งทดสอบวันนี้" (tests) และ "รับเข้าวันนี้" (samples) ถูกสลับเป็นเมตริกรวม (`tests.length`,
+`samples.length`) ชั่วคราว เพราะ DTO ไม่มี field วันที่ที่เทียบ "วันนี้" ได้:
+- `TestResultDTO` — ขอเพิ่ม `created_at` (RFC3339)
+- `SampleDTO` — มี `received_at` อยู่แล้วใน mapper (`recv`) แต่เป็น string ที่ format แล้ว ขอเก็บ raw
+  RFC3339 ไว้ด้วย (เช่น `received_at_raw`) เพื่อให้ frontend เทียบวันได้
+
+## 6. แนวโน้มอุณหภูมิ 24 ชม. — environment
+
+ใช้ `GET /environment/gauges/{location}/trend` ที่มีอยู่แล้ว (frontend เลือก gauge ที่ crit/warn มาแสดง)
+caption "ตรวจพบการเปิดตู้ N ครั้ง …" ลบออกถาวร — ถ้าต้องการกลับมา ขอเป็น field เสริมบน trend response
+(`door_open_events: [{ from, to, count }]`)
+
+## 7. วิเคราะห์ผลด้วย AI — tests พาเนล "AI ANALYSIS"
+
+ลบ finding ที่ hardcode ออกแล้ว เหลือป้าย "อยู่ระหว่างการพัฒนา" — เมื่อพร้อมขอ
+`GET /tests/insights` → `{ anomalies: [...], qc_summary: {...} }`
+
+## 8. เขียนค่ากลับ — modal ที่ปุ่มบันทึกถูกปิดไว้
+
+- **ตั้งค่าเกณฑ์แจ้งเตือน** (`alert-thresholds`) — แสดง gauge จาก `/environment/gauges` จริงแล้ว
+  ปุ่มบันทึกปิดไว้ รอ `PATCH /environment/gauges/{location}/thresholds` `{ range_min, range_max }`
+- **สร้างรายงาน** / **ส่งออกรายงาน Audit** — ตัดขั้นตอนปลอม (ชื่อ/ขนาดไฟล์ PDF ปลอม) ออก เหลือป้าย
+  "เร็ว ๆ นี้" รอ `POST /reports` (คืนไฟล์) และ `GET /equipment/audit-report` (คืน PDF)
+- **จัดการสิทธิ์เข้าถึง** (`manage-access`) — ตัด matrix ปลอมออก แสดงข้อความว่าจัดการที่ backend
+  (สอดคล้อง ADR-0002) ยังไม่ขอ endpoint
+
+---
+
 ## ที่ **ไม่ได้** ขอ (บันทึกไว้กันถามซ้ำ)
 
 - **ลบ Vendor** — ตกลงว่าไม่ทำ ทั้งฝั่ง UI และ backend (FK จาก equipment/inventory/PO ทำให้การลบจริง

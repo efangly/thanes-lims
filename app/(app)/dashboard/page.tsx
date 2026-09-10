@@ -3,12 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
-import { FEED, type EnvAlert, type ModuleId, type TagTone } from "@/lib/data";
+import { type EnvAlert, type FeedItem, type ModuleId, type TagTone, type TestVolumePoint } from "@/lib/data";
 import { Card, CardHead, KpiCard, PageHead, Seg, Tag, BarChart } from "@/components/ui";
 import type { ReactNode } from "react";
 import { useLims } from "@/components/lims-data-context";
 import { apiFetch } from "@/lib/api-client";
-import { mapAlert, type AlertDTO } from "@/lib/backend-mappers";
+import {
+  mapActivity,
+  mapAlert,
+  mapTestVolume,
+  type ActivityDTO,
+  type AlertDTO,
+  type TestVolumeDTO,
+} from "@/lib/backend-mappers";
 
 function useAlerts() {
   const [alerts, setAlerts] = useState<EnvAlert[]>([]);
@@ -18,6 +25,26 @@ function useAlerts() {
       .catch(() => {});
   }, []);
   return alerts;
+}
+
+function useActivity() {
+  const [feed, setFeed] = useState<FeedItem[] | null>(null);
+  useEffect(() => {
+    apiFetch<ActivityDTO[]>("/activity?limit=8")
+      .then((r) => setFeed(r.map(mapActivity)))
+      .catch(() => setFeed([]));
+  }, []);
+  return feed;
+}
+
+function useTestVolume() {
+  const [points, setPoints] = useState<TestVolumePoint[] | null>(null);
+  useEffect(() => {
+    apiFetch<TestVolumeDTO[]>("/tests/volume?days=7")
+      .then((r) => setPoints(r.map(mapTestVolume)))
+      .catch(() => setPoints([]));
+  }, []);
+  return points;
 }
 
 const feedIcons = {
@@ -36,16 +63,6 @@ const toneBg: Record<TagTone, string> = {
   violet: "bg-violet-bg text-violet",
   grey: "bg-bg-2 text-muted",
 };
-
-const workload = [
-  { label: "จ", a: 60, b: 20 },
-  { label: "อ", a: 75, b: 30 },
-  { label: "พ", a: 55, b: 25 },
-  { label: "พฤ", a: 70, b: 35 },
-  { label: "ศ", a: 80, b: 28 },
-  { label: "ส", a: 40, b: 12 },
-  { label: "อา", a: 35, b: 10 },
-];
 
 function ModuleCard({
   icon,
@@ -88,6 +105,8 @@ export default function DashboardPage() {
   const onNavigate = (id: ModuleId) => router.push(`/${id}`);
   const { samples, equipment, tests, inventory, documents } = useLims();
   const alerts = useAlerts();
+  const feed = useActivity();
+  const testVolume = useTestVolume();
 
   const activeSamples = samples.filter((s) => s.status.label !== "เสร็จสิ้น").length;
   const equipmentDue = equipment.filter((e) => e.status.label !== "พร้อมใช้").length;
@@ -135,7 +154,13 @@ export default function DashboardPage() {
             right={<Seg options={["7 วัน", "30 วัน"]} />}
           />
           <div className="px-5 pb-5 pt-4">
-            <BarChart data={workload} />
+            {testVolume && testVolume.length > 0 ? (
+              <BarChart data={testVolume.map((p) => ({ label: p.label, a: p.completed, b: p.pending }))} />
+            ) : (
+              <div className="py-10 text-center text-[12.5px] text-muted">
+                {testVolume === null ? "กำลังโหลด…" : "ยังไม่มีข้อมูลปริมาณงานทดสอบ"}
+              </div>
+            )}
           </div>
         </Card>
 
@@ -143,20 +168,21 @@ export default function DashboardPage() {
           <CardHead
             icon={<Icons.Bell />}
             title="ความเคลื่อนไหวล่าสุด"
-            right={<Tag tone="teal" label="LIVE" />}
+            right={feed && feed.length > 0 ? <Tag tone="teal" label="LIVE" /> : undefined}
           />
           <div className="py-1.5">
-            {FEED.map((f, i) => (
-              <div key={i} className="flex gap-3 border-b border-line px-[18px] py-[11px] last:border-none">
+            {(!feed || feed.length === 0) && (
+              <div className="px-[18px] py-8 text-center text-[12.5px] text-muted">
+                {feed === null ? "กำลังโหลด…" : "ยังไม่มีความเคลื่อนไหว"}
+              </div>
+            )}
+            {feed?.map((f) => (
+              <div key={f.id} className="flex gap-3 border-b border-line px-[18px] py-[11px] last:border-none">
                 <div className={`grid h-[30px] w-[30px] flex-none place-items-center rounded-lg ${toneBg[f.tone]}`}>
                   <span className="h-[15px] w-[15px]">{feedIcons[f.icon]}</span>
                 </div>
                 <div>
-                  <div className="text-[12.5px]">
-                    {f.html.text}
-                    <b className="font-semibold">{f.html.bold}</b>
-                    {f.html.tail}
-                  </div>
+                  <div className="text-[12.5px]">{f.text}</div>
                   <div className="mt-0.5 font-mono text-[11px] text-muted-2">{f.time}</div>
                 </div>
               </div>
