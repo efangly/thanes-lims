@@ -11,7 +11,9 @@ export type ModuleId =
   | "inventory"
   | "documents"
   | "tests"
-  | "vendors";
+  | "vendors"
+  | "users"
+  | "profile";
 
 export const MODULE_META: Record<ModuleId, { code: string; title: string }> = {
   dashboard: { code: "MODULE 00", title: "แดชบอร์ด" },
@@ -24,6 +26,8 @@ export const MODULE_META: Record<ModuleId, { code: string; title: string }> = {
   documents: { code: "MODULE 05", title: "การจัดการเอกสาร" },
   tests: { code: "MODULE 06", title: "ทดสอบ & วิเคราะห์" },
   vendors: { code: "ข้อมูลหลัก", title: "ผู้ขาย (Vendor)" },
+  users: { code: "ผู้ดูแลระบบ", title: "การจัดการผู้ใช้งาน" },
+  profile: { code: "บัญชีของฉัน", title: "โปรไฟล์" },
 };
 
 /* ---------- Storage Location tree ---------- */

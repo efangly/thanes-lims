@@ -119,6 +119,9 @@ caption "ตรวจพบการเปิดตู้ N ครั้ง …"
   "เร็ว ๆ นี้" รอ `POST /reports` (คืนไฟล์) และ `GET /equipment/audit-report` (คืน PDF)
 - **จัดการสิทธิ์เข้าถึง** (`manage-access`) — ตัด matrix ปลอมออก แสดงข้อความว่าจัดการที่ backend
   (สอดคล้อง ADR-0002) ยังไม่ขอ endpoint
+  — ✅ 2026-09-10: มีหน้า `/users` (admin) + `/profile` (self-service) แล้ว จาก grilling session
+  "เพิ่มระบบผู้ใช้งาน" backend เพิ่ม suspend/reactivate/retire/reset-password + `PATCH /users/me`
+  + `POST /users/me/password` (ADR backend 0010, frontend 0014) — matrix role↔permission ยังไม่ทำ (คงตาม ADR-0002)
 
 ---
 

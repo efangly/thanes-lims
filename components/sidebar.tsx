@@ -53,6 +53,9 @@ export function Sidebar({
     { id: "locations", label: "ตำแหน่งจัดเก็บ", icon: <Icons.Loc /> },
     { id: "vendors", label: "ผู้ขาย (Vendor)", icon: <Icons.Cart /> },
   ];
+  // Admin-only. Cosmetic gate (ADR-0014) — the backend still 403s every
+  // /users write for non-admins regardless of what the sidebar shows.
+  const admin: NavEntry[] = [{ id: "users", label: "การจัดการผู้ใช้งาน", icon: <Icons.User /> }];
 
   const handleLogout = async () => {
     const ok = await confirm({
@@ -153,18 +156,33 @@ export function Sidebar({
           ข้อมูลหลัก
         </div>
         {masterData.map(renderItem)}
+        {user?.role === "admin" && (
+          <>
+            <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
+              ผู้ดูแลระบบ
+            </div>
+            {admin.map(renderItem)}
+          </>
+        )}
       </nav>
 
       {/* Footer */}
       <div className="border-t border-[var(--color-sidebar-line)] p-3">
         <div className="flex items-center gap-2.5 rounded-lg bg-[var(--color-sidebar-hover)] px-[9px] py-2">
-          <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-gradient-to-br from-[#3a6ea5] to-[#2b4d73] font-display text-xs font-semibold text-white">
-            {user ? initialsFor(user.name) : "—"}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[12.5px] font-medium leading-tight text-ink">{user?.name ?? "—"}</div>
-            <div className="truncate text-[10.5px] text-sidebar-muted">{user?.role ?? ""}</div>
-          </div>
+          <Link
+            href="/profile"
+            onClick={onClose}
+            title="โปรไฟล์ของฉัน"
+            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md transition hover:opacity-80"
+          >
+            <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-gradient-to-br from-[#3a6ea5] to-[#2b4d73] font-display text-xs font-semibold text-white">
+              {user ? initialsFor(user.name) : "—"}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[12.5px] font-medium leading-tight text-ink">{user?.name ?? "—"}</div>
+              <div className="truncate text-[10.5px] text-sidebar-muted">{user?.role ?? ""}</div>
+            </div>
+          </Link>
           <button
             onClick={handleLogout}
             aria-label="ออกจากระบบ"

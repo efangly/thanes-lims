@@ -16,6 +16,7 @@ export interface AuthUser {
   name: string;
   email: string;
   role: string;
+  status?: "active" | "suspended";
 }
 
 interface LoginResponse {
@@ -68,6 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       if (err instanceof ApiError && err.code === "unauthorized") {
         setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      } else if (err instanceof ApiError && err.code === "account_suspended") {
+        setError("บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ");
       } else {
         setError(apiErrorMessage(err));
       }
