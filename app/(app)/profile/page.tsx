@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Field, Input, PageHead } from "@/components/ui";
+import { Button, Card, CardBody, CardHead, Field, Input, PageHead } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/lib/confirm-context";
@@ -103,7 +103,7 @@ export default function ProfilePage() {
 
       <Card className="mb-5">
         <CardHead icon={<Icons.User />} title="ข้อมูลบัญชี" />
-        <div className="flex flex-col gap-3.5 p-[18px]">
+        <CardBody className="flex flex-col gap-3.5">
           <Field label="ชื่อ-นามสกุล">
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
@@ -121,12 +121,12 @@ export default function ProfilePage() {
               {savingName ? "กำลังบันทึก..." : "บันทึกชื่อ"}
             </Button>
           </div>
-        </div>
+        </CardBody>
       </Card>
 
       <Card className="mb-5">
         <CardHead icon={<Icons.Lock />} title="เปลี่ยนรหัสผ่าน" />
-        <div className="flex flex-col gap-3.5 p-[18px]">
+        <CardBody className="flex flex-col gap-3.5">
           <Field label="รหัสผ่านปัจจุบัน">
             <Input value={current} onChange={(e) => setCurrent(e.target.value)} type="password" autoComplete="current-password" />
           </Field>
@@ -147,19 +147,19 @@ export default function ProfilePage() {
               {savingPw ? "กำลังเปลี่ยน..." : "เปลี่ยนรหัสผ่าน"}
             </Button>
           </div>
-        </div>
+        </CardBody>
       </Card>
 
       <Card>
         <CardHead icon={<Icons.Power />} title="ความปลอดภัย" />
-        <div className="flex items-center justify-between gap-4 p-[18px]">
+        <CardBody className="flex items-center justify-between gap-4">
           <div className="text-[12.5px] text-muted">
             ออกจากระบบทุก session ในทุกอุปกรณ์ รวมถึงเครื่องนี้
           </div>
           <Button variant="ghost" size="sm" className="flex-none text-red" onClick={handleLogoutEverywhere}>
             ออกจากระบบทุกอุปกรณ์
           </Button>
-        </div>
+        </CardBody>
       </Card>
     </div>
   );

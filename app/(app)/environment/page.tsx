@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
 import type { EnvAlert, Gauge } from "@/lib/data";
-import { AreaChart, Button, Card, CardHead, PageHead, Sparkline, Tag } from "@/components/ui";
+import { AreaChart, Button, Card, CardBody, CardHead, PageHead, Sparkline, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiFetch } from "@/lib/api-client";
 import { mapAlert, mapGauge, mapTrend, type AlertDTO, type GaugeDTO, type ReadingDTO } from "@/lib/backend-mappers";
@@ -97,7 +97,7 @@ export default function EnvironmentPage() {
 
       {/* SIGNATURE: live instrument readout strip */}
       <div className="mb-4 overflow-hidden rounded-[10px] bg-[var(--color-readout)] shadow-card">
-        <div className="flex items-center justify-between border-b border-[var(--color-readout-line)] px-[18px] py-3">
+        <div className="flex items-center justify-between border-b border-[var(--color-readout-line)] px-4 py-3 md:px-[18px]">
           <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.5px] text-muted">
             <span className="h-2 w-2 rounded-full bg-teal animate-pulse-dot" />
             LIVE ENVIRONMENTAL MONITORING · {gauges.length} SENSORS
@@ -110,7 +110,7 @@ export default function EnvironmentPage() {
           {gauges.map((g, i) => (
             <div
               key={i}
-              className="relative border-b border-r border-[var(--color-readout-line)] px-[18px] pb-[18px] pt-4 last:border-r-0"
+              className="relative border-b border-r border-[var(--color-readout-line)] px-4 pb-4 pt-3 last:border-r-0 md:px-[18px] md:pb-[18px] md:pt-4"
             >
               <div className="flex items-center justify-between text-[11px] text-muted">
                 <span>{g.loc}</span>
@@ -146,7 +146,7 @@ export default function EnvironmentPage() {
               ) : undefined
             }
           />
-          <div className="px-5 py-[18px]">
+          <CardBody>
             {trendGauge && trendGauge.trend.length > 1 ? (
               <AreaChart points={trendGauge.trend} limit={trendGauge.rangeMax} />
             ) : (
@@ -154,7 +154,7 @@ export default function EnvironmentPage() {
                 {gauges.length === 0 ? "กำลังโหลด…" : "ยังไม่มีข้อมูลแนวโน้มเพียงพอ"}
               </div>
             )}
-          </div>
+          </CardBody>
         </Card>
 
         <Card>
@@ -180,7 +180,7 @@ export default function EnvironmentPage() {
               );
             })}
           </div>
-          <div className="flex items-center gap-1.5 px-[18px] py-4 text-[11.5px] text-muted-2">
+          <div className="flex items-center gap-1.5 px-4 py-3.5 text-[11.5px] text-muted-2 md:px-[18px] md:py-4">
             <Icons.Shield className="h-[13px] w-[13px]" />
             วิเคราะห์คุณภาพการจัดเก็บ เพื่อรักษาความถูกต้องของตัวอย่าง
           </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { InventoryItem, InventoryLot } from "@/lib/data";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Field, Input, PageHead } from "@/components/ui";
+import { Button, Card, CardBody, CardHead, Field, Input, PageHead } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage } from "@/lib/api-client";
 import { listLots, receiveStock } from "@/lib/inventory-api";
@@ -114,7 +114,7 @@ export function InventoryReceiveView() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr]">
         <Card>
           <CardHead icon={<Icons.Inventory />} title="รายการที่รับ" />
-          <div className="flex flex-col gap-3.5 px-5 py-4">
+          <CardBody className="flex flex-col gap-3.5">
             {!item ? (
               <Field label="ค้นหา / สแกนรายการ (ชื่อ หรือ รหัส)">
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="พิมพ์เพื่อค้นหา" autoFocus />
@@ -170,7 +170,7 @@ export function InventoryReceiveView() {
                 </Button>
               </>
             )}
-          </div>
+          </CardBody>
         </Card>
 
         <div className="flex flex-col gap-4">

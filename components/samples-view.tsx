@@ -4,7 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import type { CoCStep, Sample } from "@/lib/data";
-import { Avatar, Button, Card, CardHead, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
+import { Avatar, Button, Card, CardBody, CardHead, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage, apiFetch } from "@/lib/api-client";
 import { mapCoCStep, type CoCStepDTO } from "@/lib/backend-mappers";
@@ -153,7 +153,7 @@ function SampleDetailPanel({
             </Button>
           }
         />
-        <div className="px-5 py-3.5 font-mono text-[13px]">
+        <CardBody className="font-mono text-[13px]">
           {notFound
             ? "ไม่พบตัวอย่างนี้"
             : !sample
@@ -163,13 +163,13 @@ function SampleDetailPanel({
             : sample.locationId
             ? `${fullPath ?? "…"}${sample.position ? ` · ช่อง ${sample.position}` : ""}`
             : "ยังไม่ได้จัดเก็บ"}
-        </div>
+        </CardBody>
       </Card>
 
       {sample?.description && (
         <Card className="mt-4">
           <CardHead icon={<Icons.Doc />} title="รายละเอียด" />
-          <div className="whitespace-pre-wrap px-5 py-3.5 text-[13px] text-ink">{sample.description}</div>
+          <CardBody className="whitespace-pre-wrap text-[13px] text-ink">{sample.description}</CardBody>
         </Card>
       )}
 
@@ -179,7 +179,7 @@ function SampleDetailPanel({
           title="Chain of Custody"
           right={<span className="font-mono text-[11.5px] text-muted">{sample?.id ?? "—"}</span>}
         />
-        <div className="px-5 pb-3.5 pt-1.5">
+        <div className="px-4 pb-3.5 pt-1.5 md:px-5">
           {cocSteps.length === 0 && (
             <div className="py-4 text-center text-[12.5px] text-muted">
               {notFound ? "ไม่พบตัวอย่างนี้" : "ไม่มีข้อมูล Chain of Custody"}

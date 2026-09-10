@@ -126,7 +126,7 @@ function DocumentsPageInner() {
           title="ประวัติการแก้ไข"
           right={<span className="font-mono text-[11.5px] text-muted">{active?.name ?? "—"}</span>}
         />
-        <div className="px-5 pb-3.5 pt-1.5">
+        <div className="px-4 pb-3.5 pt-1.5 md:px-5">
           {history.length === 0 && (
             <div className="py-4 text-center text-[12.5px] text-muted">ไม่มีประวัติการแก้ไข</div>
           )}

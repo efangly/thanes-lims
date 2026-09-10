@@ -17,6 +17,20 @@ layout ถือ Topbar/Sidebar ร่วมกัน — ADR นี้ narrow �
 เป็น touch target 44×44 (desktop คง 38×38), ลด `px-6 gap-4` → `px-4 gap-2`, และครอบ
 code+ชื่อโมดูลด้วย `min-w-0 truncate` กันดันปุ่มตกขอบ
 
+## ต่อเนื่อง: บน mobile topbar เป็น page identity, `PageHead` title/desc เป็น desktop chrome
+
+(เพิ่มใน PR ถัดมา — งาน mobile density เดียวกัน) บน `< md` `PageHead` (`components/ui.tsx`)
+ซ่อน title + description ที่กินแนวตั้ง ~120px ใต้ topbar โดย title ซ้ำกับ code+ชื่อโมดูล
+ที่ topbar โชว์อยู่แล้ว:
+
+- title → `sr-only` (คง `<h1>` ให้ screen reader / SEO ไม่กินพื้นที่จอ)
+- description → `hidden md:block`
+- แถว `actions` คงไว้ ชิดขวา + `flex-wrap` (ปุ่ม primary ยังอยู่ตามหลักด้านบน และแก้เคส
+  `/equipment` ที่มี 4 ปุ่มล้นแนวนอนบน mobile ไปในตัว)
+
+topbar จึงเป็น "ชื่อหน้า" ที่ผู้ใช้เห็นบน mobile `PageHead` title/desc กลายเป็น chrome
+เฉพาะ desktop ที่พื้นที่เหลือเฟือ
+
 ## Considered Options
 
 - **เก็บปุ่มไว้บน desktop (≥ md) ถอดเฉพาะ mobile** — ปฏิเสธ: ยังต้องคง `addModalByModule`
@@ -40,3 +54,7 @@ code+ชื่อโมดูลด้วย `min-w-0 truncate` กันดั�
   ผลอะไร — topbar ของหน้าเหล่านั้นไม่เคยมีปุ่มนี้
 - topbar บน `< md`: ปุ่ม 44×44 ทำให้แถบดู "หนา" ขึ้นเล็กน้อยบน mobile แต่ยังอยู่ในกรอบสูง
   60px เดิม (44 < 60)
+- `PageHead` บน `< md`: หน้าที่ไม่มี `actions` (dashboard, vendors, users, profile, locations,
+  ai-chat) จะเหลือแค่ `<h1 class="sr-only">` — content เริ่มชิดใต้ topbar ทันที `mb-5` ของ
+  `PageHead` ต้องเป็น responsive (`mb-0 md:mb-5` เมื่อไม่มีอะไรแสดง / `mb-4 md:mb-5` เมื่อมี
+  actions) กันช่องว่างค้าง

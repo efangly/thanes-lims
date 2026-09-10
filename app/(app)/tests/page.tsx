@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
+import { Button, Card, CardBody, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 
 const flagColor = { hi: "text-red", lo: "text-amber", ok: "text-green" };
@@ -135,13 +135,13 @@ function TestsPageInner() {
 
           <Card className="mt-4">
             <CardHead icon={<Icons.Test />} title="สัดส่วนผลตามสถานะ" />
-            <div className="px-[18px] py-3.5">
+            <CardBody>
               {donutItems.length > 0 ? (
                 <Donut items={donutItems} />
               ) : (
                 <div className="py-6 text-center text-[12.5px] text-muted">ยังไม่มีผลทดสอบ</div>
               )}
-            </div>
+            </CardBody>
           </Card>
         </div>
       </div>

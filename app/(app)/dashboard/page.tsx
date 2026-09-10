@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import { type EnvAlert, type FeedItem, type ModuleId, type TagTone, type TestVolumePoint } from "@/lib/data";
-import { Card, CardHead, KpiCard, PageHead, Seg, Tag, BarChart } from "@/components/ui";
+import { Card, CardBody, CardHead, KpiCard, PageHead, Seg, Tag, BarChart } from "@/components/ui";
 import type { ReactNode } from "react";
 import { useLims } from "@/components/lims-data-context";
 import { apiFetch } from "@/lib/api-client";
@@ -153,7 +153,7 @@ export default function DashboardPage() {
             title="ปริมาณงานทดสอบรายวัน"
             right={<Seg options={["7 วัน", "30 วัน"]} />}
           />
-          <div className="px-5 pb-5 pt-4">
+          <CardBody>
             {testVolume && testVolume.length > 0 ? (
               <BarChart data={testVolume.map((p) => ({ label: p.label, a: p.completed, b: p.pending }))} />
             ) : (
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                 {testVolume === null ? "กำลังโหลด…" : "ยังไม่มีข้อมูลปริมาณงานทดสอบ"}
               </div>
             )}
-          </div>
+          </CardBody>
         </Card>
 
         <Card>

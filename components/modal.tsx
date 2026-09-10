@@ -71,7 +71,7 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
         className={`flex max-h-[85vh] w-full flex-col rounded-[10px] border border-line bg-panel shadow-card outline-none ${sizeCls[size]}`}
       >
-        <div className="flex items-center justify-between border-b border-line px-4.5 py-3.75">
+        <div className="flex items-center justify-between border-b border-line px-4 py-3.5 md:px-4.5 md:py-3.75">
           <h3 className="flex items-center gap-2.5 font-display text-[15px] font-semibold">
             {icon && <span className="h-4.25 w-4.25 text-teal-d">{icon}</span>}
             {title}
@@ -84,8 +84,8 @@ export function Modal({
             <Icons.Close className="h-[16px] w-[16px]" />
           </button>
         </div>
-        <div className="overflow-y-auto px-[18px] py-4">{children}</div>
-        {footer && <div className="flex justify-end gap-2.5 border-t border-line px-[18px] py-3.5">{footer}</div>}
+        <div className="overflow-y-auto px-4 py-4 md:px-[18px]">{children}</div>
+        {footer && <div className="flex justify-end gap-2.5 border-t border-line px-4 py-3 md:px-[18px] md:py-3.5">{footer}</div>}
       </div>
     </div>
   );

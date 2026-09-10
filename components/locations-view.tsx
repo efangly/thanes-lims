@@ -6,7 +6,7 @@ import { Icons } from "@/lib/icons";
 import type { Location, LocationKind } from "@/lib/data";
 import { TRANSFERRED_LABEL, boxOccupants, occupantOf } from "@/lib/occupancy";
 import { LOCATION_KINDS, canHoldBox, childLevelLabel, isDeepestLevel, levelLabel, rootLabel } from "@/lib/location-kinds";
-import { Button, Card, CardHead, Field, Input, PageHead, Seg } from "@/components/ui";
+import { Button, Card, CardBody, CardHead, Field, Input, PageHead, Seg } from "@/components/ui";
 import { BoxGrid } from "@/components/box-grid";
 import { LocationTree } from "@/components/location-tree";
 import { LocationDetailPanel } from "@/components/location-detail-panel";
@@ -235,7 +235,7 @@ export function LocationsView() {
       {fullPathText && <div className="border-b border-line px-[18px] py-2 font-mono text-[11.5px] text-muted">{fullPathText}</div>}
 
       {box ? (
-        <div className="px-[18px] py-4">
+        <CardBody>
           <BoxGrid
             box={box}
             occupants={boxOccupants(samples, box.id)}
@@ -249,10 +249,10 @@ export function LocationsView() {
               setMobilePane(2);
             }}
           />
-        </div>
+        </CardBody>
       ) : (
         <>
-          <div className="flex flex-col gap-3.5 border-b border-line px-[18px] py-3.5">
+          <div className="flex flex-col gap-3.5 border-b border-line px-4 py-3.5 md:px-[18px]">
             {!currentNode ? (
               <div className="flex flex-col gap-3.5 sm:flex-row sm:items-end">
                 <Field label={`สร้าง${rootLabel(kind)}ใหม่ (root)`}>

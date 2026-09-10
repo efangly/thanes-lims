@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Field, Input, Tag } from "@/components/ui";
+import { Button, Card, CardBody, CardHead, Field, Input, Tag } from "@/components/ui";
 import { Modal } from "@/components/modal";
 import { useConfirm } from "@/lib/confirm-context";
 import { formatDate } from "@/lib/backend-mappers";
@@ -214,7 +214,7 @@ function AssetCard({
         }
       />
       {!editing ? (
-        <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-2.5 px-5 py-4 text-[13px]">
+        <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-2.5 p-4 text-[13px] md:px-[18px] md:py-[15px]">
           <Row k="ชื่อเครื่องมือ" v={eq.name} />
           <Row k="Serial Number" v={eq.sn} mono />
           <Row k="ประเภท" v={eq.category} />
@@ -226,7 +226,7 @@ function AssetCard({
           <Row k="ชั่วโมงใช้งานสะสม" v={eq.usage} mono />
         </dl>
       ) : (
-        <div className="flex flex-col gap-3 px-5 py-4">
+        <CardBody className="flex flex-col gap-3">
           <Field label="ชื่อเครื่องมือ">
             <Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
           </Field>
@@ -260,7 +260,7 @@ function AssetCard({
               setF({ ...f, locationId: loc?.id ?? null, locationLabel: loc?.name ?? null })
             }
           />
-        </div>
+        </CardBody>
       )}
     </Card>
   );

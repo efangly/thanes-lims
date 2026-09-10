@@ -53,7 +53,7 @@ export function CardHead({
   right?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-line px-[18px] py-[15px]">
+    <div className="flex items-center justify-between border-b border-line px-4 py-3.5 md:px-[18px] md:py-[15px]">
       <h3 className="flex items-center gap-2.5 font-display text-[15px] font-semibold">
         {icon && <span className="h-[17px] w-[17px] text-teal-d">{icon}</span>}
         {title}
@@ -61,6 +61,19 @@ export function CardHead({
       {right}
     </div>
   );
+}
+
+/* ---------- Card body ---------- */
+// Single home for card content padding — compact on mobile, matches CardHead on md+.
+// Pass layout utilities (flex/grid/gap/border) through `className`.
+export function CardBody({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={`p-4 md:px-[18px] md:py-[15px] ${className}`}>{children}</div>;
 }
 
 /* ---------- KPI card ---------- */
@@ -91,7 +104,7 @@ export function KpiCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-[10px] border border-line bg-panel p-4 shadow-card before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] ${kpiAccent[accent]}`}
+      className={`relative overflow-hidden rounded-[10px] border border-line bg-panel p-3 shadow-card before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] md:p-4 ${kpiAccent[accent]}`}
     >
       <div className="flex items-center gap-1.5 text-[11.5px] text-muted">
         {icon && <span className="h-3.5 w-3.5">{icon}</span>}
@@ -121,12 +134,20 @@ export function PageHead({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <div className="font-display text-[22px] font-semibold tracking-[-0.2px]">{title}</div>
-        <div className="mt-[3px] max-w-[640px] text-[13px] text-muted">{desc}</div>
+    <div
+      className={`flex flex-wrap items-end justify-between gap-3 md:mb-5 md:gap-4 ${
+        actions ? "mb-4" : "mb-0 md:mb-5"
+      }`}
+    >
+      {/* On mobile the topbar already shows the module code + title, so the heading
+          collapses to sr-only here (kept for a11y / SEO) and the description is hidden. */}
+      <div className="min-w-0">
+        <h1 className="sr-only font-display text-[22px] font-semibold tracking-[-0.2px] md:not-sr-only">
+          {title}
+        </h1>
+        <p className="mt-[3px] hidden max-w-[640px] text-[13px] text-muted md:block">{desc}</p>
       </div>
-      {actions && <div className="flex gap-2.5">{actions}</div>}
+      {actions && <div className="flex flex-wrap justify-end gap-2.5">{actions}</div>}
     </div>
   );
 }
