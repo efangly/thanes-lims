@@ -20,7 +20,7 @@ export function ThemeToggle() {
       aria-label={isDark ? "สลับเป็นโหมดสว่าง" : "สลับเป็นโหมดมืด"}
       title={isDark ? "โหมดสว่าง" : "โหมดมืด"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative grid h-9.5 w-9.5 place-items-center rounded-lg border border-line text-muted transition hover:bg-bg"
+      className="relative grid h-11 w-11 flex-none place-items-center rounded-lg border border-line text-muted transition hover:bg-bg md:h-9.5 md:w-9.5"
     >
       {mounted ? (
         isDark ? (

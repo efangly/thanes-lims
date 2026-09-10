@@ -4,9 +4,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui";
 import { MODULE_META, type ModuleId } from "@/lib/data";
-import { useLims, type ModalKey } from "@/components/lims-data-context";
+import { useLims } from "@/components/lims-data-context";
 
 const toneCls = {
   teal: "bg-teal-bg text-teal-d",
@@ -26,15 +25,6 @@ const notifIcons = {
   Test: <Icons.Test />,
 };
 
-const addModalByModule: Partial<Record<ModuleId, ModalKey>> = {
-  samples: "add-sample",
-  equipment: "add-equipment",
-  environment: "add-sensor",
-  inventory: "add-inventory",
-  documents: "upload-document",
-  tests: "open-test-order",
-};
-
 export function Topbar({
   onMenuClick,
 }: {
@@ -44,7 +34,7 @@ export function Topbar({
   const pathname = usePathname();
   const active = (pathname?.split("/")[1] || "dashboard") as ModuleId;
   const meta = MODULE_META[active];
-  const { notifications, unreadCount, markNotificationRead, markAllRead, openModal, samples, equipment, inventory, documents } = useLims();
+  const { notifications, unreadCount, markNotificationRead, markAllRead, samples, equipment, inventory, documents } = useLims();
 
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -91,23 +81,21 @@ export function Topbar({
     return out.slice(0, 8);
   }, [query, samples, equipment, inventory, documents]);
 
-  const addModal = addModalByModule[active];
-
   return (
-    <div className="flex h-[60px] flex-none items-center gap-4 border-b border-line bg-panel px-6">
+    <div className="flex h-[60px] flex-none items-center gap-2 border-b border-line bg-panel px-4 md:gap-4 md:px-6">
       <button
         onClick={onMenuClick}
         aria-label="เปิดเมนู"
-        className="grid h-[38px] w-[38px] flex-none place-items-center rounded-lg border border-line text-muted transition hover:bg-bg md:hidden"
+        className="grid h-11 w-11 flex-none place-items-center rounded-lg border border-line text-muted transition hover:bg-bg md:hidden md:h-[38px] md:w-[38px]"
       >
         <Icons.Menu className="h-[18px] w-[18px]" />
       </button>
 
-      <div className="flex flex-col leading-[1.15]">
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.5px] text-muted-2">
+      <div className="flex min-w-0 flex-1 flex-col leading-[1.15] md:flex-none">
+        <span className="truncate font-mono text-[10.5px] uppercase tracking-[0.5px] text-muted-2">
           {meta.code}
         </span>
-        <span className="font-display text-[16px] font-semibold text-ink">{meta.title}</span>
+        <span className="truncate font-display text-[16px] font-semibold text-ink">{meta.title}</span>
       </div>
 
       <div ref={searchRef} className="relative ml-auto hidden w-[280px] md:block">
@@ -156,10 +144,10 @@ export function Topbar({
 
       <ThemeToggle />
 
-      <div ref={bellRef} className="relative">
+      <div ref={bellRef} className="relative flex-none">
         <button
           onClick={() => setBellOpen((v) => !v)}
-          className="relative grid h-[38px] w-[38px] place-items-center rounded-lg border border-line text-muted transition hover:bg-bg"
+          className="relative grid h-11 w-11 place-items-center rounded-lg border border-line text-muted transition hover:bg-bg md:h-[38px] md:w-[38px]"
         >
           <Icons.Bell className="h-[17px] w-[17px]" />
           {unreadCount > 0 && (
@@ -209,13 +197,6 @@ export function Topbar({
           </div>
         )}
       </div>
-
-      {addModal && (
-        <Button variant="ink" className="hidden sm:inline-flex" onClick={() => openModal(addModal)}>
-          <Icons.Plus className="h-[15px] w-[15px]" />
-          เพิ่มรายการใหม่
-        </Button>
-      )}
     </div>
   );
 }
