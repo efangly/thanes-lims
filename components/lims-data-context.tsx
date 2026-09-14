@@ -12,7 +12,8 @@ import {
 } from "@/lib/data";
 import { apiFetch, apiUpload } from "@/lib/api-client";
 import { moveWithinBox as moveWithinBoxApi, type CellMove } from "@/lib/locations-api";
-import { listSamplesInBox } from "@/lib/samples-api";
+import { listSamplesInBox, updateSampleStatus as updateSampleStatusApi } from "@/lib/samples-api";
+import { approveTestResult as approveTestResultApi, submitTestResult as submitTestResultApi } from "@/lib/tests-api";
 import { issueStock as issueStockApi, type IssueLine, type IssueResult } from "@/lib/inventory-api";
 import {
   createEquipment,
@@ -51,7 +52,8 @@ export type ModalKey =
   | "manage-access"
   | "open-test-order"
   | "generate-report"
-  | "record-calibration";
+  | "record-calibration"
+  | "submit-test-result";
 
 interface Toast {
   id: string;
@@ -82,6 +84,8 @@ interface LimsContextValue {
     barcodeId?: string;
   }) => Promise<Sample>;
   genSampleBarcode: (sampleId: string) => Promise<Sample>;
+  /** Changes a sample's status; rejects with the backend's 400 message on an invalid lifecycle transition. */
+  updateSampleStatus: (sampleId: string, status: string) => Promise<Sample>;
   /** `position` is required when `locationId` is a Box, rejected otherwise (ADR-0009). */
   putAwaySample: (sampleId: string, locationId: string, position?: string) => Promise<void>;
   /** Atomic Cell rearrangement within one Box; refreshes the affected samples. */
@@ -97,6 +101,10 @@ interface LimsContextValue {
     file: File | null
   ) => Promise<Document>;
   addTest: (t: { sample: string; test: string; analyst: string; ref: string }) => Promise<void>;
+  /** `analyzing` → `pending_verification`; rejects with the backend's 400 message from any other status. */
+  submitTestResult: (id: string, result: string, flag: TestResult["flag"]) => Promise<TestResult>;
+  /** `pending_verification` → `approved`, Admin/QA only; rejects with the backend's 403/400 message otherwise. */
+  approveTest: (id: string) => Promise<TestResult>;
   markNotificationRead: (id: string) => void;
   markAllRead: () => void;
   toasts: Toast[];
@@ -116,6 +124,8 @@ export interface ModalContext {
   inventoryItemId?: string;
   docType?: string;
   docTypeLabel?: string;
+  /** submit-test-result: which TestResult the form is for. */
+  testResultId?: string;
 }
 
 const LimsContext = createContext<LimsContextValue | null>(null);
@@ -204,6 +214,16 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       const mapped = mapSample(dto, nameById);
       setSamples((prev) => prev.map((x) => (x.id === sampleId ? mapped : x)));
       return mapped;
+    },
+    [users]
+  );
+
+  const updateSampleStatus = useCallback(
+    async (sampleId: string, status: string) => {
+      const nameById = new Map(users.map((u) => [u.id, u.name]));
+      const updated = await updateSampleStatusApi(sampleId, status, nameById);
+      setSamples((prev) => prev.map((s) => (s.id === sampleId ? updated : s)));
+      return updated;
     },
     [users]
   );
@@ -298,6 +318,18 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
     setTests((prev) => [mapTestResult(created), ...prev]);
   }, []);
 
+  const submitTestResult = useCallback(async (id: string, result: string, flag: TestResult["flag"]) => {
+    const updated = await submitTestResultApi(id, result, flag);
+    setTests((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    return updated;
+  }, []);
+
+  const approveTest = useCallback(async (id: string) => {
+    const updated = await approveTestResultApi(id);
+    setTests((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    return updated;
+  }, []);
+
   const markNotificationRead = useCallback((id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
     apiFetch(`/notifications/${id}/read`, { method: "PATCH" }).catch(() => {});
@@ -331,6 +363,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       loading,
       addSample,
       genSampleBarcode,
+      updateSampleStatus,
       putAwaySample,
       moveWithinBox,
       addEquipment,
@@ -341,6 +374,8 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       issueStock,
       addDocument,
       addTest,
+      submitTestResult,
+      approveTest,
       markNotificationRead,
       markAllRead,
       toasts,
@@ -363,6 +398,7 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       loading,
       addSample,
       genSampleBarcode,
+      updateSampleStatus,
       putAwaySample,
       moveWithinBox,
       addEquipment,
@@ -373,6 +409,8 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       issueStock,
       addDocument,
       addTest,
+      submitTestResult,
+      approveTest,
       markNotificationRead,
       markAllRead,
       toasts,

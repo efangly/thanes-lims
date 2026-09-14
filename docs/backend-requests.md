@@ -123,6 +123,22 @@ caption "ตรวจพบการเปิดตู้ N ครั้ง …"
   "เพิ่มระบบผู้ใช้งาน" backend เพิ่ม suspend/reactivate/retire/reset-password + `PATCH /users/me`
   + `POST /users/me/password` (ADR backend 0010, frontend 0014) — matrix role↔permission ยังไม่ทำ (คงตาม ADR-0002)
 
+## 9. เปลี่ยนสถานะตัวอย่างจาก UI — `/samples` พาเนลรายละเอียด — ✅ backend มี endpoint นี้อยู่แล้ว
+   (`PATCH /samples/{id}/status`, `internal/adapters/http/sample`), frontend ต่อสายใช้งานจริงแล้ว
+   2026-09-14
+
+**ทำไมเคยคิดว่าต้องขอ** — ตอนสำรวจโค้ด frontend (2026-09-14) พบว่า `status` ของ sample ถูกใช้เป็น
+ค่า read-only อย่างเดียวในหน้า `/samples` เลยเข้าใจผิดว่ายังไม่มี endpoint ฝั่ง backend — ตรวจสอบซ้ำแล้ว
+พบว่า `PATCH /samples/{id}/status` มีครบทั้ง domain state machine (`Sample.Transition`,
+`internal/domain/sample/sample.go`), use case (`UpdateSampleStatusUseCase`), RBAC (edit permission),
+CoC auto-log และ swagger docs อยู่แล้ว ไม่ต้องขอเพิ่ม
+
+**สิ่งที่ frontend ทำ** — การ์ด "สถานะตัวอย่าง" ใน `SampleDetailPanel`
+(`components/samples-view.tsx`) มี dropdown + ปุ่มบันทึกที่เรียก `updateSampleStatus` จริง
+(`lib/samples-api.ts` → `PATCH /samples/{id}/status`) dropdown จำกัดตัวเลือกตาม transition ที่ backend
+อนุญาตเท่านั้น (mirror ของ `validTransitions` ใน `sample.go` — backend ยัง validate ซ้ำเป็นแหล่งความจริง
+เดียวอยู่ดี) transition ที่ไม่ถูกต้องจาก backend (`400`) ขึ้น toast ข้อความที่ backend ส่งกลับมาตรงๆ
+
 ---
 
 ## ที่ **ไม่ได้** ขอ (บันทึกไว้กันถามซ้ำ)

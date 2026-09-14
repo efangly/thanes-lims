@@ -4,10 +4,10 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import type { CoCStep, Sample } from "@/lib/data";
-import { Avatar, Button, Card, CardBody, CardHead, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
+import { Avatar, Button, Card, CardBody, CardHead, KpiCard, PageHead, Pagination, Seg, Select, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage, apiFetch } from "@/lib/api-client";
-import { mapCoCStep, type CoCStepDTO } from "@/lib/backend-mappers";
+import { mapCoCStep, SAMPLE_STATUS, type CoCStepDTO } from "@/lib/backend-mappers";
 import { useFullPath } from "@/lib/use-full-path";
 import { PutAwaySampleModal } from "@/components/modals/put-away-sample";
 import { ScanInput } from "@/components/scan-input";
@@ -128,6 +128,18 @@ const SampleTable = memo(function SampleTable({
   );
 });
 
+/**
+ * Mirrors the backend's sample lifecycle state machine (`validTransitions` in
+ * `internal/domain/sample/sample.go`) so the dropdown only offers moves that
+ * will actually be accepted — backend still re-validates and is authoritative.
+ */
+const SAMPLE_STATUS_TRANSITIONS: Record<string, string[]> = {
+  pending: ["testing", "transferred"],
+  testing: ["completed", "transferred"],
+  transferred: ["pending", "testing"],
+  completed: [],
+};
+
 function SampleDetailPanel({
   sample,
   notFound,
@@ -139,6 +151,33 @@ function SampleDetailPanel({
 }) {
   const cocSteps = useCoC(sample?.id);
   const { path: fullPath, loading: pathLoading } = useFullPath(sample?.locationId);
+  const { updateSampleStatus, pushToast } = useLims();
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [savingStatus, setSavingStatus] = useState(false);
+
+  useEffect(() => {
+    setPendingStatus(null);
+  }, [sample?.id]);
+
+  const currentStatusKey = sample
+    ? Object.keys(SAMPLE_STATUS).find((k) => SAMPLE_STATUS[k].label === sample.status.label) ?? ""
+    : "";
+  const selectedStatusKey = pendingStatus ?? currentStatusKey;
+  const allowedNextKeys = SAMPLE_STATUS_TRANSITIONS[currentStatusKey] ?? [];
+
+  const handleSaveStatus = async () => {
+    if (!sample || !pendingStatus || pendingStatus === currentStatusKey) return;
+    setSavingStatus(true);
+    try {
+      await updateSampleStatus(sample.id, pendingStatus);
+      pushToast(`อัปเดตสถานะ ${sample.id} แล้ว`);
+      setPendingStatus(null);
+    } catch (err) {
+      pushToast(apiErrorMessage(err), "red");
+    } finally {
+      setSavingStatus(false);
+    }
+  };
 
   return (
     <div>
@@ -163,6 +202,36 @@ function SampleDetailPanel({
             : sample.locationId
             ? `${fullPath ?? "…"}${sample.position ? ` · ช่อง ${sample.position}` : ""}`
             : "ยังไม่ได้จัดเก็บ"}
+        </CardBody>
+      </Card>
+
+      <Card className="mt-4">
+        <CardHead icon={<Icons.Sample />} title="สถานะตัวอย่าง" />
+        <CardBody className="flex items-center gap-2.5">
+          <Select
+            value={selectedStatusKey}
+            onChange={(e) => setPendingStatus(e.target.value)}
+            disabled={!sample || savingStatus}
+            className="flex-1"
+          >
+            <option value={currentStatusKey} disabled>
+              {SAMPLE_STATUS[currentStatusKey]?.label ?? "—"}
+            </option>
+            {allowedNextKeys.map((key) => (
+              <option key={key} value={key}>
+                {SAMPLE_STATUS[key].label}
+              </option>
+            ))}
+          </Select>
+          <Button
+            variant="teal"
+            size="sm"
+            onClick={handleSaveStatus}
+            disabled={!sample || savingStatus || !pendingStatus || pendingStatus === currentStatusKey}
+          >
+            <Icons.Check className="h-[13px] w-[13px]" />
+            {savingStatus ? "กำลังบันทึก…" : "บันทึก"}
+          </Button>
         </CardBody>
       </Card>
 

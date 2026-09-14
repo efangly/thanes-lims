@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Button, Card, CardBody, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { apiErrorMessage } from "@/lib/api-client";
 
 const flagColor = { hi: "text-red", lo: "text-amber", ok: "text-green" };
 const SEG_OPTIONS = ["ทั้งหมด", "รอทวนสอบ", "ผิดปกติ"];
@@ -17,8 +18,24 @@ export default function TestsPage() {
 }
 
 function TestsPageInner() {
-  const { tests, openModal } = useLims();
+  const { tests, openModal, approveTest, pushToast } = useLims();
   const [seg, setSeg] = useState(0);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  const handleApprove = useCallback(
+    async (id: string) => {
+      setApprovingId(id);
+      try {
+        await approveTest(id);
+        pushToast(`อนุมัติผลทดสอบ ${id} แล้ว`);
+      } catch (err) {
+        pushToast(apiErrorMessage(err), "red");
+      } finally {
+        setApprovingId(null);
+      }
+    },
+    [approveTest, pushToast]
+  );
 
   const filtered = tests.filter((t) => {
     if (seg === 1) return t.status.label === "รอทวนสอบ";
@@ -84,7 +101,7 @@ function TestsPageInner() {
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr>
-                  {["รหัสทดสอบ", "รายการทดสอบ", "ตัวอย่าง", "ผู้วิเคราะห์", "ผล", "ช่วงอ้างอิง", "สถานะ"].map((h) => (
+                  {["รหัสทดสอบ", "รายการทดสอบ", "ตัวอย่าง", "ผู้วิเคราะห์", "ผล", "ช่วงอ้างอิง", "สถานะ", "การดำเนินการ"].map((h) => (
                     <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                       {h}
                     </th>
@@ -102,6 +119,30 @@ function TestsPageInner() {
                     <td className="border-b border-line px-3.5 py-3 font-mono text-[11.5px] text-muted">{t.ref}</td>
                     <td className="border-b border-line px-3.5 py-3">
                       <Tag {...t.status} />
+                    </td>
+                    <td className="border-b border-line px-3.5 py-3">
+                      {t.status.label === "กำลังวิเคราะห์" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openModal("submit-test-result", { testResultId: t.id })}
+                        >
+                          <Icons.Check className="h-[13px] w-[13px]" />
+                          บันทึกผล
+                        </Button>
+                      )}
+                      {t.status.label === "รอทวนสอบ" && (
+                        <Button
+                          variant="teal"
+                          size="sm"
+                          onClick={() => handleApprove(t.id)}
+                          disabled={approvingId === t.id}
+                        >
+                          <Icons.Check className="h-[13px] w-[13px]" />
+                          {approvingId === t.id ? "กำลังอนุมัติ…" : "อนุมัติ"}
+                        </Button>
+                      )}
+                      {t.status.label === "อนุมัติแล้ว" && <span className="text-[11.5px] text-muted-2">—</span>}
                     </td>
                   </tr>
                 ))}

@@ -19,10 +19,11 @@ const TYPES = ["Blood", "Urine", "Water", "Tissue", "Food", "Serum"];
 /**
  * รับตัวอย่างใหม่ — 2 ขั้น (ADR: modal 2 ขั้น "สร้างก่อน แล้วค่อยแนบ/พิมพ์"):
  *   ขั้น 1  ข้อมูลตัวอย่าง → POST /samples (สร้าง id ก่อน)
- *   ขั้น 2  บาร์โค้ด & สติ๊กเกอร์ → Gen (POST /samples/{id}/barcode) + เปิด PDF พิมพ์เอง
+ *   ขั้น 2  บาร์โค้ด & สติ๊กเกอร์ → เปิด PDF พิมพ์เอง
  *
  * Barcode ID ที่พิมพ์ไว้บนหลอดอยู่แล้วกรอกในขั้น 1 (backend รับ barcode_id เฉพาะตอน create —
- * ไม่มี endpoint ตั้งรหัสเองหลังสร้าง) ส่วนปุ่ม Gen อยู่ขั้น 2
+ * ไม่มี endpoint ตั้งรหัสเองหลังสร้าง) ถ้าเว้นว่างไว้ `handleCreate` จะเรียก gen ให้อัตโนมัติทันที
+ * ก่อนเข้าขั้น 2 — ปุ่ม "Gen" ในขั้น 2 เหลือไว้เป็น fallback กรณี auto-gen ล้มเหลว
  */
 export function AddSampleModal() {
   const { activeModal, closeModal, addSample, genSampleBarcode, pushToast, users } = useLims();
@@ -75,7 +76,18 @@ export function AddSampleModal() {
         barcodeId: barcodeInput.trim() || undefined,
       });
       setSampleId(created.id);
-      setBarcodeId(created.barcodeId);
+      let generatedBarcodeId = created.barcodeId;
+      if (!generatedBarcodeId) {
+        try {
+          const withBarcode = await genSampleBarcode(created.id);
+          generatedBarcodeId = withBarcode.barcodeId;
+        } catch (err) {
+          // สร้าง sample สำเร็จแล้ว แต่ auto-gen barcode ล้มเหลว — เข้าขั้น 2 ต่อได้ตามปกติ
+          // แล้วให้ผู้ใช้กดปุ่ม "Gen" เองเป็น fallback แทนที่จะเสียงานที่กรอกไปแล้ว
+          pushToast(apiErrorMessage(err), "red");
+        }
+      }
+      setBarcodeId(generatedBarcodeId);
       setStep(2);
       pushToast(`รับตัวอย่าง ${created.id} เข้าระบบแล้ว`);
     } catch (err) {

@@ -8,7 +8,7 @@ export function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("th-TH", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-const SAMPLE_STATUS: Record<string, Tag> = {
+export const SAMPLE_STATUS: Record<string, Tag> = {
   pending: { tone: "amber", label: "รอตรวจสอบ" },
   testing: { tone: "teal", label: "กำลังทดสอบ" },
   completed: { tone: "green", label: "เสร็จสิ้น" },

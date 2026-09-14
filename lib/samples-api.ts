@@ -44,6 +44,24 @@ export async function generateSampleBarcode(sampleId: string, nameById: Map<numb
   return mapSample(dto, nameById);
 }
 
+/**
+ * Changes a sample's status via the backend's lifecycle state machine
+ * (`internal/domain/sample/sample.go`). An invalid transition (e.g.
+ * `completed` → anything) is rejected with 400 — the frontend narrows the
+ * dropdown to allowed transitions as UX sugar, but the backend is authoritative.
+ */
+export async function updateSampleStatus(
+  sampleId: string,
+  status: string,
+  nameById: Map<number, string>
+): Promise<Sample> {
+  const dto = await apiFetch<SampleDTO>(`/samples/${sampleId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+  return mapSample(dto, nameById);
+}
+
 /* ---------- Sticker printing ---------- */
 
 export const STICKER_TEMPLATES = [
