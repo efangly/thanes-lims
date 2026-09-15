@@ -96,17 +96,6 @@ export interface Equipment {
   locationId: string | null;
 }
 
-export interface Gauge {
-  loc: string;
-  val: string;
-  unit: string;
-  range: string;
-  rangeMin: number;
-  rangeMax: number;
-  level: "ok" | "warn" | "crit";
-  trend: number[];
-}
-
 export interface EnvAlert {
   level: "crit" | "warn" | "ok";
   title: string;
@@ -136,6 +125,35 @@ export interface PartnerDeviceSnapshot {
   fetchedAt: string;
   /** true when this snapshot is served from cache because the last live poll of the Partner API failed. */
   stale: boolean;
+}
+
+/**
+ * One SMtrack device returned by `GET /partner-devices/discover?ward=` - a live
+ * read from SMtrack, not persisted anywhere. `tempDisplay`/`humidityDisplay`/
+ * `sendTime` are null when the device has never sent a reading yet - never
+ * coerce that to 0, "no value" and "value is 0" are different things.
+ */
+export interface DiscoverDevice {
+  serial: string;
+  name: string;
+  status: boolean;
+  firmware: string;
+  online: boolean;
+  tempDisplay: number | null;
+  humidityDisplay: number | null;
+  sendTime: string | null;
+}
+
+/**
+ * One reading from `GET /partner-devices/:serial/timeseries` - a live,
+ * uncached read straight from SMtrack limited to the trailing 1 hour (no
+ * `from`/`to` range is possible). Don't poll this more than every 1-5 min per
+ * device - unlike `/snapshot` it hits SMtrack on every call.
+ */
+export interface PartnerDeviceTimeseriesPoint {
+  sendTime: string;
+  tempDisplay: number;
+  humidityDisplay: number;
 }
 
 export interface InventoryItem {

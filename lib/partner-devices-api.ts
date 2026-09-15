@@ -1,15 +1,34 @@
 import { apiFetch, apiStream } from "@/lib/api-client";
 import {
+  mapDiscoverDevice,
   mapPartnerDevice,
   mapPartnerDeviceSnapshot,
+  mapTimeseriesPoint,
+  type DiscoverDevicesResponseDTO,
   type PartnerDeviceDTO,
   type PartnerDeviceSnapshotDTO,
+  type TimeseriesResponseDTO,
 } from "@/lib/backend-mappers";
-import type { PartnerDevice, PartnerDeviceSnapshot } from "@/lib/data";
+import type { DiscoverDevice, PartnerDevice, PartnerDeviceSnapshot, PartnerDeviceTimeseriesPoint } from "@/lib/data";
 
 export async function listPartnerDevices(): Promise<PartnerDevice[]> {
   const rows = await apiFetch<PartnerDeviceDTO[]>("/partner-devices");
   return rows.map(mapPartnerDevice);
+}
+
+/**
+ * Live read from SMtrack (not persisted anywhere) used to pick a real serial
+ * before creating a mapping - backend never validates a serial exists on
+ * SMtrack at create time, so a typo'd serial just never gets a reading.
+ */
+export async function discoverPartnerDevices(
+  ward: string,
+  page = 1,
+  limit = 20
+): Promise<{ devices: DiscoverDevice[]; total: number; page: number; limit: number }> {
+  const qs = new URLSearchParams({ ward, page: String(page), limit: String(limit) });
+  const res = await apiFetch<DiscoverDevicesResponseDTO>(`/partner-devices/discover?${qs.toString()}`);
+  return { devices: res.devices.map(mapDiscoverDevice), total: res.total, page: res.page, limit: res.limit };
 }
 
 export interface PartnerDeviceInput {
@@ -57,4 +76,15 @@ export function streamPartnerDeviceSnapshots(onSnapshot: (s: PartnerDeviceSnapsh
       // malformed frame - drop it, the next tick will bring a fresh one
     }
   });
+}
+
+/**
+ * Trailing 1-hour chart data, newest point first - hits SMtrack live on
+ * every call (no cache, unlike `/snapshot`), so callers should not poll this
+ * more than every 1-5 min per device. `points` is `[]` (not an error) when
+ * the device hasn't sent anything in the last hour.
+ */
+export async function getPartnerDeviceTimeseries(serial: string): Promise<PartnerDeviceTimeseriesPoint[]> {
+  const dto = await apiFetch<TimeseriesResponseDTO>(`/partner-devices/${encodeURIComponent(serial)}/timeseries`);
+  return dto.points.map(mapTimeseriesPoint);
 }

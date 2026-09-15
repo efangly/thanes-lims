@@ -4,9 +4,8 @@ import { AddSampleModal } from "@/components/modals/add-sample";
 import { ScanBarcodeModal } from "@/components/modals/scan-barcode";
 import { AddEquipmentModal } from "@/components/modals/add-equipment";
 import { ExportAuditReportModal } from "@/components/modals/export-audit-report";
-import { AddSensorModal } from "@/components/modals/add-sensor";
 import { AddPartnerDeviceModal } from "@/components/modals/add-partner-device";
-import { AlertThresholdsModal } from "@/components/modals/alert-thresholds";
+import { EditPartnerDeviceModal } from "@/components/modals/edit-partner-device";
 import { AddInventoryModal } from "@/components/modals/add-inventory";
 import { OrderHistoryModal } from "@/components/modals/order-history";
 import { UploadDocumentModal } from "@/components/modals/upload-document";
@@ -23,9 +22,8 @@ export function ModalRouter() {
       <ScanBarcodeModal />
       <AddEquipmentModal />
       <ExportAuditReportModal />
-      <AddSensorModal />
       <AddPartnerDeviceModal />
-      <AlertThresholdsModal />
+      <EditPartnerDeviceModal />
       <AddInventoryModal />
       <OrderHistoryModal />
       <UploadDocumentModal />

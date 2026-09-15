@@ -106,6 +106,10 @@ GET /tests/volume?days=<n>
 caption "ตรวจพบการเปิดตู้ N ครั้ง …" ลบออกถาวร — ถ้าต้องการกลับมา ขอเป็น field เสริมบน trend response
 (`door_open_events: [{ from, to, count }]`)
 
+> **2026-09-15: พักไว้** — หน้า `/environment` ปรับให้เหลือแต่ Partner Device panel ตาม
+> `partner-device-frontend-guide.md` แล้ว (ตัด gauge readout strip + กราฟแนวโน้มนี้ออกทั้งหมด) ข้อนี้จึง
+> ไม่ใช่ blocker ของ frontend อีกต่อไป จนกว่าจะมีการเอา UI นี้กลับมา
+
 ## 7. วิเคราะห์ผลด้วย AI — tests พาเนล "AI ANALYSIS"
 
 ลบ finding ที่ hardcode ออกแล้ว เหลือป้าย "อยู่ระหว่างการพัฒนา" — เมื่อพร้อมขอ
@@ -113,14 +117,12 @@ caption "ตรวจพบการเปิดตู้ N ครั้ง …"
 
 ## 8. เขียนค่ากลับ — modal ที่ปุ่มบันทึกถูกปิดไว้
 
-- **ตั้งค่าเกณฑ์แจ้งเตือน** (`alert-thresholds`) — แสดง gauge จาก `/environment/gauges` จริงแล้ว
-  ปุ่มบันทึกปิดไว้ รอ `PATCH /environment/gauges/{location}/thresholds` `{ range_min, range_max }`
-- **เพิ่มเซนเซอร์** (`add-sensor`) — 2026-09-14: พบว่าเคย fake success (toast + ปิด modal โดยไม่เรียก
-  API เลย) หลุดจากการกวาด mockup รอบ 2026-09-09 — ตัดออกแล้ว เหลือฟอร์ม disabled + ป้าย "เร็ว ๆ นี้"
-  Gauge บน backend เป็น config-only ไม่มี Create เลยแม้แต่ endpoint เดียว (`GaugeRepository` มีแค่
-  `List`/`FindByLocation`) รอ `POST /environment/gauges` `{ location, unit, range_min, range_max }`
-  ถ้าไม่ต้องการเปิด endpoint นี้ถาวร (Gauge ตั้งใจให้ admin คุมผ่าน migration/DB ตรงๆ) ก็รับได้เหมือนกัน —
-  แค่บอกให้ frontend รู้จะได้ลบฟอร์มทิ้งแทนที่จะปล่อย disabled ค้างไว้
+- **ตั้งค่าเกณฑ์แจ้งเตือน** (`alert-thresholds`) และ **เพิ่มเซนเซอร์** (`add-sensor`) —
+  2026-09-15: ลบ modal ทั้งสองออกจากโค้ดแล้ว (ไม่ใช่แค่ปิดปุ่ม) พร้อมกับการปรับหน้า `/environment` ให้เหลือ
+  แต่ Partner Device panel — ทั้งสองปุ่มเปิดใช้ได้เฉพาะจากหน้านี้เท่านั้น พอตัด gauge/alert UI ออกก็เลย
+  ตัดทิ้งไปด้วยแทนที่จะปล่อยเป็น dead code รายการ endpoint ที่เคยขอไว้ด้านล่าง (`PATCH
+  /environment/gauges/{location}/thresholds`, `POST /environment/gauges`) จึงพักไว้เช่นกัน จนกว่าจะมี
+  UI ฝั่ง frontend มารองรับอีกครั้ง
 - **สร้างรายงาน** / **ส่งออกรายงาน Audit** — ตัดขั้นตอนปลอม (ชื่อ/ขนาดไฟล์ PDF ปลอม) ออก เหลือป้าย
   "เร็ว ๆ นี้" รอ `POST /reports` (คืนไฟล์) และ `GET /equipment/audit-report` (คืน PDF)
 - **จัดการสิทธิ์เข้าถึง** (`manage-access`) — ตัด matrix ปลอมออก แสดงข้อความว่าจัดการที่ backend

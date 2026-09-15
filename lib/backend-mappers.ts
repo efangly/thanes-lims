@@ -1,4 +1,4 @@
-import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, FeedItem, Gauge, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, PartnerDevice, PartnerDeviceSnapshot, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
+import type { CoCStep, Document, DocHistory, DiscoverDevice, EnvAlert, Equipment, FeedItem, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, PartnerDevice, PartnerDeviceSnapshot, PartnerDeviceTimeseriesPoint, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
@@ -252,35 +252,6 @@ export function mapTestResult(d: TestResultDTO): TestResult {
   };
 }
 
-export interface GaugeDTO {
-  location: string;
-  unit: string;
-  range_min: number;
-  range_max: number;
-  value?: number;
-  level: "ok" | "warn" | "crit";
-}
-export function mapGauge(d: GaugeDTO): Gauge {
-  return {
-    loc: d.location,
-    val: d.value !== undefined ? d.value.toFixed(1) : "—",
-    unit: d.unit,
-    range: `ช่วง ${d.range_min} / ${d.range_max}`,
-    rangeMin: d.range_min,
-    rangeMax: d.range_max,
-    level: d.level,
-    trend: [],
-  };
-}
-
-export interface ReadingDTO {
-  value: number;
-  recorded_at: string;
-}
-export function mapTrend(readings: ReadingDTO[]): number[] {
-  return readings.map((r) => r.value).reverse();
-}
-
 export interface AlertDTO {
   id: number;
   location: string;
@@ -337,6 +308,48 @@ export function mapPartnerDeviceSnapshot(d: PartnerDeviceSnapshotDTO): PartnerDe
     fetchedAt: d.fetched_at,
     stale: d.stale,
   };
+}
+
+export interface DiscoverDeviceDTO {
+  serial: string;
+  name: string;
+  status: boolean;
+  firmware: string;
+  online: boolean;
+  temp_display?: number;
+  humidity_display?: number;
+  send_time?: string;
+}
+export interface DiscoverDevicesResponseDTO {
+  devices: DiscoverDeviceDTO[];
+  total: number;
+  page: number;
+  limit: number;
+}
+export function mapDiscoverDevice(d: DiscoverDeviceDTO): DiscoverDevice {
+  return {
+    serial: d.serial,
+    name: d.name,
+    status: d.status,
+    firmware: d.firmware,
+    online: d.online,
+    tempDisplay: d.temp_display ?? null,
+    humidityDisplay: d.humidity_display ?? null,
+    sendTime: d.send_time ?? null,
+  };
+}
+
+export interface TimeseriesPointDTO {
+  send_time: string;
+  temp_display: number;
+  humidity_display: number;
+}
+export interface TimeseriesResponseDTO {
+  serial: string;
+  points: TimeseriesPointDTO[];
+}
+export function mapTimeseriesPoint(d: TimeseriesPointDTO): PartnerDeviceTimeseriesPoint {
+  return { sendTime: d.send_time, tempDisplay: d.temp_display, humidityDisplay: d.humidity_display };
 }
 
 export interface DocHistoryDTO {
