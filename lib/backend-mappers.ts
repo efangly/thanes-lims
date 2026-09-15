@@ -1,4 +1,4 @@
-import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, FeedItem, Gauge, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
+import type { CoCStep, Document, DocHistory, EnvAlert, Equipment, FeedItem, Gauge, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, PartnerDevice, PartnerDeviceSnapshot, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
@@ -296,6 +296,46 @@ export function mapAlert(d: AlertDTO): EnvAlert {
     title: d.title,
     msg: d.message,
     time: formatDateTime(d.triggered_at),
+  };
+}
+
+export interface PartnerDeviceDTO {
+  serial: string;
+  location: string;
+  active: boolean;
+}
+export function mapPartnerDevice(d: PartnerDeviceDTO): PartnerDevice {
+  return { serial: d.serial, location: d.location, active: d.active };
+}
+
+export interface PartnerDeviceSnapshotDTO {
+  serial: string;
+  location: string;
+  name: string;
+  status: boolean;
+  online: boolean;
+  firmware: string;
+  temp_display: number;
+  humidity_display: number;
+  send_time: string;
+  level: "ok" | "warn" | "crit" | "";
+  fetched_at: string;
+  stale: boolean;
+}
+export function mapPartnerDeviceSnapshot(d: PartnerDeviceSnapshotDTO): PartnerDeviceSnapshot {
+  return {
+    serial: d.serial,
+    location: d.location,
+    name: d.name,
+    status: d.status,
+    online: d.online,
+    firmware: d.firmware,
+    tempDisplay: d.temp_display,
+    humidityDisplay: d.humidity_display,
+    sendTime: d.send_time || null,
+    level: d.level,
+    fetchedAt: d.fetched_at,
+    stale: d.stale,
   };
 }
 

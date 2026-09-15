@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
-import type { EnvAlert, Gauge } from "@/lib/data";
+import type { EnvAlert, Gauge, PartnerDevice, PartnerDeviceSnapshot } from "@/lib/data";
 import { AreaChart, Button, Card, CardBody, CardHead, PageHead, Sparkline, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api-client";
 import { mapAlert, mapGauge, mapTrend, type AlertDTO, type GaugeDTO, type ReadingDTO } from "@/lib/backend-mappers";
+import { getPartnerDeviceSnapshot, listPartnerDevices, streamPartnerDeviceSnapshots } from "@/lib/partner-devices-api";
 
 function useEnvironmentData() {
   const [gauges, setGauges] = useState<Gauge[]>([]);
@@ -32,6 +34,53 @@ function useEnvironmentData() {
     apiFetch<AlertDTO[]>("/environment/alerts").then((r) => setAlerts(r.map(mapAlert))).catch(() => {});
   }, []);
   return { gauges, alerts };
+}
+
+/**
+ * Partner Device data is Admin-only server-side (backend RBAC module
+ * `partnerdevice` defaults to Admin, see backend CONTEXT.md#environment) -
+ * `enabled` gates the fetch so a non-admin viewer never fires a request
+ * that's just going to 403. Snapshots come from the backend's cache (never
+ * a direct Partner API call - ADR 0011) and are kept fresh by the SSE
+ * stream after the initial load.
+ */
+function usePartnerDevices(enabled: boolean) {
+  const [devices, setDevices] = useState<PartnerDevice[]>([]);
+  const [snapshots, setSnapshots] = useState<Record<string, PartnerDeviceSnapshot>>({});
+
+  const refetchDevices = useCallback(async () => {
+    const list = await listPartnerDevices();
+    setDevices(list);
+    const entries = await Promise.all(
+      list.map(async (d) => {
+        try {
+          return [d.serial, await getPartnerDeviceSnapshot(d.serial)] as const;
+        } catch {
+          return null; // not polled yet - the SSE stream will fill it in once the poller runs
+        }
+      })
+    );
+    setSnapshots((prev) => {
+      const next = { ...prev };
+      for (const entry of entries) if (entry) next[entry[0]] = entry[1];
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+    refetchDevices().catch(() => {});
+
+    const stream = streamPartnerDeviceSnapshots((snap) => {
+      setSnapshots((prev) => ({ ...prev, [snap.serial]: snap }));
+    });
+
+    return () => {
+      stream.abort();
+    };
+  }, [enabled, refetchDevices]);
+
+  return { devices, snapshots, refetchDevices };
 }
 
 function useClock() {
@@ -69,7 +118,10 @@ const alertMeta = {
 export default function EnvironmentPage() {
   const time = useClock();
   const { openModal } = useLims();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const { gauges, alerts } = useEnvironmentData();
+  const { devices: partnerDevices, snapshots: partnerSnapshots, refetchDevices: refetchPartnerDevices } = usePartnerDevices(isAdmin);
 
   const today = new Date().toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
   // เลือก gauge ที่น่าสนใจสุดสำหรับกราฟแนวโน้ม: crit ก่อน แล้ว warn แล้วตัวแรก
@@ -186,6 +238,72 @@ export default function EnvironmentPage() {
           </div>
         </Card>
       </div>
+
+      {/* Partner Device (SMtrack third-party sensors) — Admin-only, backend CONTEXT.md#environment / ADR 0011 */}
+      {isAdmin && (
+        <Card className="mt-4">
+          <CardHead
+            icon={<Icons.Env />}
+            title={`Partner Devices (SMtrack) · ${partnerDevices.length}`}
+            right={
+              <Button
+                variant="teal"
+                size="sm"
+                onClick={() =>
+                  openModal("add-partner-device", {
+                    gaugeLocations: gauges.map((g) => g.loc),
+                    onPartnerDeviceCreated: refetchPartnerDevices,
+                  })
+                }
+              >
+                <Icons.Plus className="h-[14px] w-[14px]" />
+                เพิ่ม Partner Device
+              </Button>
+            }
+          />
+          <div>
+            {partnerDevices.length === 0 && (
+              <div className="py-8 text-center text-[12.5px] text-muted">
+                ยังไม่มี Partner Device — เพิ่มได้จากปุ่มด้านบน
+              </div>
+            )}
+            {partnerDevices.map((d) => {
+              const snap = partnerSnapshots[d.serial];
+              const level = snap?.level || "ok";
+              return (
+                <div
+                  key={d.serial}
+                  className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 last:border-none md:px-[18px]"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium">
+                      <span className="font-mono">{d.serial}</span>
+                      {!d.active && <Tag tone="grey" label="ปิดใช้งาน" />}
+                      {snap?.stale && <Tag tone="amber" label="ข้อมูลเก่า" />}
+                      {snap && !snap.online && <Tag tone="red" label="ออฟไลน์" />}
+                    </div>
+                    <div className="mt-0.5 text-[11.5px] text-muted">
+                      {d.location}
+                      {snap?.name ? ` · ${snap.name}` : ""}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {snap ? (
+                      <div className={`font-mono text-[15px] font-semibold ${gaugeValColor[level]}`}>
+                        {snap.tempDisplay.toFixed(1)}
+                        <span className="ml-0.5 text-[11px] font-normal text-muted">°C</span>
+                        <span className="ml-2.5 text-muted">{snap.humidityDisplay.toFixed(0)}%</span>
+                      </div>
+                    ) : (
+                      <span className="text-[12.5px] text-muted-2">รอข้อมูล…</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

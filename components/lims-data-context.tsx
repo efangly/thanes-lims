@@ -45,6 +45,7 @@ export type ModalKey =
   | "add-equipment"
   | "export-audit-report"
   | "add-sensor"
+  | "add-partner-device"
   | "alert-thresholds"
   | "add-inventory"
   | "order-history"
@@ -126,6 +127,10 @@ export interface ModalContext {
   docTypeLabel?: string;
   /** submit-test-result: which TestResult the form is for. */
   testResultId?: string;
+  /** add-partner-device: Gauge Locations the Location select can offer (must be an existing Gauge - never auto-created). */
+  gaugeLocations?: string[];
+  /** add-partner-device: called after a successful create so the Environment page's list/snapshot panel refreshes without a full reload. */
+  onPartnerDeviceCreated?: () => void;
 }
 
 const LimsContext = createContext<LimsContextValue | null>(null);

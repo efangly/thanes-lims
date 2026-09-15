@@ -146,3 +146,62 @@ export async function apiFetchBlob(path: string): Promise<Blob> {
   }
   return res.blob();
 }
+
+/**
+ * Reads a `text/event-stream` endpoint via fetch + ReadableStream, with the
+ * same auth + 401-refresh handling as apiFetch. Not the native EventSource
+ * API - EventSource can't send a custom Authorization header, and the
+ * backend deliberately refuses query-string token auth on anything but a
+ * WebSocket upgrade (see its AuthQuery middleware doc comment). Returns an
+ * AbortController; call .abort() to stop the stream (e.g. on unmount).
+ */
+export function apiStream(path: string, onMessage: (data: string) => void): AbortController {
+  const controller = new AbortController();
+
+  (async () => {
+    const open = (token: string | null) =>
+      fetch(`${API_BASE}${path}`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        signal: controller.signal,
+      });
+
+    let res: Response;
+    try {
+      res = await open(getAccessToken());
+    } catch {
+      return;
+    }
+    if (res.status === 401) {
+      try {
+        const newToken = await refreshAccessToken();
+        res = await open(newToken);
+      } catch {
+        setAccessToken(null);
+        sessionExpiredCallback?.();
+        return;
+      }
+    }
+    if (!res.ok || !res.body) return;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const frames = buf.split("\n\n");
+        buf = frames.pop() ?? "";
+        for (const frame of frames) {
+          const line = frame.split("\n").find((l) => l.startsWith("data:"));
+          if (line) onMessage(line.slice(5).trim());
+        }
+      }
+    } catch {
+      // aborted (unmount) or connection dropped - caller decides whether to reconnect
+    }
+  })();
+
+  return controller;
+}

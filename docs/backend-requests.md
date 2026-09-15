@@ -115,6 +115,12 @@ caption "ตรวจพบการเปิดตู้ N ครั้ง …"
 
 - **ตั้งค่าเกณฑ์แจ้งเตือน** (`alert-thresholds`) — แสดง gauge จาก `/environment/gauges` จริงแล้ว
   ปุ่มบันทึกปิดไว้ รอ `PATCH /environment/gauges/{location}/thresholds` `{ range_min, range_max }`
+- **เพิ่มเซนเซอร์** (`add-sensor`) — 2026-09-14: พบว่าเคย fake success (toast + ปิด modal โดยไม่เรียก
+  API เลย) หลุดจากการกวาด mockup รอบ 2026-09-09 — ตัดออกแล้ว เหลือฟอร์ม disabled + ป้าย "เร็ว ๆ นี้"
+  Gauge บน backend เป็น config-only ไม่มี Create เลยแม้แต่ endpoint เดียว (`GaugeRepository` มีแค่
+  `List`/`FindByLocation`) รอ `POST /environment/gauges` `{ location, unit, range_min, range_max }`
+  ถ้าไม่ต้องการเปิด endpoint นี้ถาวร (Gauge ตั้งใจให้ admin คุมผ่าน migration/DB ตรงๆ) ก็รับได้เหมือนกัน —
+  แค่บอกให้ frontend รู้จะได้ลบฟอร์มทิ้งแทนที่จะปล่อย disabled ค้างไว้
 - **สร้างรายงาน** / **ส่งออกรายงาน Audit** — ตัดขั้นตอนปลอม (ชื่อ/ขนาดไฟล์ PDF ปลอม) ออก เหลือป้าย
   "เร็ว ๆ นี้" รอ `POST /reports` (คืนไฟล์) และ `GET /equipment/audit-report` (คืน PDF)
 - **จัดการสิทธิ์เข้าถึง** (`manage-access`) — ตัด matrix ปลอมออก แสดงข้อความว่าจัดการที่ backend

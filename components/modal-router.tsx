@@ -5,6 +5,7 @@ import { ScanBarcodeModal } from "@/components/modals/scan-barcode";
 import { AddEquipmentModal } from "@/components/modals/add-equipment";
 import { ExportAuditReportModal } from "@/components/modals/export-audit-report";
 import { AddSensorModal } from "@/components/modals/add-sensor";
+import { AddPartnerDeviceModal } from "@/components/modals/add-partner-device";
 import { AlertThresholdsModal } from "@/components/modals/alert-thresholds";
 import { AddInventoryModal } from "@/components/modals/add-inventory";
 import { OrderHistoryModal } from "@/components/modals/order-history";
@@ -23,6 +24,7 @@ export function ModalRouter() {
       <AddEquipmentModal />
       <ExportAuditReportModal />
       <AddSensorModal />
+      <AddPartnerDeviceModal />
       <AlertThresholdsModal />
       <AddInventoryModal />
       <OrderHistoryModal />

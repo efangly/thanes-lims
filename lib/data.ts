@@ -114,6 +114,30 @@ export interface EnvAlert {
   time: string;
 }
 
+/** Admin-managed Serial<->Location mapping for a third-party SMtrack sensor (backend ADR 0011). */
+export interface PartnerDevice {
+  serial: string;
+  location: string;
+  active: boolean;
+}
+
+/** Polled metadata + latest reading + derived alert Level for one Partner Device. `level` is "" when the device has no reading yet. */
+export interface PartnerDeviceSnapshot {
+  serial: string;
+  location: string;
+  name: string;
+  status: boolean;
+  online: boolean;
+  firmware: string;
+  tempDisplay: number;
+  humidityDisplay: number;
+  sendTime: string | null;
+  level: "ok" | "warn" | "crit" | "";
+  fetchedAt: string;
+  /** true when this snapshot is served from cache because the last live poll of the Partner API failed. */
+  stale: boolean;
+}
+
 export interface InventoryItem {
   id: string;
   name: string;
