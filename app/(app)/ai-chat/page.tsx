@@ -10,6 +10,7 @@ import {
   ChatUnavailableError,
   ChatValidationError,
   type ChatAnswer,
+  type ChatToolCall,
 } from "@/lib/chat-api";
 
 /* ---------- ข้อความในบทสนทนา ---------- */
@@ -49,9 +50,9 @@ const THINKING_STEPS = [
 const MAX_LEN = 500;
 
 /* ---------- accordion SQL ---------- */
-function SqlAccordion({ queries }: { queries: string[] }) {
+function ToolCallsAccordion({ calls }: { calls: ChatToolCall[] }) {
   const [open, setOpen] = useState(false);
-  if (queries.length === 0) return null;
+  if (calls.length === 0) return null;
   return (
     <div className="mt-2 overflow-hidden rounded-lg border border-line">
       <button
@@ -61,16 +62,16 @@ function SqlAccordion({ queries }: { queries: string[] }) {
         <Icons.Chevron
           className={`h-3.5 w-3.5 flex-none transition ${open ? "rotate-90" : ""}`}
         />
-        ดู SQL ที่ใช้ ({queries.length})
+        ดูข้อมูลที่ใช้ตอบ ({calls.length})
       </button>
       {open && (
         <div className="flex flex-col gap-2 border-t border-line bg-bg-2 p-3">
-          {queries.map((q, i) => (
+          {calls.map((c, i) => (
             <pre
               key={i}
               className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11.5px] leading-relaxed text-ink"
             >
-              {q}
+              {c.tool}({JSON.stringify(c.args)})
             </pre>
           ))}
         </div>
@@ -89,18 +90,16 @@ function AiAnswer({ msg }: { msg: AiMsg }) {
     );
   }
   if (!msg.data) return null;
-  const { answer, sql_queries, rows, elapsed_ms } = msg.data;
+  const { answer, toolCalls, elapsedMs } = msg.data;
   return (
     <div className="min-w-0">
       <div className="rounded-[14px] rounded-tl-[4px] border border-line bg-bg px-4 py-2.5">
         <Markdown text={answer} />
       </div>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-1 font-mono text-[10.5px] text-muted-2">
-        <span>{rows} แถวจากฐานข้อมูล</span>
-        <span>·</span>
-        <span>{(elapsed_ms / 1000).toFixed(1)} วิ</span>
+        <span>{(elapsedMs / 1000).toFixed(1)} วิ</span>
       </div>
-      <SqlAccordion queries={sql_queries} />
+      <ToolCallsAccordion calls={toolCalls} />
     </div>
   );
 }

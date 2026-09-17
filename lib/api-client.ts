@@ -1,5 +1,17 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
+// The AI chatbot lives in a separate service (lims-chatbot-service) behind
+// the same gateway, on path prefix /ai rather than /api/v1 - see backend
+// docs/mcp-server-tools.md and the ai-chatbot-groovy-spindle migration plan.
+// In production it's the same origin as this app (relative "/ai" resolves
+// against the page's own host), so no env var is needed there. Local dev
+// overrides this to point at wherever `npm run start:dev` is serving the
+// chatbot service (e.g. http://localhost:3000) - note that service exposes
+// its route as bare "/chat" (no /ai prefix) when run standalone, unlike the
+// gateway-rewritten production path, so CHATBOT_API_BASE intentionally
+// carries the full prefix the deployment target actually expects.
+const CHATBOT_API_BASE = process.env.NEXT_PUBLIC_CHATBOT_API_URL ?? "/ai";
+
 const CSRF_HEADER = { "X-SMLIMS-CSRF": "1" };
 
 let accessToken: string | null = null;
@@ -90,13 +102,18 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 const AUTH_ENDPOINTS_NO_RETRY = ["/auth/login", "/auth/refresh", "/auth/logout"];
 
-async function request<T>(path: string, options: RequestInit, buildHeaders: (token: string | null) => Record<string, string>): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers: buildHeaders(getAccessToken()) });
+async function request<T>(
+  path: string,
+  options: RequestInit,
+  buildHeaders: (token: string | null) => Record<string, string>,
+  baseUrl: string = API_BASE,
+): Promise<T> {
+  const res = await fetch(`${baseUrl}${path}`, { ...options, headers: buildHeaders(getAccessToken()) });
 
   if (res.status === 401 && !AUTH_ENDPOINTS_NO_RETRY.includes(path)) {
     try {
       const newToken = await refreshAccessToken();
-      const retryRes = await fetch(`${API_BASE}${path}`, { ...options, headers: buildHeaders(newToken) });
+      const retryRes = await fetch(`${baseUrl}${path}`, { ...options, headers: buildHeaders(newToken) });
       return handleResponse<T>(retryRes);
     } catch {
       setAccessToken(null);
@@ -108,13 +125,26 @@ async function request<T>(path: string, options: RequestInit, buildHeaders: (tok
   return handleResponse<T>(res);
 }
 
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  return request<T>(path, options, (token) => ({
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(options.headers as Record<string, string> | undefined),
-  }));
+/**
+ * `baseUrl` defaults to the main Go API (`API_BASE`) - pass `CHATBOT_API_BASE`
+ * (exported below) to reach the separate AI chatbot service instead. Token
+ * refresh always goes through the main API regardless, since that's the only
+ * service that issues tokens - only the resource request itself moves.
+ */
+export async function apiFetch<T>(path: string, options: RequestInit = {}, baseUrl?: string): Promise<T> {
+  return request<T>(
+    path,
+    options,
+    (token) => ({
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers as Record<string, string> | undefined),
+    }),
+    baseUrl,
+  );
 }
+
+export { CHATBOT_API_BASE };
 
 export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
   return request<T>(path, { method: "POST", body: formData }, (token) => ({
