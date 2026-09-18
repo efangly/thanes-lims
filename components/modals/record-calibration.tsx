@@ -129,7 +129,7 @@ export function RecordCalibrationModal() {
           {!eq ? (
             <Field label="เลือกเครื่องมือ (ค้นด้วยชื่อ หรือ S/N)">
               <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="พิมพ์เพื่อค้นหา" autoFocus />
-              <div className="mt-1.5 max-h-[200px] overflow-y-auto rounded-lg border border-line">
+              <div className="mt-1.5 max-h-50 overflow-y-auto rounded-lg border border-line">
                 {matches.map((e) => (
                   <button
                     key={e.id}

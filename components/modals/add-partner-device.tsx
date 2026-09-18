@@ -108,7 +108,7 @@ export function AddPartnerDeviceModal() {
             onClick={handleSubmit}
             disabled={submitting || !selected || !location}
           >
-            <Icons.Plus className="h-[14px] w-[14px]" />
+            <Icons.Plus className="h-3.5 w-3.5" />
             {submitting ? "กำลังบันทึก..." : "เพิ่ม SMTrack+ Device"}
           </Button>
         </>
@@ -125,7 +125,7 @@ export function AddPartnerDeviceModal() {
               onKeyDown={(e) => e.key === "Enter" && runSearch(1)}
             />
             <Button variant="ghost" size="sm" onClick={() => runSearch(1)} disabled={searching || !ward.trim()}>
-              <Icons.Search className="h-[14px] w-[14px]" />
+              <Icons.Search className="h-3.5 w-3.5" />
               ค้นหา
             </Button>
           </div>
@@ -140,7 +140,7 @@ export function AddPartnerDeviceModal() {
         )}
         {!searching && results.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <div className="max-h-[220px] overflow-y-auto rounded-lg border border-line">
+            <div className="max-h-55 overflow-y-auto rounded-lg border border-line">
               {results.map((d) => (
                 <button
                   key={d.serial}

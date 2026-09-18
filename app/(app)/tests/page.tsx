@@ -90,7 +90,7 @@ function TestsPageInner() {
         <KpiCard accent="red" label="ผลผิดปกติ (Flag)" value={String(kpi.flagged)} trend="นอกช่วงอ้างอิง" trendDown={kpi.flagged > 0} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
         <Card className="lg:flex lg:min-h-0 lg:flex-col">
           <CardHead
             icon={<Icons.Test />}
@@ -161,7 +161,7 @@ function TestsPageInner() {
         </Card>
 
         <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
-          <div className="relative overflow-hidden rounded-[10px] border border-line bg-gradient-to-br from-teal-bg to-panel p-5 text-ink shadow-card">
+          <div className="relative overflow-hidden rounded-[10px] border border-line bg-linear-to-br from-teal-bg to-panel p-5 text-ink shadow-card">
             <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(10,147,150,0.35),transparent_70%)]" />
             <span className="inline-flex items-center gap-1.5 rounded-full border border-teal/40 bg-teal/20 px-2.5 py-1 font-mono text-[10.5px] tracking-[1px] text-teal">
               <Icons.Ai className="h-3.5 w-3.5" />

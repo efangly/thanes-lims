@@ -122,7 +122,7 @@ function InventoryPageInner() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
         <Card className="lg:flex lg:min-h-0 lg:flex-col">
           <CardHead
             icon={<Icons.Inventory />}
@@ -149,8 +149,8 @@ function InventoryPageInner() {
                       <td className="border-b border-line px-3.5 py-3 font-medium">{i.name}</td>
                       <td className="border-b border-line px-3.5 py-3 text-[11.5px] text-muted">{i.cat}</td>
                       <td className="border-b border-line px-3.5 py-3">
-                        <div className="relative h-1.75 min-w-22.5 overflow-hidden rounded-[4px] bg-bg-2">
-                          <div className="h-full rounded-[4px]" style={{ width: `${i.pct}%`, background: stockColor(i.pct) }} />
+                        <div className="relative h-1.75 min-w-22.5 overflow-hidden rounded-sm bg-bg-2">
+                          <div className="h-full rounded-sm" style={{ width: `${i.pct}%`, background: stockColor(i.pct) }} />
                           <div className="absolute -top-0.75 -bottom-0.75 w-0.5 bg-ink opacity-35" style={{ left: `${minPos}%` }} />
                         </div>
                       </td>

@@ -7,9 +7,9 @@ import { Icons } from "@/lib/icons";
 const openModals: object[] = [];
 
 const sizeCls = {
-  sm: "max-w-[420px]",
-  md: "max-w-[560px]",
-  lg: "max-w-[720px]",
+  sm: "max-w-105",
+  md: "max-w-140",
+  lg: "max-w-180",
 };
 
 export function Modal({
@@ -81,11 +81,11 @@ export function Modal({
             aria-label="ปิด"
             className="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-bg"
           >
-            <Icons.Close className="h-[16px] w-[16px]" />
+            <Icons.Close className="h-4 w-4" />
           </button>
         </div>
-        <div className="overflow-y-auto px-4 py-4 md:px-[18px]">{children}</div>
-        {footer && <div className="flex justify-end gap-2.5 border-t border-line px-4 py-3 md:px-[18px] md:py-3.5">{footer}</div>}
+        <div className="overflow-y-auto px-4 py-4 md:px-4.5">{children}</div>
+        {footer && <div className="flex justify-end gap-2.5 border-t border-line px-4 py-3 md:px-4.5 md:py-3.5">{footer}</div>}
       </div>
     </div>
   );

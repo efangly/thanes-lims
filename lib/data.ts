@@ -122,6 +122,16 @@ export interface PartnerDeviceSnapshot {
   humidityDisplay: number;
   sendTime: string | null;
   level: "ok" | "warn" | "crit" | "";
+  /** % (0-100). Zero-valued alongside tempDisplay/humidityDisplay when the device has no reading yet. */
+  battery: number;
+  /** true when the device is on external/mains power. */
+  plug: boolean;
+  /** true when that door is open - most devices only use door1. */
+  door1: boolean;
+  door2: boolean;
+  door3: boolean;
+  /** true when the device's SD/external memory card is present. */
+  extMemory: boolean;
   fetchedAt: string;
   /** true when this snapshot is served from cache because the last live poll of the Partner API failed. */
   stale: boolean;

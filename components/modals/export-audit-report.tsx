@@ -19,7 +19,7 @@ export function ExportAuditReportModal() {
           ฟังก์ชันรวบรวมและส่งออกรายงาน Audit เป็น PDF อยู่ระหว่างการพัฒนา ยังไม่เปิดใช้งาน
         </div>
         <Button variant="teal" size="sm" disabled>
-          <Icons.Doc className="h-[14px] w-[14px]" />
+          <Icons.Doc className="h-3.5 w-3.5" />
           ส่งออก PDF (เร็ว ๆ นี้)
         </Button>
       </div>

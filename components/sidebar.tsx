@@ -74,13 +74,13 @@ export function Sidebar({
         key={e.id}
         href={`/${e.id}`}
         onClick={onClose}
-        className={`relative mb-0.5 flex w-full items-center gap-[11px] rounded-lg px-[11px] py-[9px] text-left text-[13.5px] transition ${
+        className={`relative mb-0.5 flex w-full items-center gap-2.75 rounded-lg px-2.75 py-2.25 text-left text-[13.5px] transition ${
           isActive
             ? "bg-teal font-medium text-white"
             : "text-sidebar-text hover:bg-[var(--color-sidebar-hover)] hover:text-ink"
         }`}
       >
-        <span className={`h-[18px] w-[18px] flex-none ${isActive ? "opacity-100" : "opacity-85"}`}>
+        <span className={`h-4.5 w-4.5 flex-none ${isActive ? "opacity-100" : "opacity-85"}`}>
           {e.icon}
         </span>
         {e.label}
@@ -93,7 +93,7 @@ export function Sidebar({
         )}
         {e.dot && (
           <span
-            className="absolute right-2.5 top-[11px] h-1.5 w-1.5 rounded-full bg-amber"
+            className="absolute right-2.5 top-2.75 h-1.5 w-1.5 rounded-full bg-amber"
             style={{ boxShadow: `0 0 0 3px ${isActive ? "var(--color-teal)" : "var(--color-sidebar)"}` }}
           />
         )}
@@ -112,14 +112,14 @@ export function Sidebar({
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-[var(--color-sidebar-line)] bg-sidebar text-sidebar-text transition-transform duration-200 ease-out md:static md:z-auto md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-62 flex-col border-r border-[var(--color-sidebar-line)] bg-sidebar text-sidebar-text transition-transform duration-200 ease-out md:static md:z-auto md:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
       {/* Brand */}
-      <div className="flex items-center gap-[11px] border-b border-[var(--color-sidebar-line)] px-5 pb-[18px] pt-[22px]">
-        <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-gradient-to-br from-teal to-[#0a6d70] shadow-[0_0_0_1px_rgba(255,255,255,0.08)_inset]">
-          <LogoMark className="h-[15px] w-[15px] text-white" />
+      <div className="flex items-center gap-2.75 border-b border-[var(--color-sidebar-line)] px-5 pb-4.5 pt-5.5">
+        <div className="grid h-8.5 w-8.5 flex-none place-items-center rounded-lg bg-gradient-to-br from-teal to-[#0a6d70] shadow-[0_0_0_1px_rgba(255,255,255,0.08)_inset]">
+          <LogoMark className="h-3.75 w-3.75 text-white" />
         </div>
         <div>
           <div className="font-display text-[16px] font-bold leading-[1.1] tracking-[0.2px] text-ink">
@@ -134,31 +134,31 @@ export function Sidebar({
           aria-label="ปิดเมนู"
           className="ml-auto grid h-8 w-8 flex-none place-items-center rounded-lg text-sidebar-muted transition hover:bg-[var(--color-sidebar-hover)] hover:text-ink md:hidden"
         >
-          <Icons.Close className="h-[18px] w-[18px]" />
+          <Icons.Close className="h-4.5 w-4.5" />
         </button>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto p-3">
-        <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
+        <div className="px-2.5 pb-1.75 pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
           ภาพรวม
         </div>
         {overview.map(renderItem)}
-        <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
+        <div className="px-2.5 pb-1.75 pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
           ผู้ช่วย AI
         </div>
         {assistant.map(renderItem)}
-        <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
+        <div className="px-2.5 pb-1.75 pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
           โมดูลหลัก
         </div>
         {modules.map(renderItem)}
-        <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
+        <div className="px-2.5 pb-1.75 pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
           ข้อมูลหลัก
         </div>
         {masterData.map(renderItem)}
         {user?.role === "admin" && (
           <>
-            <div className="px-2.5 pb-[7px] pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
+            <div className="px-2.5 pb-1.75 pt-3.5 text-[10px] font-semibold uppercase tracking-[1.4px] text-sidebar-muted">
               ผู้ดูแลระบบ
             </div>
             {admin.map(renderItem)}
@@ -168,7 +168,7 @@ export function Sidebar({
 
       {/* Footer */}
       <div className="border-t border-[var(--color-sidebar-line)] p-3">
-        <div className="flex items-center gap-2.5 rounded-lg bg-[var(--color-sidebar-hover)] px-[9px] py-2">
+        <div className="flex items-center gap-2.5 rounded-lg bg-[var(--color-sidebar-hover)] px-2.25 py-2">
           <Link
             href="/profile"
             onClick={onClose}
@@ -192,8 +192,8 @@ export function Sidebar({
             <Icons.Logout className="h-4 w-4" />
           </button>
         </div>
-        <div className="mt-2.5 flex items-center gap-[7px] px-[3px] font-mono text-[10.5px] text-sidebar-muted">
-          <span className="h-[7px] w-[7px] rounded-full bg-teal animate-pulse-dot" />
+        <div className="mt-2.5 flex items-center gap-1.75 px-0.75 font-mono text-[10.5px] text-sidebar-muted">
+          <span className="h-1.75 w-1.75 rounded-full bg-teal animate-pulse-dot" />
           CLOUD · SYNCED · v{APP_VERSION}
         </div>
       </div>

@@ -16,15 +16,15 @@ export function ToastStack() {
   const { toasts, dismissToast } = useLims();
   if (toasts.length === 0) return null;
   return (
-    <div className="fixed bottom-5 right-5 z-[70] flex w-[300px] flex-col gap-2">
+    <div className="fixed bottom-5 right-5 z-[70] flex w-75 flex-col gap-2">
       {toasts.map((t) => (
         <div
           key={t.id}
           onClick={() => dismissToast(t.id)}
-          className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line bg-panel px-[13px] py-3 shadow-card animate-fade"
+          className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line bg-panel px-3.25 py-3 shadow-card animate-fade"
         >
           <span className={`grid h-7 w-7 flex-none place-items-center rounded-full ${toneCls[t.tone]}`}>
-            <Icons.Check className="h-[14px] w-[14px]" />
+            <Icons.Check className="h-3.5 w-3.5" />
           </span>
           <span className="text-[12.5px] font-medium text-ink">{t.message}</span>
         </div>

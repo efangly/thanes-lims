@@ -78,7 +78,7 @@ function OccupancyBadge({ kind, node, samples }: { kind: LocationKind; node: Loc
 
   // A plain node only ever has a direct occupant when it is a leaf.
   if (occupantOf(samples, node.id)) {
-    return <span className="h-[7px] w-[7px] flex-none rounded-full bg-teal" title="มีตัวอย่างจัดเก็บอยู่" />;
+    return <span className="h-1.75 w-1.75 flex-none rounded-full bg-teal" title="มีตัวอย่างจัดเก็บอยู่" />;
   }
   return null;
 }
@@ -126,7 +126,7 @@ function TreeNode({
           </button>
         )}
 
-        <Icons.Loc className={`h-[14px] w-[14px] flex-none ${isSelected ? "text-teal-d" : "text-muted-2"}`} />
+        <Icons.Loc className={`h-3.5 w-3.5 flex-none ${isSelected ? "text-teal-d" : "text-muted-2"}`} />
 
         <button onClick={() => onSelect(node)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
           <span className="truncate font-medium">{node.name}</span>

@@ -11,7 +11,7 @@ import { apiErrorMessage } from "@/lib/api-client";
 import { listLots } from "@/lib/inventory-api";
 import type { IssueShortfall } from "@/lib/inventory-api";
 
-const TH = "whitespace-nowrap border-b border-line bg-bg px-3 py-[9px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted";
+const TH = "whitespace-nowrap border-b border-line bg-bg px-3 py-2.25 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted";
 const TD = "border-b border-line px-3 py-2.5";
 
 export function StockIssueModal({
@@ -124,7 +124,7 @@ export function StockIssueModal({
               onClick={() => handleIssue(false)}
               disabled={submitting || loading || lines.length === 0}
             >
-              <Icons.Arrow className="h-[14px] w-[14px]" />
+              <Icons.Arrow className="h-3.5 w-3.5" />
               {submitting ? "กำลังเบิก..." : "เบิก"}
             </Button>
           </>
@@ -189,7 +189,7 @@ export function StockIssueModal({
                         onChange={(e) => setQtyByLot((prev) => ({ ...prev, [l.id]: e.target.value }))}
                         placeholder="0"
                         inputMode="numeric"
-                        className="max-w-[110px]"
+                        className="max-w-27.5"
                       />
                     </td>
                   </tr>

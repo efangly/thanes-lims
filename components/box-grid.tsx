@@ -183,7 +183,7 @@ export function BoxGrid({
           <tr>
             <th className="w-6" />
             {colLabels.map((c) => (
-              <th key={c} className="min-w-[34px] pb-0.5 text-center font-mono text-[10px] font-medium text-muted-2">
+              <th key={c} className="min-w-8.5 pb-0.5 text-center font-mono text-[10px] font-medium text-muted-2">
                 {c}
               </th>
             ))}
@@ -288,7 +288,7 @@ export function BoxGrid({
           {grid}
           <DragOverlay>
             {activeId ? (
-              <div className="grid h-8 min-w-[34px] place-items-center rounded-md border border-teal bg-teal/20 text-[9px] font-mono text-teal-d shadow-lg">
+              <div className="grid h-8 min-w-8.5 place-items-center rounded-md border border-teal bg-teal/20 text-[9px] font-mono text-teal-d shadow-lg">
                 {movingSet.size > 1 ? `×${movingSet.size}` : activeId}
               </div>
             ) : null}
@@ -347,7 +347,7 @@ function Cell({
   };
 
   const cls = [
-    "grid h-8 w-full min-w-[34px] place-items-center rounded-md border text-[9px] font-mono transition",
+    "grid h-8 w-full min-w-8.5 place-items-center rounded-md border text-[9px] font-mono transition",
     isDropTarget
       ? dropValid
         ? "border-teal bg-teal/25 text-teal-d ring-1 ring-teal"

@@ -290,6 +290,12 @@ export interface PartnerDeviceSnapshotDTO {
   humidity_display: number;
   send_time: string;
   level: "ok" | "warn" | "crit" | "";
+  battery: number;
+  plug: boolean;
+  door1: boolean;
+  door2: boolean;
+  door3: boolean;
+  ext_memory: boolean;
   fetched_at: string;
   stale: boolean;
 }
@@ -305,6 +311,12 @@ export function mapPartnerDeviceSnapshot(d: PartnerDeviceSnapshotDTO): PartnerDe
     humidityDisplay: d.humidity_display,
     sendTime: d.send_time || null,
     level: d.level,
+    battery: d.battery,
+    plug: d.plug,
+    door1: d.door1,
+    door2: d.door2,
+    door3: d.door3,
+    extMemory: d.ext_memory,
     fetchedAt: d.fetched_at,
     stale: d.stale,
   };

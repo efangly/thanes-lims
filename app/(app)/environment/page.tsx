@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Icons } from "@/lib/icons";
 import type { PartnerDevice, PartnerDeviceSnapshot, PartnerDeviceTimeseriesPoint } from "@/lib/data";
 import { formatDateTime } from "@/lib/backend-mappers";
-import { Button, Card, PageHead, Sparkline, Tag } from "@/components/ui";
+import { Button, Card, PageHead, Tag, TimeseriesChart } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api-client";
@@ -117,6 +117,26 @@ const levelStroke = {
   crit: "var(--color-red)",
 };
 
+const chipToneCls = {
+  ok: "text-teal",
+  warn: "text-red",
+  off: "text-muted-2",
+};
+
+/** Small icon + label for a boolean/percent status field (battery, plug, door, SD card). */
+function StatusChip({ icon, label, tone }: { icon: ReactNode; label: string; tone: keyof typeof chipToneCls }) {
+  return (
+    <span className={`inline-flex items-center gap-1 text-[11px] ${chipToneCls[tone]}`}>
+      <span className="h-3 w-3">{icon}</span>
+      {label}
+    </span>
+  );
+}
+
+function formatTimeShort(iso: string) {
+  return new Date(iso).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+}
+
 export default function EnvironmentPage() {
   const { openModal } = useLims();
   const { user } = useAuth();
@@ -159,7 +179,7 @@ export default function EnvironmentPage() {
                 })
               }
             >
-              <Icons.Plus className="h-[14px] w-[14px]" />
+              <Icons.Plus className="h-3.5 w-3.5" />
               เพิ่ม SMTrack+ Device
             </Button>
           </div>
@@ -172,22 +192,24 @@ export default function EnvironmentPage() {
             </Card>
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
             {partnerDevices.map((d) => {
               const snap = partnerSnapshots[d.serial];
               const level = snap?.level || "ok";
               const series = partnerTimeseries[d.serial];
-              // backend returns newest-first; sparkline wants oldest-first (left-to-right)
-              const chartPoints = series ? [...series].reverse().map((p) => p.tempDisplay) : undefined;
+              // backend returns newest-first; chart wants oldest-first (left-to-right)
+              const chartPoints = series
+                ? [...series].reverse().map((p) => ({ time: p.sendTime, value: p.tempDisplay }))
+                : undefined;
               return (
-                <Card key={d.serial} className="p-4 md:p-[18px]">
+                <Card key={d.serial} className="p-4 md:p-4.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5 text-[13px] font-medium">
-                        <span className="font-mono">{d.serial}</span>
+                        <span>{d.location}</span>
                       </div>
                       <div className="mt-0.5 truncate text-[11.5px] text-muted">
-                        {d.location}
+                        <span className="font-mono">{d.serial}</span>
                         {snap?.name ? ` · ${snap.name}` : ""}
                       </div>
                     </div>
@@ -214,23 +236,50 @@ export default function EnvironmentPage() {
 
                   {snap ? (
                     <>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <StatusChip
+                          icon={<Icons.Battery />}
+                          label={`${snap.battery}%`}
+                          tone={snap.battery > 0 && snap.battery < 20 ? "warn" : "ok"}
+                        />
+                      </div>
+
                       <div className={`mt-2.5 font-mono text-[26px] font-semibold leading-none ${levelValColor[level]}`}>
                         {snap.tempDisplay.toFixed(1)}
                         <span className="ml-0.5 text-[13px] font-normal text-muted">°C</span>
                         <span className="ml-2.5 text-[15px] text-muted">{snap.humidityDisplay.toFixed(0)}%</span>
                       </div>
                       {chartPoints === undefined ? (
-                        <div className="mt-2.5 h-[30px] text-[11px] text-muted-2">กำลังโหลดกราฟ…</div>
+                        <div className="mt-2.5 h-7.5 text-[11px] text-muted-2">กำลังโหลดกราฟ…</div>
                       ) : chartPoints.length > 1 ? (
-                        <Sparkline points={chartPoints} stroke={levelStroke[level]} />
+                        <>
+                          <div className="flex items-center justify-between font-mono text-[9.5px] text-muted-2">
+                            <span>{Math.min(...chartPoints.map((p) => p.value)).toFixed(1)}°C</span>
+                            <span>{Math.max(...chartPoints.map((p) => p.value)).toFixed(1)}°C</span>
+                          </div>
+                          <TimeseriesChart
+                            points={chartPoints}
+                            stroke={levelStroke[level]}
+                            formatTick={formatTimeShort}
+                            formatValue={(v) => `${v.toFixed(1)}°C`}
+                          />
+                        </>
                       ) : (
-                        <div className="mt-2.5 h-[30px] text-[11px] text-muted-2">
+                        <div className="mt-2.5 h-7.5 text-[11px] text-muted-2">
                           ไม่มีข้อมูลกราฟใน 1 ชม. ที่ผ่านมา
                         </div>
                       )}
-                      <div className="mt-2 flex items-center justify-between font-mono text-[10.5px] text-muted-2">
-                        <span>{d.active ? `fw ${snap.firmware}` : "poll หยุดชั่วคราว"}</span>
-                        <span>{snap.sendTime ? formatDateTime(snap.sendTime) : "—"}</span>
+                      <div className="mt-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Icons.Plug className={`h-5 w-5 ${snap.plug ? "text-teal" : "text-red"}`} />
+                          <Icons.Door
+                            className={`h-5 w-5 ${snap.door1 || snap.door2 || snap.door3 ? "text-red" : "text-teal"}`}
+                          />
+                          <Icons.SdCard className={`h-5 w-5 ${snap.extMemory ? "text-teal" : "text-red"}`} />
+                        </div>
+                        <span className="font-mono text-[10.5px] text-muted-2">
+                          {snap.sendTime ? formatDateTime(snap.sendTime) : "—"}
+                        </span>
                       </div>
                     </>
                   ) : (

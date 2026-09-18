@@ -98,7 +98,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="animate-fade mx-auto w-full max-w-[560px]">
+    <div className="animate-fade mx-auto w-full max-w-140">
       <PageHead title="โปรไฟล์ของฉัน" desc="จัดการชื่อและรหัสผ่านของบัญชีคุณ" />
 
       <Card className="mb-5">
@@ -117,7 +117,7 @@ export default function ProfilePage() {
           </div>
           <div className="flex justify-end">
             <Button variant="teal" size="sm" onClick={handleSaveName} disabled={!nameDirty || savingName}>
-              <Icons.Check className="h-[14px] w-[14px]" />
+              <Icons.Check className="h-3.5 w-3.5" />
               {savingName ? "กำลังบันทึก..." : "บันทึกชื่อ"}
             </Button>
           </div>

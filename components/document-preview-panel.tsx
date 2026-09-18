@@ -70,7 +70,7 @@ export function DocumentPreviewPanel({ doc }: { doc: Document | null }) {
 
   if (!doc) {
     return (
-      <Card className="grid h-full min-h-[420px] place-items-center text-center">
+      <Card className="grid h-full min-h-105 place-items-center text-center">
         <div className="text-[13px] text-muted">
           <Icons.Doc className="mx-auto mb-2 h-7 w-7 opacity-40" />
           เลือกเอกสารจากรายการเพื่อดูตัวอย่าง
@@ -80,9 +80,9 @@ export function DocumentPreviewPanel({ doc }: { doc: Document | null }) {
   }
 
   return (
-    <Card className="flex h-full min-h-[420px] flex-col overflow-hidden">
+    <Card className="flex h-full min-h-105 flex-col overflow-hidden">
       {/* Header strip */}
-      <div className="flex items-start justify-between gap-3 border-b border-line px-[18px] py-[13px]">
+      <div className="flex items-start justify-between gap-3 border-b border-line px-4.5 py-3.25">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 font-display text-[15px] font-semibold">
             <span className="truncate">{doc.name}</span>
@@ -96,15 +96,15 @@ export function DocumentPreviewPanel({ doc }: { doc: Document | null }) {
         </div>
         <div className="flex flex-none gap-1.5">
           <Button variant="ghost" size="sm" onClick={download}>
-            <Icons.Download className="h-[14px] w-[14px]" />
+            <Icons.Download className="h-3.5 w-3.5" />
             ดาวน์โหลด
           </Button>
           <button
             onClick={openInNewTab}
             title="เปิดในแท็บใหม่"
-            className="grid h-[30px] w-[30px] flex-none place-items-center rounded-lg border border-line text-muted transition hover:bg-bg hover:text-ink"
+            className="grid h-7.5 w-7.5 flex-none place-items-center rounded-lg border border-line text-muted transition hover:bg-bg hover:text-ink"
           >
-            <Icons.ExternalLink className="h-[14px] w-[14px]" />
+            <Icons.ExternalLink className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -113,13 +113,13 @@ export function DocumentPreviewPanel({ doc }: { doc: Document | null }) {
       <div className="border-b border-line">
         <button
           onClick={() => setShowDetail((s) => !s)}
-          className="flex w-full items-center gap-1.5 px-[18px] py-2 text-[11px] font-semibold uppercase tracking-[0.7px] text-muted transition hover:text-ink"
+          className="flex w-full items-center gap-1.5 px-4.5 py-2 text-[11px] font-semibold uppercase tracking-[0.7px] text-muted transition hover:text-ink"
         >
           <Icons.Chevron className={`h-3 w-3 transition ${showDetail ? "rotate-90" : ""}`} />
           รายละเอียดเอกสาร
         </button>
         {showDetail && (
-          <dl className="grid gap-x-8 gap-y-3 px-[18px] pb-4 text-[12.5px] [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
+          <dl className="grid gap-x-8 gap-y-3 px-4.5 pb-4 text-[12.5px] [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
             <Detail label="รหัสเอกสาร" value={<span className="font-mono">{doc.id}</span>} />
             <Detail label="เวอร์ชันปัจจุบัน" value={<span className="font-mono">{doc.ver}</span>} />
             <Detail label="แก้ไขล่าสุดโดย" value={doc.by} />
@@ -149,7 +149,7 @@ export function DocumentPreviewPanel({ doc }: { doc: Document | null }) {
             <div className="text-[12.5px] text-muted">
               <div className="mb-2 text-red">เปิดตัวอย่างไม่สำเร็จ — {error}</div>
               <Button variant="ghost" size="sm" onClick={() => setNonce((n) => n + 1)}>
-                <Icons.Refresh className="h-[14px] w-[14px]" />
+                <Icons.Refresh className="h-3.5 w-3.5" />
                 ลองใหม่
               </Button>
             </div>
@@ -187,7 +187,7 @@ function Fallback({ doc, onDownload }: { doc: Document; onDownload: () => void }
         <div className="text-[13px] font-medium">{doc.fileName || "ไฟล์เอกสาร"}</div>
         <div className="mt-1 text-[12px] text-muted">พรีวิวไฟล์ชนิดนี้ในหน้าจอไม่ได้</div>
         <Button variant="teal" size="sm" className="mt-3.5" onClick={onDownload}>
-          <Icons.Download className="h-[14px] w-[14px]" />
+          <Icons.Download className="h-3.5 w-3.5" />
           ดาวน์โหลดเพื่อเปิด
         </Button>
       </div>

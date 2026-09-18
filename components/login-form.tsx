@@ -15,8 +15,8 @@ const flaskPath = (
 );
 
 function BrandBadge({ size = "md" }: { size?: "md" | "sm" }) {
-  const dims = size === "md" ? "h-[46px] w-[46px] rounded-[13px]" : "h-[42px] w-[42px] rounded-xl";
-  const icon = size === "md" ? "h-[22px] w-[22px]" : "h-[19px] w-[19px]";
+  const dims = size === "md" ? "h-11.5 w-11.5 rounded-[13px]" : "h-10.5 w-10.5 rounded-xl";
+  const icon = size === "md" ? "h-5.5 w-5.5" : "h-4.75 w-4.75";
   return (
     <div
       className={`grid flex-none place-items-center bg-gradient-to-br from-teal to-teal-d shadow-[0_0_0_1px_rgba(255,255,255,0.09)_inset] ${dims}`}
@@ -58,18 +58,18 @@ export function LoginForm() {
     <div className="relative flex min-h-dvh flex-col overflow-hidden bg-bg-2">
       {/* Full-bleed decorative background */}
       <div
-        className="pointer-events-none absolute -left-40 -top-36 h-[480px] w-[480px] rounded-full blur-[60px] dark:blur-[90px]"
+        className="pointer-events-none absolute -left-40 -top-36 h-120 w-120 rounded-full blur-[60px] dark:blur-[90px]"
         style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-teal) 30%, transparent) 0%, transparent 72%)" }}
       />
       <div
-        className="pointer-events-none absolute -bottom-52 -right-56 h-[520px] w-[520px] rounded-full blur-[60px] dark:blur-[90px]"
+        className="pointer-events-none absolute -bottom-52 -right-56 h-130 w-130 rounded-full blur-[60px] dark:blur-[90px]"
         style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-teal) 20%, transparent) 0%, transparent 72%)" }}
       />
 
-      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute -bottom-16 -right-16 h-[340px] w-[340px] stroke-teal fill-none opacity-[0.14]" strokeWidth={1.2}>
+      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute -bottom-16 -right-16 h-85 w-85 stroke-teal fill-none opacity-[0.14]" strokeWidth={1.2}>
         {flaskPath}
       </svg>
-      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-[-30px] top-[14%] h-[120px] w-[120px] stroke-teal fill-none opacity-[0.16]" strokeWidth={1.4}>
+      <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none absolute left-[-30px] top-[14%] h-30 w-30 stroke-teal fill-none opacity-[0.16]" strokeWidth={1.4}>
         <path d="M8.5 5.8v3.2" />
         <path d="M8.5 9l6.5 6.5" />
         <path d="M9.5 12h5" />
@@ -113,7 +113,7 @@ export function LoginForm() {
             {features.map((f) => (
               <div key={f.label} className="flex items-center gap-2 text-[13px] font-medium">
                 <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-teal-bg text-teal-d">
-                  <span className="h-[15px] w-[15px]">{f.icon}</span>
+                  <span className="h-3.75 w-3.75">{f.icon}</span>
                 </span>
                 {f.label}
               </div>
@@ -124,7 +124,7 @@ export function LoginForm() {
         <div className="w-full max-w-sm md:flex-shrink-0">
           <form
             onSubmit={handleSubmit}
-            className="rounded-[18px] border border-line bg-panel/90 p-5 pb-5 shadow-card backdrop-blur-sm sm:p-7 sm:pb-[26px]"
+            className="rounded-[18px] border border-line bg-panel/90 p-5 pb-5 shadow-card backdrop-blur-sm sm:p-7 sm:pb-6.5"
           >
             <h1 className="mb-1 font-display text-[20px] font-semibold">เข้าสู่ระบบ</h1>
             <p className="mb-5 text-[13px] text-muted sm:mb-6">เข้าสู่ระบบเพื่อจัดการห้องปฏิบัติการ</p>
@@ -153,8 +153,8 @@ export function LoginForm() {
               </Button>
             </div>
 
-            <p className="mt-4 flex items-center justify-center gap-1.5 font-mono text-[10.5px] tracking-[0.5px] text-muted-2 sm:mt-[22px]">
-              <span className="h-[7px] w-[7px] rounded-full bg-teal animate-pulse-dot" />
+            <p className="mt-4 flex items-center justify-center gap-1.5 font-mono text-[10.5px] tracking-[0.5px] text-muted-2 sm:mt-5.5">
+              <span className="h-1.75 w-1.75 rounded-full bg-teal animate-pulse-dot" />
               SECURE CONNECTION · TLS 1.3
             </p>
           </form>

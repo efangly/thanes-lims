@@ -33,7 +33,7 @@ export function LocationField({
     <Field label={label}>
       {value && !open ? (
         <div className="flex items-center gap-2 rounded-lg border border-line bg-bg px-3 py-2 text-[13px]">
-          <Icons.Loc className="h-[15px] w-[15px] flex-none text-teal-d" />
+          <Icons.Loc className="h-3.75 w-3.75 flex-none text-teal-d" />
           <span className="flex-1 truncate">{valueLabel || value}</span>
           {!disabled && (
             <>

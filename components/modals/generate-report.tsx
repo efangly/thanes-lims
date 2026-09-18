@@ -36,7 +36,7 @@ export function GenerateReportModal() {
           ฟังก์ชันสร้างและดาวน์โหลดรายงานอยู่ระหว่างการพัฒนา ยังไม่เปิดใช้งาน
         </div>
         <Button variant="teal" size="sm" disabled>
-          <Icons.Bolt className="h-[14px] w-[14px]" />
+          <Icons.Bolt className="h-3.5 w-3.5" />
           สร้างรายงาน (เร็ว ๆ นี้)
         </Button>
       </div>

@@ -164,7 +164,7 @@ function QuickAddVendorModal({
             ยกเลิก
           </Button>
           <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !name.trim()}>
-            <Icons.Plus className="h-[14px] w-[14px]" />
+            <Icons.Plus className="h-3.5 w-3.5" />
             {submitting ? "กำลังบันทึก..." : "บันทึกและเลือก"}
           </Button>
         </>

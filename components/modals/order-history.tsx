@@ -45,7 +45,7 @@ export function OrderHistoryModal() {
             <thead>
               <tr>
                 {["เลขที่ใบสั่งซื้อ", "รายการ", "จำนวน", "ผู้ขาย", "วันที่", "สถานะ"].map((h) => (
-                  <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
+                  <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                     {h}
                   </th>
                 ))}

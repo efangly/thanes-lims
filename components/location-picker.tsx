@@ -135,7 +135,7 @@ export function LocationPicker({
       )}
       {ancestorLabel && <div className="font-mono text-[11px] text-muted-2">{ancestorLabel} /</div>}
       <LocationBreadcrumb path={path} onRoot={goToRoot} onCrumb={goToCrumb} rootCrumbLabel={`${rootLabel(kind)}ทั้งหมด`} />
-      <div className="max-h-[280px] overflow-y-auto rounded-lg border border-line">
+      <div className="max-h-70 overflow-y-auto rounded-lg border border-line">
         {loading && <div className="px-3.5 py-4 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
         {error && <div className="px-3.5 py-4 text-center text-[12.5px] text-red">{error}</div>}
         {!loading && !error && children.length === 0 && (
@@ -152,7 +152,7 @@ export function LocationPicker({
               disabled={disabled || entering !== null || blocked}
               className="flex w-full items-center gap-2.5 border-b border-line px-3.5 py-2.5 text-left text-[13px] transition last:border-b-0 hover:bg-bg disabled:opacity-50"
             >
-              <Icons.Loc className="h-[15px] w-[15px] flex-none text-teal-d" />
+              <Icons.Loc className="h-3.75 w-3.75 flex-none text-teal-d" />
               <span className="flex-1">{node.name}</span>
               {blocked && <span className="text-[11px] text-amber">มีตัวอย่างครองอยู่</span>}
               <span className="font-mono text-[11px] text-muted">

@@ -143,7 +143,7 @@ function SampleSummary({ sample, onBack }: { sample: Sample; onBack: () => void 
         title="ตัวอย่าง"
         right={
           <Button variant="ghost" size="sm" onClick={onBack}>
-            <Icons.Arrow className="h-[13px] w-[13px] rotate-180" />
+            <Icons.Arrow className="h-3.25 w-3.25 rotate-180" />
             กลับ
           </Button>
         }
@@ -173,7 +173,7 @@ function SampleSummary({ sample, onBack }: { sample: Sample; onBack: () => void 
       </div>
       <div className="border-t border-line px-5 py-3">
         <Link href={`/samples?s=${sample.id}`} className="flex items-center gap-1.5 text-[12.5px] font-medium text-teal-d hover:underline">
-          <Icons.Arrow className="h-[13px] w-[13px]" />
+          <Icons.Arrow className="h-3.25 w-3.25" />
           เปิดหน้าตัวอย่างเต็ม (Chain of Custody)
         </Link>
       </div>

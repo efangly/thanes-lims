@@ -142,13 +142,13 @@ export function AddSampleModal() {
               onClick={handleCreate}
               disabled={submitting || !name.trim() || !custodianId}
             >
-              <Icons.Plus className="h-[14px] w-[14px]" />
+              <Icons.Plus className="h-3.5 w-3.5" />
               {submitting ? "กำลังบันทึก..." : "บันทึก แล้วไปต่อ"}
             </Button>
           </>
         ) : (
           <Button variant="teal" size="sm" onClick={handleClose}>
-            <Icons.Check className="h-[14px] w-[14px]" />
+            <Icons.Check className="h-3.5 w-3.5" />
             เสร็จสิ้น
           </Button>
         )
@@ -179,7 +179,7 @@ export function AddSampleModal() {
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="เช่น ปริมาตร แหล่งที่มา ข้อควรระวัง"
-              className="w-full resize-none rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal"
+              className="w-full resize-none rounded-lg border border-line bg-bg px-2.75 py-2 text-[13px] text-ink outline-none transition focus:border-teal"
             />
           </Field>
           <Field label="ผู้ดูแลปัจจุบัน">
@@ -221,7 +221,7 @@ export function AddSampleModal() {
               <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-bg px-3.5 py-2.5">
                 <span className="text-[12.5px] text-muted">ตัวอย่างนี้ยังไม่มี Barcode ID</span>
                 <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={generating}>
-                  <Icons.Bolt className="h-[13px] w-[13px]" />
+                  <Icons.Bolt className="h-3.25 w-3.25" />
                   {generating ? "กำลังสร้าง…" : "Gen"}
                 </Button>
               </div>
@@ -257,7 +257,7 @@ export function AddSampleModal() {
               </Field>
             </div>
             <Button variant="ink" size="sm" className="mt-3 w-full justify-center" onClick={handlePrint} disabled={printing}>
-              <Icons.Doc className="h-[14px] w-[14px]" />
+              <Icons.Doc className="h-3.5 w-3.5" />
               {printing ? "กำลังเตรียม PDF…" : "เปิดสติ๊กเกอร์ (PDF) ในแท็บใหม่"}
             </Button>
             <p className="mt-2 text-[11.5px] text-muted-2">

@@ -146,7 +146,7 @@ export default function DashboardPage() {
         <KpiCard accent="green" icon={<Icons.Test />} label="ผลทดสอบรออนุมัติ" value={String(pendingTests)} unit="รายการ" trend={`${tests.length} ผลทดสอบทั้งหมด`} />
       </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.55fr_1fr]">
+      <div className="mb-2 grid grid-cols-1 gap-2 lg:grid-cols-[1.55fr_1fr]">
         <Card>
           <CardHead
             icon={<Icons.Test />}
@@ -191,7 +191,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         <ModuleCard onClick={() => onNavigate("samples")} tone="teal" icon={<Icons.Sample />} th="การจัดการตัวอย่าง" en="Sample Management" desc="บันทึก ติดตาม และรักษา Chain of Custody ตลอดวงจรของตัวอย่าง" stat={`${activeSamples} ตัวอย่างที่ใช้งาน`} />
         <ModuleCard onClick={() => onNavigate("equipment")} tone="green" icon={<Icons.Equipment />} th="การจัดการเครื่องมือ" en="Equipment Management" desc="ประวัติการใช้งาน สอบเทียบ บำรุงรักษา และพร้อมรับการตรวจสอบ" stat={`${equipment.length} เครื่อง · ${equipmentDue} รอสอบเทียบ`} />
         <ModuleCard onClick={() => onNavigate("environment")} tone="red" icon={<Icons.Env />} th="ควบคุมสภาพแวดล้อม" en="Environmental" desc="ติดตามอุณหภูมิ/ความชื้นเรียลไทม์ แจ้งเตือนเข้าสมาร์ตโฟนทันที" stat={`${alerts.length} การแจ้งเตือนที่ต้องดำเนินการ`} />

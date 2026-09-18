@@ -64,7 +64,7 @@ export function EditPartnerDeviceModal() {
             ยกเลิก
           </Button>
           <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !location}>
-            <Icons.Check className="h-[14px] w-[14px]" />
+            <Icons.Check className="h-3.5 w-3.5" />
             {submitting ? "กำลังบันทึก..." : "บันทึก"}
           </Button>
         </>
