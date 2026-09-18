@@ -153,11 +153,12 @@ function UsersPageInner() {
       <PageHead
         title="การจัดการผู้ใช้งาน"
         desc="เพิ่ม แก้ไข ระงับ หรือลบบัญชีผู้ใช้ และกำหนดบทบาท (Role) — สิทธิ์การเข้าถึงแต่ละเมนูมาจากบทบาทตาม RBAC"
-        primary={{
-          label: "เพิ่มผู้ใช้งาน",
-          icon: <Icons.Plus className="h-3.75 w-3.75" />,
-          onClick: () => setEditing("new"),
-        }}
+        actions={
+          <Button variant="teal" onClick={() => setEditing("new")}>
+            <Icons.Plus className="h-[15px] w-[15px]" />
+            เพิ่มผู้ใช้งาน
+          </Button>
+        }
       />
 
       <Card className="md:flex md:min-h-0 md:flex-1 md:flex-col">
@@ -166,7 +167,7 @@ function UsersPageInner() {
           title={`ผู้ใช้งานทั้งหมด${users.length > 0 ? ` (${users.length})` : ""}`}
           right={
             <div className="flex items-center gap-2">
-              <div className="w-35">
+              <div className="w-[140px]">
                 <Select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
@@ -176,7 +177,7 @@ function UsersPageInner() {
                   <option value="suspended">ถูกระงับ</option>
                 </Select>
               </div>
-              <div className="w-60">
+              <div className="w-[240px]">
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -187,10 +188,10 @@ function UsersPageInner() {
           }
         />
 
-        {loading && <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
-        {error && <div className="px-4.5 py-6 text-center text-[12.5px] text-red">{error}</div>}
+        {loading && <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
+        {error && <div className="px-[18px] py-6 text-center text-[12.5px] text-red">{error}</div>}
         {!loading && !error && filtered.length === 0 && (
-          <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">
+          <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">
             {users.length === 0 ? "ยังไม่มีผู้ใช้งาน" : "ไม่พบผู้ใช้งานที่ตรงกับเงื่อนไข"}
           </div>
         )}
@@ -204,7 +205,7 @@ function UsersPageInner() {
                     {["ชื่อ", "อีเมล", "บทบาท", "สถานะ", ""].map((h, i) => (
                       <th
                         key={i}
-                        className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted"
+                        className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted"
                       >
                         {h}
                       </th>
@@ -379,7 +380,7 @@ function UserFormModal({
             ยกเลิก
           </Button>
           <Button variant="teal" size="sm" onClick={handleSubmit} disabled={!canSubmit}>
-            <Icons.Check className="h-3.5 w-3.5" />
+            <Icons.Check className="h-[14px] w-[14px]" />
             {submitting ? "กำลังบันทึก..." : "บันทึก"}
           </Button>
         </>
