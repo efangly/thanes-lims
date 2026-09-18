@@ -63,7 +63,7 @@ const SampleTable = memo(function SampleTable({
         <thead>
           <tr>
             {["รหัสตัวอย่าง", "Barcode ID", "ตัวอย่าง", "ผู้ดูแลปัจจุบัน", "สถานะ"].map((h) => (
-              <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
+              <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                 {h}
               </th>
             ))}
@@ -93,7 +93,7 @@ const SampleTable = memo(function SampleTable({
                       title="พิมพ์สติ๊กเกอร์ซ้ำ"
                       className="grid h-6 w-6 place-items-center rounded text-muted transition hover:bg-bg hover:text-ink"
                     >
-                      <Icons.Doc className="h-[13px] w-[13px]" />
+                      <Icons.Doc className="h-3.25 w-3.25" />
                     </button>
                   </span>
                 ) : (
@@ -187,7 +187,7 @@ function SampleDetailPanel({
           title="ตำแหน่งจัดเก็บ"
           right={
             <Button variant="ghost" size="sm" onClick={onPutAway} disabled={!sample}>
-              <Icons.Loc className="h-[13px] w-[13px]" />
+              <Icons.Loc className="h-3.25 w-3.25" />
               {sample?.locationId ? "ย้ายตำแหน่ง" : "จัดเก็บ"}
             </Button>
           }
@@ -205,14 +205,14 @@ function SampleDetailPanel({
         </CardBody>
       </Card>
 
-      <Card className="mt-4">
+      <Card className="mt-2">
         <CardHead icon={<Icons.Sample />} title="สถานะตัวอย่าง" />
-        <CardBody className="flex items-center gap-2.5">
+        <CardBody className="flex flex-wrap items-center gap-2.5">
           <Select
             value={selectedStatusKey}
             onChange={(e) => setPendingStatus(e.target.value)}
             disabled={!sample || savingStatus}
-            className="flex-1"
+            className="min-w-0 flex-1"
           >
             <option value={currentStatusKey} disabled>
               {SAMPLE_STATUS[currentStatusKey]?.label ?? "—"}
@@ -229,20 +229,20 @@ function SampleDetailPanel({
             onClick={handleSaveStatus}
             disabled={!sample || savingStatus || !pendingStatus || pendingStatus === currentStatusKey}
           >
-            <Icons.Check className="h-[13px] w-[13px]" />
+            <Icons.Check className="h-3.25 w-3.25" />
             {savingStatus ? "กำลังบันทึก…" : "บันทึก"}
           </Button>
         </CardBody>
       </Card>
 
       {sample?.description && (
-        <Card className="mt-4">
+        <Card className="mt-2">
           <CardHead icon={<Icons.Doc />} title="รายละเอียด" />
           <CardBody className="whitespace-pre-wrap text-[13px] text-ink">{sample.description}</CardBody>
         </Card>
       )}
 
-      <Card className="mt-4">
+      <Card className="mt-2">
         <CardHead
           icon={<Icons.Shield />}
           title="Chain of Custody"
@@ -264,15 +264,15 @@ function SampleDetailPanel({
                 : "bg-teal-bg border-teal text-teal-d";
             return (
               <div key={i} className="relative flex gap-3.5 py-3">
-                {!isLast && <span className="absolute left-[15px] top-[34px] -bottom-3 w-0.5 bg-line" />}
+                {!isLast && <span className="absolute left-3.75 top-8.5 -bottom-3 w-0.5 bg-line" />}
                 <div className={`z-10 grid h-8 w-8 flex-none place-items-center rounded-full border-2 ${dotCls}`}>
-                  <span className="h-[15px] w-[15px]">{cocIcons[c.icon]}</span>
+                  <span className="h-3.75 w-3.75">{cocIcons[c.icon]}</span>
                 </div>
                 <div>
                   <div className="text-[13px] font-medium">{c.title}</div>
                   <div className="mt-0.5 font-mono text-[11.5px] text-muted">{c.meta}</div>
                   {c.who !== "—" && (
-                    <div className="mt-[3px] flex items-center gap-1.5 text-[12px] text-muted">
+                    <div className="mt-0.75 flex items-center gap-1.5 text-[12px] text-muted">
                       <Icons.User className="h-3 w-3 opacity-60" />
                       ผู้ดูแล: {c.who}
                     </div>
@@ -283,7 +283,7 @@ function SampleDetailPanel({
           })}
         </div>
         <div className="flex items-center gap-1.5 px-5 pb-4 text-[11.5px] text-muted-2">
-          <Icons.Shield className="h-[13px] w-[13px]" />
+          <Icons.Shield className="h-3.25 w-3.25" />
           ทุกการเปลี่ยนมือถูกบันทึกอัตโนมัติ ป้องกันข้อมูลสูญหาย
         </div>
       </Card>
@@ -442,21 +442,21 @@ export function SamplesView() {
       <PageHead
         title="การจัดการตัวอย่าง"
         desc="ติดตามตัวอย่างทั่วทั้งห้องปฏิบัติการ พร้อมกำหนดตำแหน่งจัดเก็บและรักษา Chain of Custody ป้องกันการสูญหายระหว่างแผนก"
-        actions={
-          <>
-            <Button variant="ghost" size="sm" onClick={() => openModal("scan-barcode")}>
-              <Icons.Arrow className="h-[15px] w-[15px]" />
-              ย้ายตำแหน่ง (สแกน)
-            </Button>
-            <Button variant="teal" onClick={() => openModal("add-sample")}>
-              <Icons.Plus className="h-[15px] w-[15px]" />
-              รับตัวอย่างใหม่
-            </Button>
-          </>
-        }
+        primary={{
+          label: "รับตัวอย่างใหม่",
+          icon: <Icons.Plus className="h-3.75 w-3.75" />,
+          onClick: () => openModal("add-sample"),
+        }}
+        secondary={[
+          {
+            label: "ย้ายตำแหน่ง (สแกน)",
+            icon: <Icons.Arrow className="h-3.75 w-3.75" />,
+            onClick: () => openModal("scan-barcode"),
+          },
+        ]}
       />
 
-      <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-5.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard accent="teal" label="ตัวอย่างทั้งหมด" value={String(kpi.total)} trend={`กำลังทดสอบ ${kpi.testing} ตัวอย่าง`} />
         <KpiCard
           accent="green"
@@ -468,7 +468,7 @@ export function SamplesView() {
         <KpiCard accent="violet" label="ส่งต่อระหว่างแผนก" value={String(kpi.transferred)} trend="อยู่ระหว่างส่งมอบ" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1.7fr_0.8fr] lg:min-h-0 lg:flex-1 lg:overflow-hidden">
         <Card className="lg:flex lg:min-h-0 lg:flex-col">
           <CardHead
             icon={<Icons.Sample />}
@@ -488,7 +488,7 @@ export function SamplesView() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="เช่น Fridge-A / Slot-4"
-                className="w-full rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal"
+                className="w-full rounded-lg border border-line bg-bg px-2.75 py-2 text-[13px] text-ink outline-none transition focus:border-teal"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -496,7 +496,7 @@ export function SamplesView() {
               <select
                 value={custodianUserId}
                 onChange={(e) => setCustodianUserId(e.target.value)}
-                className="w-full rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal"
+                className="w-full rounded-lg border border-line bg-bg px-2.75 py-2 text-[13px] text-ink outline-none transition focus:border-teal"
               >
                 <option value="">ทั้งหมด</option>
                 {users.map((u) => (
@@ -531,7 +531,7 @@ export function SamplesView() {
           />
         </Card>
 
-        <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+        <div className="lg:min-h-0 lg:min-w-0 lg:overflow-y-auto lg:pr-1">
           <SampleDetailPanel sample={active} notFound={notFound} onPutAway={() => setPutAwayOpen(true)} />
         </div>
       </div>

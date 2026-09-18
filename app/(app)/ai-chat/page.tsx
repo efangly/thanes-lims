@@ -198,12 +198,12 @@ export default function AiChatPage() {
       <PageHead
         title="ผู้ช่วยอัจฉริยะ"
         desc="สอบถามข้อมูลตัวอย่าง ผลตรวจ วัสดุคงคลัง และใบสั่งซื้อด้วยภาษาธรรมชาติ ผู้ช่วยจะสร้างคำค้นจากข้อมูลจริงในระบบ (อ่านอย่างเดียว) แล้วสรุปคำตอบพร้อมตารางให้"
-        actions={
-          <Button variant="ghost" size="sm" onClick={reset} disabled={busy || messages.length === 0}>
-            <Icons.Arrow className="h-[15px] w-[15px]" />
-            เริ่มบทสนทนาใหม่
-          </Button>
-        }
+        primary={{
+          label: "เริ่มบทสนทนาใหม่",
+          icon: <Icons.Arrow className="h-3.75 w-3.75" />,
+          onClick: reset,
+          disabled: busy || messages.length === 0,
+        }}
       />
 
       <Card className="flex min-h-0 flex-1 flex-col">
@@ -220,11 +220,11 @@ export default function AiChatPage() {
 
         {/* บทสนทนา */}
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-          <div className="mx-auto flex max-w-[860px] flex-col gap-5">
+          <div className="mx-auto flex max-w-215 flex-col gap-5">
             {/* ทักทาย */}
             <div className="flex gap-3">
               <span className="mt-0.5 grid h-8 w-8 flex-none place-items-center rounded-full bg-teal-bg text-teal-d">
-                <Icons.Ai className="h-[17px] w-[17px]" />
+                <Icons.Ai className="h-4.25 w-4.25" />
               </span>
               <div className="rounded-[14px] rounded-tl-[4px] border border-line bg-bg px-4 py-2.5 text-[13.5px] leading-relaxed text-muted">
                 {GREETING}
@@ -234,7 +234,7 @@ export default function AiChatPage() {
             {unavailable && (
               <div className="flex gap-3">
                 <span className="mt-0.5 grid h-8 w-8 flex-none place-items-center rounded-full bg-red-bg text-red">
-                  <Icons.Shield className="h-[17px] w-[17px]" />
+                  <Icons.Shield className="h-4.25 w-4.25" />
                 </span>
                 <div className="rounded-[14px] rounded-tl-[4px] border border-red/40 bg-red-bg px-4 py-2.5 text-[13px] leading-relaxed text-red">
                   ระบบผู้ช่วยไม่พร้อมใช้งานชั่วคราว กรุณาลองใหม่ภายหลัง
@@ -252,7 +252,7 @@ export default function AiChatPage() {
               ) : (
                 <div key={m.id} className="flex gap-3">
                   <span className="mt-0.5 grid h-8 w-8 flex-none place-items-center rounded-full bg-teal-bg text-teal-d">
-                    <Icons.Ai className="h-[17px] w-[17px]" />
+                    <Icons.Ai className="h-4.25 w-4.25" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <AiAnswer msg={m} />
@@ -265,7 +265,7 @@ export default function AiChatPage() {
             {busy && (
               <div className="animate-fade flex gap-3">
                 <span className="mt-0.5 grid h-8 w-8 flex-none place-items-center rounded-full bg-teal-bg text-teal-d">
-                  <Icons.Ai className="h-[17px] w-[17px]" />
+                  <Icons.Ai className="h-4.25 w-4.25" />
                 </span>
                 <div className="min-w-0 flex-1 overflow-hidden rounded-[14px] rounded-tl-[4px] border border-line bg-bg">
                   <div className="flex items-center gap-2 px-4 pb-1 pt-3 font-mono text-[11px] uppercase tracking-[1.2px] text-muted">
@@ -283,12 +283,12 @@ export default function AiChatPage() {
                           }`}
                         >
                           <span
-                            className={`grid h-[15px] w-[15px] flex-none place-items-center rounded-full ${
+                            className={`grid h-3.75 w-3.75 flex-none place-items-center rounded-full ${
                               finished ? "bg-teal-bg text-teal-d" : "bg-bg-2 text-muted-2"
                             }`}
                           >
                             {finished ? (
-                              <Icons.Check className="h-[10px] w-[10px]" />
+                              <Icons.Check className="h-2.5 w-2.5" />
                             ) : (
                               <span className="h-1 w-1 rounded-full bg-current" />
                             )}
@@ -298,7 +298,7 @@ export default function AiChatPage() {
                       );
                     })}
                   </div>
-                  <div className="h-[2px] w-full overflow-hidden bg-bg-2">
+                  <div className="h-0.5 w-full overflow-hidden bg-bg-2">
                     <div className="h-full w-1/3 bg-teal animate-progress-indet" />
                   </div>
                 </div>
@@ -309,7 +309,7 @@ export default function AiChatPage() {
 
         {/* แถบป้อนคำถาม */}
         <div className="flex-none border-t border-line p-4">
-          <div className="mx-auto max-w-[860px]">
+          <div className="mx-auto max-w-215">
             {showSuggestions && (
               <div className="mb-2.5 flex flex-wrap items-center gap-2">
                 <span className="font-mono text-[10.5px] uppercase tracking-[1px] text-muted-2">
@@ -332,9 +332,9 @@ export default function AiChatPage() {
                 e.preventDefault();
                 submit(draft);
               }}
-              className="flex items-center gap-2.5 rounded-lg border border-line bg-bg px-[13px] py-2 transition focus-within:border-teal"
+              className="flex items-center gap-2.5 rounded-lg border border-line bg-bg px-3.25 py-2 transition focus-within:border-teal"
             >
-              <Icons.Ai className="h-[16px] w-[16px] flex-none text-muted-2" />
+              <Icons.Ai className="h-4 w-4 flex-none text-muted-2" />
               <input
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -358,13 +358,13 @@ export default function AiChatPage() {
                 size="sm"
                 disabled={busy || unavailable || !draft.trim()}
               >
-                <Icons.Arrow className="h-[14px] w-[14px]" />
+                <Icons.Arrow className="h-3.5 w-3.5" />
                 ส่ง
               </Button>
             </form>
 
             <div className="mt-2 flex items-center gap-1.5 font-mono text-[10.5px] text-muted-2">
-              <Icons.Shield className="h-[12px] w-[12px] flex-none" />
+              <Icons.Shield className="h-3 w-3 flex-none" />
               ตอบได้เฉพาะ Sample · TestResult · Inventory · PurchaseOrder — อ่านอย่างเดียว โปรดตรวจทานก่อนใช้ตัดสินใจ
             </div>
           </div>

@@ -120,10 +120,10 @@ export default function DashboardPage() {
       <PageHead
         title="ภาพรวมห้องปฏิบัติการ"
         desc="สรุปสถานะทั้ง 6 โมดูลแบบเรียลไทม์ · ข้อมูลซิงก์จากคลาวด์ ทำงานร่วมกันได้แม้อยู่คนละสถานที่"
-        actions={<Seg options={["วันนี้", "สัปดาห์นี้", "เดือนนี้"]} />}
+        custom={<Seg options={["วันนี้", "สัปดาห์นี้", "เดือนนี้"]} compact />}
       />
 
-      <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-5.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard accent="teal" icon={<Icons.Sample />} label="ตัวอย่างที่กำลังดำเนินการ" value={String(activeSamples)} unit="ตัวอย่าง" trend={`${samples.length} ตัวอย่างทั้งหมด`} />
         <KpiCard
           accent="amber"
@@ -172,14 +172,14 @@ export default function DashboardPage() {
           />
           <div className="py-1.5">
             {(!feed || feed.length === 0) && (
-              <div className="px-[18px] py-8 text-center text-[12.5px] text-muted">
+              <div className="px-4.5 py-8 text-center text-[12.5px] text-muted">
                 {feed === null ? "กำลังโหลด…" : "ยังไม่มีความเคลื่อนไหว"}
               </div>
             )}
             {feed?.map((f) => (
-              <div key={f.id} className="flex gap-3 border-b border-line px-[18px] py-[11px] last:border-none">
-                <div className={`grid h-[30px] w-[30px] flex-none place-items-center rounded-lg ${toneBg[f.tone]}`}>
-                  <span className="h-[15px] w-[15px]">{feedIcons[f.icon]}</span>
+              <div key={f.id} className="flex gap-3 border-b border-line px-4.5 py-2.75 last:border-none">
+                <div className={`grid h-7.5 w-7.5 flex-none place-items-center rounded-lg ${toneBg[f.tone]}`}>
+                  <span className="h-3.75 w-3.75">{feedIcons[f.icon]}</span>
                 </div>
                 <div>
                   <div className="text-[12.5px]">{f.text}</div>

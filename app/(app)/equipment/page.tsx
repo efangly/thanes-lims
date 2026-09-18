@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Input, KpiCard, PageHead, Pagination, Ring, Seg, Tag, usePagination } from "@/components/ui";
+import { Card, CardHead, Input, KpiCard, PageHead, Pagination, Ring, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { useFullPath } from "@/lib/use-full-path";
 import { listAllSchedules, type CalibrationSchedule } from "@/lib/equipment-api";
@@ -80,29 +80,31 @@ function EquipmentPageInner() {
       <PageHead
         title="การจัดการเครื่องมือ"
         desc="บันทึกประวัติการใช้งาน ใบรับรองสอบเทียบ ประวัติบำรุงรักษา พร้อมแจ้งเตือนอัตโนมัติเมื่อถึงกำหนด — พร้อมรับการตรวจสอบ (Audit) เสมอ"
-        actions={
-          <>
-            <Button variant="ghost" size="sm" onClick={() => router.push("/equipment/calibration-results")}>
-              <Icons.Check className="h-[15px] w-[15px]" />
-              ผลการสอบเทียบ
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => openModal("record-calibration")}>
-              <Icons.Plus className="h-[15px] w-[15px]" />
-              บันทึกผลสอบเทียบ
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => openModal("export-audit-report")}>
-              <Icons.Doc className="h-[15px] w-[15px]" />
-              ส่งออกรายงาน Audit
-            </Button>
-            <Button variant="teal" onClick={() => openModal("add-equipment")}>
-              <Icons.Plus className="h-[15px] w-[15px]" />
-              เพิ่มเครื่องมือ
-            </Button>
-          </>
-        }
+        primary={{
+          label: "เพิ่มเครื่องมือ",
+          icon: <Icons.Plus className="h-3.75 w-3.75" />,
+          onClick: () => openModal("add-equipment"),
+        }}
+        secondary={[
+          {
+            label: "ผลการสอบเทียบ",
+            icon: <Icons.Check className="h-3.75 w-3.75" />,
+            onClick: () => router.push("/equipment/calibration-results"),
+          },
+          {
+            label: "บันทึกผลสอบเทียบ",
+            icon: <Icons.Plus className="h-3.75 w-3.75" />,
+            onClick: () => openModal("record-calibration"),
+          },
+          {
+            label: "ส่งออกรายงาน Audit",
+            icon: <Icons.Doc className="h-3.75 w-3.75" />,
+            onClick: () => openModal("export-audit-report"),
+          },
+        ]}
       />
 
-      <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-5.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard accent="green" label="เครื่องมือทั้งหมด" value={String(equipment.length)} trend={`พร้อมใช้ ${readyCount} เครื่อง`} />
         <KpiCard accent="amber" label="ใกล้กำหนดสอบเทียบ" value={String(dueSoonCount)} trend="ภายใน 14 วัน" trendDown={dueSoonCount > 0} />
         <KpiCard accent="red" label="เลยกำหนด" value={String(overdueCount)} trend={overdueCount > 0 ? "ต้องดำเนินการด่วน" : "ไม่มีรายการ"} trendDown={overdueCount > 0} />
@@ -119,7 +121,7 @@ function EquipmentPageInner() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="ค้นหาชื่อ หรือ S/N"
-                className="w-[200px]"
+                className="w-50"
               />
               <Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />
             </div>
@@ -130,7 +132,7 @@ function EquipmentPageInner() {
             <thead>
               <tr>
                 {["รหัส", "เครื่องมือ", "S/N", "ตำแหน่ง", "รอบสอบเทียบถัดไป", "เหลือเวลา", "สถานะ"].map((h) => (
-                  <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
+                  <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                     {h}
                   </th>
                 ))}
@@ -190,10 +192,10 @@ function EquipmentPageInner() {
               <button
                 key={a.id}
                 onClick={() => router.push(`/equipment/${a.id}`)}
-                className="flex w-full items-start gap-3 border-b border-line px-4 py-[13px] text-left transition last:border-none hover:bg-bg/60"
+                className="flex w-full items-start gap-3 border-b border-line px-4 py-3.25 text-left transition last:border-none hover:bg-bg/60"
               >
-                <div className={`grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] ${alertCls[a.tone]}`}>
-                  <span className="h-[17px] w-[17px]">
+                <div className={`grid h-8.5 w-8.5 flex-none place-items-center rounded-[9px] ${alertCls[a.tone]}`}>
+                  <span className="h-4.25 w-4.25">
                     <Icons.Equipment />
                   </span>
                 </div>
@@ -211,22 +213,22 @@ function EquipmentPageInner() {
           <CardHead icon={<Icons.Doc />} title="เอกสารประกอบเครื่องมือ" />
           <div>
             {equipmentDocs.length === 0 && (
-              <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">ยังไม่มีเอกสารที่ผูกกับเครื่องมือ</div>
+              <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">ยังไม่มีเอกสารที่ผูกกับเครื่องมือ</div>
             )}
             {equipmentDocs.map((d) => (
               <button
                 key={d.id}
                 onClick={() => router.push(`/equipment/${d.equipmentId}`)}
-                className="flex w-full items-center gap-3 border-b border-line px-[18px] py-3 text-left transition last:border-none hover:bg-bg/60"
+                className="flex w-full items-center gap-3 border-b border-line px-4.5 py-3 text-left transition last:border-none hover:bg-bg/60"
               >
-                <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-lg bg-violet-bg text-violet">
-                  <Icons.Doc className="h-[17px] w-[17px]" />
+                <div className="grid h-8.5 w-8.5 flex-none place-items-center rounded-lg bg-violet-bg text-violet">
+                  <Icons.Doc className="h-4.25 w-4.25" />
                 </div>
                 <div className="flex-1">
                   <div className="font-medium">{d.name}</div>
                   <div className="text-[11.5px] text-muted">{equipment.find((e) => e.id === d.equipmentId)?.name ?? d.equipmentId}</div>
                 </div>
-                <span className="rounded-[5px] border border-line bg-bg px-[7px] py-0.5 font-mono text-[11px] text-muted">
+                <span className="rounded-[5px] border border-line bg-bg px-1.75 py-0.5 font-mono text-[11px] text-muted">
                   {d.type}
                 </span>
               </button>

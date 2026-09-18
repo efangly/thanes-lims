@@ -3,6 +3,7 @@
 import { forwardRef, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Tag as TagType, TagTone } from "@/lib/data";
+import { useRegisterPageActions, type PageActionsConfig } from "@/components/page-actions-context";
 
 /* ---------- Tag / status pill ---------- */
 const toneMap: Record<TagTone, { bg: string; text: string; dot: string }> = {
@@ -18,7 +19,7 @@ export function Tag({ tone, label }: TagType) {
   const t = toneMap[tone];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-[3px] text-[11.5px] font-medium font-mono whitespace-nowrap ${t.bg} ${t.text}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.75 text-[11.5px] font-medium font-mono whitespace-nowrap ${t.bg} ${t.text}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
       {label}
@@ -53,9 +54,9 @@ export function CardHead({
   right?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-line px-4 py-3.5 md:px-[18px] md:py-[15px]">
+    <div className="flex items-center justify-between border-b border-line px-4 py-3.5 md:px-4.5 md:py-3.75">
       <h3 className="flex items-center gap-2.5 font-display text-[15px] font-semibold">
-        {icon && <span className="h-[17px] w-[17px] text-teal-d">{icon}</span>}
+        {icon && <span className="h-4.25 w-4.25 text-teal-d">{icon}</span>}
         {title}
       </h3>
       {right}
@@ -73,7 +74,7 @@ export function CardBody({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={`p-4 md:px-[18px] md:py-[15px] ${className}`}>{children}</div>;
+  return <div className={`p-4 md:px-4.5 md:py-3.75 ${className}`}>{children}</div>;
 }
 
 /* ---------- KPI card ---------- */
@@ -104,7 +105,7 @@ export function KpiCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-[10px] border border-line bg-panel p-3 shadow-card before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] md:p-4 ${kpiAccent[accent]}`}
+      className={`relative overflow-hidden rounded-[10px] border border-line bg-panel p-3 shadow-card before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.75 md:p-4 ${kpiAccent[accent]}`}
     >
       <div className="flex items-center gap-1.5 text-[11.5px] text-muted">
         {icon && <span className="h-3.5 w-3.5">{icon}</span>}
@@ -127,28 +128,23 @@ export function KpiCard({
 export function PageHead({
   title,
   desc,
-  actions,
+  back,
+  primary,
+  secondary,
+  custom,
 }: {
   title: string;
-  desc: string;
-  actions?: ReactNode;
-}) {
+  desc?: string;
+} & PageActionsConfig) {
+  useRegisterPageActions({ back, primary, secondary, custom });
   return (
-    <div
-      className={`flex flex-wrap items-end justify-between gap-3 md:mb-5 md:gap-4 ${
-        actions ? "mb-4" : "mb-0 md:mb-5"
-      }`}
-    >
-      {/* On mobile the topbar already shows the module code + title, so the heading
-          collapses to sr-only here (kept for a11y / SEO) and the description is hidden. */}
-      <div className="min-w-0">
-        <h1 className="sr-only font-display text-[22px] font-semibold tracking-[-0.2px] md:not-sr-only">
-          {title}
-        </h1>
-        <p className="mt-[3px] hidden max-w-[640px] text-[13px] text-muted md:block">{desc}</p>
-      </div>
-      {actions && <div className="flex flex-wrap justify-end gap-2.5">{actions}</div>}
-    </div>
+    <>
+      {/* The topbar (components/topbar.tsx, MODULE_META in lib/data.ts) is now the
+          single visible source of the page title AND page actions on every breakpoint.
+          Kept sr-only here for a11y / SEO. */}
+      <h1 className="sr-only">{title}</h1>
+      {desc && <p className="sr-only">{desc}</p>}
+    </>
   );
 }
 
@@ -167,11 +163,11 @@ export const Button = forwardRef<
     ghost: "bg-panel text-ink border border-line hover:bg-bg",
     danger: "bg-red text-white hover:brightness-110",
   };
-  const sizes = { md: "px-[15px] py-[9px] text-[13px]", sm: "px-[11px] py-1.5 text-[12px]" };
+  const sizes = { md: "px-3.75 py-2.25 text-[13px]", sm: "px-2.75 py-1.5 text-[12px]" };
   return (
     <button
       ref={ref}
-      className={`inline-flex items-center gap-[7px] rounded-lg font-medium transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center gap-1.75 rounded-lg font-medium transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
@@ -184,23 +180,25 @@ export function Seg({
   options,
   value,
   onChange,
+  compact,
 }: {
   options: string[];
   value?: number;
   onChange?: (i: number) => void;
+  compact?: boolean;
 }) {
   const [internal, setInternal] = useState(0);
   const active = value ?? internal;
   const setActive = (i: number) => (onChange ? onChange(i) : setInternal(i));
   return (
-    <div className="inline-flex rounded-lg border border-line bg-bg p-[3px]">
+    <div className="inline-flex flex-none rounded-lg border border-line bg-bg p-0.75">
       {options.map((o, i) => (
         <button
           key={o}
           onClick={() => setActive(i)}
-          className={`rounded-md px-[13px] py-1.5 text-[12.5px] font-medium transition ${
-            active === i ? "bg-panel text-ink shadow-sm" : "text-muted"
-          }`}
+          className={`rounded-md font-medium transition ${
+            compact ? "px-2 py-1 text-[11px] lg:px-3.25 lg:py-1.5 lg:text-[12.5px]" : "px-3.25 py-1.5 text-[12.5px]"
+          } ${active === i ? "bg-panel text-ink shadow-sm" : "text-muted"}`}
         >
           {o}
         </button>
@@ -373,7 +371,7 @@ export function Field({
 }
 
 const fieldCls =
-  "w-full rounded-lg border border-line bg-bg px-[11px] py-2 text-[13px] text-ink outline-none transition focus:border-teal";
+  "w-full rounded-lg border border-line bg-bg px-2.75 py-2 text-[13px] text-ink outline-none transition focus:border-teal";
 
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${fieldCls} ${props.className ?? ""}`} />;
@@ -415,9 +413,79 @@ export function Sparkline({
     .map((v, i) => `${(i * step).toFixed(1)},${(height - ((v - min) / rng) * (height - 4) - 2).toFixed(1)}`)
     .join(" ");
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="mt-2.5 h-[30px] w-full">
+    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="mt-2.5 h-7.5 w-full">
       <polyline points={poly} fill="none" stroke={stroke} strokeWidth={2} />
     </svg>
+  );
+}
+
+/* ---------- Timeseries chart (sparkline + x-axis ticks + hover tooltip) ---------- */
+export function TimeseriesChart({
+  points,
+  stroke,
+  height = 30,
+  tickCount = 4,
+  formatTick,
+  formatValue,
+}: {
+  points: { time: string; value: number }[];
+  stroke: string;
+  height?: number;
+  tickCount?: number;
+  formatTick: (time: string) => string;
+  formatValue: (value: number) => string;
+}) {
+  const width = 240;
+  const max = Math.max(...points.map((p) => p.value));
+  const min = Math.min(...points.map((p) => p.value));
+  const rng = max - min || 1;
+  const step = width / (points.length - 1);
+  const x = (i: number) => i * step;
+  const y = (v: number) => height - ((v - min) / rng) * (height - 4) - 2;
+  const poly = points.map((p, i) => `${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(" ");
+
+  const [hover, setHover] = useState<number | null>(null);
+
+  const tickIdx = Array.from(
+    new Set(Array.from({ length: tickCount }, (_, i) => Math.round((i * (points.length - 1)) / (tickCount - 1))))
+  );
+
+  return (
+    <div className="relative mt-2.5">
+      {hover !== null && (
+        <div
+          className="pointer-events-none absolute -top-6.5 z-10 -translate-x-1/2 whitespace-nowrap rounded-md border border-line bg-panel px-1.5 py-0.75 font-mono text-[10px] shadow-card"
+          style={{ left: `${(x(hover) / width) * 100}%` }}
+        >
+          <span className="font-medium text-ink">{formatValue(points[hover].value)}</span>
+          <span className="ml-1 text-muted-2">{formatTick(points[hover].time)}</span>
+        </div>
+      )}
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        className="h-7.5 w-full cursor-crosshair"
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+          setHover(Math.round(frac * (points.length - 1)));
+        }}
+        onMouseLeave={() => setHover(null)}
+      >
+        <polyline points={poly} fill="none" stroke={stroke} strokeWidth={2} />
+        {hover !== null && (
+          <>
+            <line x1={x(hover)} y1={0} x2={x(hover)} y2={height} stroke={stroke} strokeWidth={1} strokeOpacity={0.3} />
+            <circle cx={x(hover)} cy={y(points[hover].value)} r={2.5} fill={stroke} />
+          </>
+        )}
+      </svg>
+      <div className="mt-1 flex justify-between font-mono text-[9.5px] text-muted-2">
+        {tickIdx.map((idx) => (
+          <span key={idx}>{formatTick(points[idx].time)}</span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -453,7 +521,7 @@ export function Donut({ items }: { items: { label: string; color: string; value:
   const c = 2 * Math.PI * r;
   return (
     <div className="flex items-center gap-5 px-1 py-1.5">
-      <svg viewBox="0 0 120 120" className="h-[110px] w-[110px] flex-none">
+      <svg viewBox="0 0 120 120" className="h-27.5 w-27.5 flex-none">
         {items.map((it) => {
           const frac = it.value / total;
           const len = frac * c;
@@ -484,7 +552,7 @@ export function Donut({ items }: { items: { label: string; color: string; value:
       <div className="flex flex-col gap-2.5 text-[12.5px]">
         {items.map((it) => (
           <div key={it.label} className="flex items-center gap-2">
-            <span className="h-[11px] w-[11px] rounded-[3px]" style={{ background: it.color }} />
+            <span className="h-2.75 w-2.75 rounded-[3px]" style={{ background: it.color }} />
             {it.label}
             <span className="ml-auto pl-3.5 font-mono text-muted">{it.value}%</span>
           </div>
@@ -506,7 +574,7 @@ export function BarChart({
 }) {
   return (
     <>
-      <div className="flex h-[150px] items-end gap-3.5 px-1.5 pt-2.5">
+      <div className="flex h-37.5 items-end gap-3.5 px-1.5 pt-2.5">
         {data.map((d) => (
           <div key={d.label} className="flex h-full flex-1 flex-col items-center gap-2">
             <div className="flex w-full flex-1 flex-col justify-end gap-0.5">
@@ -517,7 +585,7 @@ export function BarChart({
           </div>
         ))}
       </div>
-      <div className="mt-3.5 flex gap-[18px] text-[12px] text-muted">
+      <div className="mt-3.5 flex gap-4.5 text-[12px] text-muted">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-[3px] bg-teal" />
           {legendA}
@@ -547,7 +615,7 @@ export function AreaChart({ points, limit }: { points: number[]; limit?: number 
   const area = `0,${h} ${line} ${w},${h}`;
   return (
     <>
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-[150px] w-full">
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-37.5 w-full">
         <defs>
           <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="var(--color-amber)" stopOpacity="0.22" />

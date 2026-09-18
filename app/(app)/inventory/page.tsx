@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Icons } from "@/lib/icons";
 import type { InventoryItem, PurchaseOrder } from "@/lib/data";
-import { Button, Card, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
+import { Card, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { listPurchaseOrders } from "@/lib/purchase-orders-api";
 import { StockIssueModal } from "@/components/modals/stock-issue";
@@ -90,27 +90,26 @@ function InventoryPageInner() {
       <PageHead
         title="การจัดการสินค้าคงคลัง"
         desc="บริหารสต็อกวัสดุ สารเคมี และอุปกรณ์ในห้องปฏิบัติการ พร้อมแจ้งเตือนและสั่งซื้อซ้ำอัตโนมัติเมื่อสินค้าใกล้หมด"
-        actions={
-          <>
-            <Button variant="ghost" size="sm" onClick={() => openModal("order-history")}>
-              <Icons.Cart className="h-[15px] w-[15px]" />
-              ประวัติสั่งซื้อ
-            </Button>
-            <Link href="/inventory/receive">
-              <Button variant="ghost" size="sm">
-                <Icons.Arrow className="h-[15px] w-[15px] rotate-90" />
-                รับของเข้าคลัง
-              </Button>
-            </Link>
-            <Button variant="teal" onClick={() => openModal("add-inventory")}>
-              <Icons.Plus className="h-[15px] w-[15px]" />
-              เพิ่มรายการ
-            </Button>
-          </>
-        }
+        primary={{
+          label: "เพิ่มรายการ",
+          icon: <Icons.Plus className="h-3.75 w-3.75" />,
+          onClick: () => openModal("add-inventory"),
+        }}
+        secondary={[
+          {
+            label: "ประวัติสั่งซื้อ",
+            icon: <Icons.Cart className="h-3.75 w-3.75" />,
+            onClick: () => openModal("order-history"),
+          },
+          {
+            label: "รับของเข้าคลัง",
+            icon: <Icons.Arrow className="h-3.75 w-3.75 rotate-90" />,
+            href: "/inventory/receive",
+          },
+        ]}
       />
 
-      <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-5.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard accent="teal" label="รายการทั้งหมด" value={String(inventory.length)} trend={`ใน ${catCount} หมวดหมู่`} />
         <KpiCard accent="red" label="ถึงจุดสั่งซื้อ" value={String(reorderCount)} trend="ต้องสั่งซื้อด่วน" trendDown={reorderCount > 0} />
         <KpiCard accent="amber" label="ใกล้หมด" value={String(lowCount)} trend="ต่ำกว่าจุดสั่งซื้อขั้นต่ำ" trendDown={lowCount > 0} />
@@ -135,7 +134,7 @@ function InventoryPageInner() {
               <thead>
                 <tr>
                   {["รหัส", "รายการ", "หมวด", "ระดับสต็อก (เส้น = จุดสั่งซื้อ)", "คงเหลือ", "หมดอายุใกล้สุด", "สถานะ", ""].map((h, idx) => (
-                    <th key={h || idx} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
+                    <th key={h || idx} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                       {h}
                     </th>
                   ))}
@@ -150,9 +149,9 @@ function InventoryPageInner() {
                       <td className="border-b border-line px-3.5 py-3 font-medium">{i.name}</td>
                       <td className="border-b border-line px-3.5 py-3 text-[11.5px] text-muted">{i.cat}</td>
                       <td className="border-b border-line px-3.5 py-3">
-                        <div className="relative h-[7px] min-w-[90px] overflow-hidden rounded-[4px] bg-bg-2">
+                        <div className="relative h-1.75 min-w-22.5 overflow-hidden rounded-[4px] bg-bg-2">
                           <div className="h-full rounded-[4px]" style={{ width: `${i.pct}%`, background: stockColor(i.pct) }} />
-                          <div className="absolute -top-[3px] -bottom-[3px] w-0.5 bg-ink opacity-35" style={{ left: `${minPos}%` }} />
+                          <div className="absolute -top-0.75 -bottom-0.75 w-0.5 bg-ink opacity-35" style={{ left: `${minPos}%` }} />
                         </div>
                       </td>
                       <td className="border-b border-line px-3.5 py-3 font-mono text-[12.5px]">
@@ -236,9 +235,9 @@ function InventoryPageInner() {
             {autoOrders.map((o) => {
               const item = inventory.find((i) => i.id === o.item);
               return (
-                <div key={o.id} className="flex items-start gap-3 border-b border-line px-4 py-[13px]">
-                  <div className="grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] bg-teal-bg text-teal-d">
-                    <Icons.Cart className="h-[17px] w-[17px]" />
+                <div key={o.id} className="flex items-start gap-3 border-b border-line px-4 py-3.25">
+                  <div className="grid h-8.5 w-8.5 flex-none place-items-center rounded-[9px] bg-teal-bg text-teal-d">
+                    <Icons.Cart className="h-4.25 w-4.25" />
                   </div>
                   <div className="flex-1">
                     <div className="text-[13px] font-medium">{item?.name ?? o.item}</div>
@@ -251,7 +250,7 @@ function InventoryPageInner() {
               );
             })}
           </div>
-          <div className="border-t border-line px-[18px] py-3.5">
+          <div className="border-t border-line px-4.5 py-3.5">
             <h3 className="pb-3 font-display text-[13px] font-semibold">สัดส่วนตามหมวดหมู่</h3>
             <Donut items={donutItems} />
           </div>

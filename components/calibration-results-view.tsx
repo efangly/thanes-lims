@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icons } from "@/lib/icons";
-import { Button, Card, CardHead, Field, Input, PageHead, Pagination, Select, Tag, usePagination } from "@/components/ui";
+import { Card, CardHead, Field, Input, PageHead, Pagination, Select, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
 import { apiErrorMessage } from "@/lib/api-client";
 import { searchCalibrationResults, type CalibrationEvent } from "@/lib/equipment-api";
@@ -49,17 +49,12 @@ export function CalibrationResultsView() {
       <PageHead
         title="ผลการสอบเทียบ"
         desc="รายการผลสอบเทียบข้ามทุกเครื่องมือ เรียงจากใหม่ไปเก่า"
-        actions={
-          <>
-            <Link href="/equipment" className="text-[12.5px] text-muted hover:text-ink">
-              ← ทะเบียนเครื่องมือ
-            </Link>
-            <Button variant="teal" onClick={() => openModal("record-calibration")}>
-              <Icons.Plus className="h-[15px] w-[15px]" />
-              บันทึกผลสอบเทียบ
-            </Button>
-          </>
-        }
+        back={{ label: "ทะเบียนเครื่องมือ", href: "/equipment" }}
+        primary={{
+          label: "บันทึกผลสอบเทียบ",
+          icon: <Icons.Plus className="h-3.75 w-3.75" />,
+          onClick: () => openModal("record-calibration"),
+        }}
       />
 
       <Card className="md:flex-none">
@@ -103,7 +98,7 @@ export function CalibrationResultsView() {
                   (h) => (
                     <th
                       key={h}
-                      className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted"
+                      className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted"
                     >
                       {h}
                     </th>

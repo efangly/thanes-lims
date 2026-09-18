@@ -66,12 +66,11 @@ function VendorsPageInner() {
       <PageHead
         title="ผู้ขาย (Vendor)"
         desc="ข้อมูลหลักของผู้ขาย/ผู้ให้บริการ ใช้ร่วมกันทั้งเครื่องมือ สินค้าคงคลัง และใบสั่งซื้อ — แก้ที่นี่ที่เดียว ทุกที่ที่อ้างถึงเปลี่ยนตาม"
-        actions={
-          <Button variant="teal" onClick={() => setEditing("new")}>
-            <Icons.Plus className="h-[15px] w-[15px]" />
-            เพิ่มผู้ขาย
-          </Button>
-        }
+        primary={{
+          label: "เพิ่มผู้ขาย",
+          icon: <Icons.Plus className="h-3.75 w-3.75" />,
+          onClick: () => setEditing("new"),
+        }}
       />
 
       <Card className="md:flex md:min-h-0 md:flex-1 md:flex-col">
@@ -80,7 +79,7 @@ function VendorsPageInner() {
           title={`ผู้ขายทั้งหมด${vendors.length > 0 ? ` (${vendors.length})` : ""}`}
           right={
             // Input carries `w-full`; the width has to come from a wrapper, not a class on it.
-            <div className="w-[260px]">
+            <div className="w-65">
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -90,10 +89,10 @@ function VendorsPageInner() {
           }
         />
 
-        {loading && <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
-        {error && <div className="px-[18px] py-6 text-center text-[12.5px] text-red">{error}</div>}
+        {loading && <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
+        {error && <div className="px-4.5 py-6 text-center text-[12.5px] text-red">{error}</div>}
         {!loading && !error && filtered.length === 0 && (
-          <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">
+          <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">
             {vendors.length === 0 ? "ยังไม่มีผู้ขายในระบบ — เพิ่มรายแรกด้านบน" : "ไม่พบผู้ขายที่ตรงกับคำค้นหา"}
           </div>
         )}
@@ -107,7 +106,7 @@ function VendorsPageInner() {
                   {["ผู้ขาย", "ผู้ติดต่อ", "โทรศัพท์", "อีเมล", "ที่อยู่", ""].map((h, i) => (
                     <th
                       key={i}
-                      className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted"
+                      className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted"
                     >
                       {h}
                     </th>
@@ -123,7 +122,7 @@ function VendorsPageInner() {
                       {v.contactPhone || "—"}
                     </td>
                     <td className="border-b border-line px-3.5 py-3 text-muted">{v.contactEmail || "—"}</td>
-                    <td className="max-w-[280px] truncate border-b border-line px-3.5 py-3 text-muted">
+                    <td className="max-w-70 truncate border-b border-line px-3.5 py-3 text-muted">
                       {v.address || "—"}
                     </td>
                     <td className="border-b border-line px-3.5 py-3 text-right">
@@ -221,7 +220,7 @@ function VendorFormModal({
             ยกเลิก
           </Button>
           <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !form.name?.trim()}>
-            <Icons.Check className="h-[14px] w-[14px]" />
+            <Icons.Check className="h-3.5 w-3.5" />
             {submitting ? "กำลังบันทึก..." : "บันทึก"}
           </Button>
         </>

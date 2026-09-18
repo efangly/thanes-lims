@@ -124,6 +124,13 @@ export const Icons = {
       <path d="M9 6l6 6-6 6" />
     </svg>
   ),
+  More: (p: IconProps) => (
+    <svg {...base(p)} fill="currentColor" stroke="none">
+      <circle cx="12" cy="5" r="1.8" />
+      <circle cx="12" cy="12" r="1.8" />
+      <circle cx="12" cy="19" r="1.8" />
+    </svg>
+  ),
   Download: (p: IconProps) => (
     <svg {...base(p)}>
       <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
@@ -213,6 +220,32 @@ export const Icons = {
   Close: (p: IconProps) => (
     <svg {...base(p)}>
       <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  ),
+  Battery: (p: IconProps) => (
+    <svg {...base(p)}>
+      <rect x="2" y="8" width="17" height="8" rx="2" />
+      <path d="M22 10v4" />
+      <path d="M6 8v8" />
+    </svg>
+  ),
+  Plug: (p: IconProps) => (
+    <svg {...base(p)}>
+      <path d="M9 3v5M15 3v5" />
+      <path d="M6 8h12v4a6 6 0 0 1-12 0V8z" />
+      <path d="M12 18v3" />
+    </svg>
+  ),
+  Door: (p: IconProps) => (
+    <svg {...base(p)}>
+      <rect x="5" y="3" width="12" height="18" rx="1" />
+      <path d="M13 12h.01" />
+    </svg>
+  ),
+  SdCard: (p: IconProps) => (
+    <svg {...base(p)}>
+      <path d="M15 3l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h9z" />
+      <path d="M8 3v5h8" />
     </svg>
   ),
 };

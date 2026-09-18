@@ -69,21 +69,21 @@ function TestsPageInner() {
       <PageHead
         title="การจัดการทดสอบ & วิเคราะห์ข้อมูล"
         desc="ควบคุมมาตรฐานขั้นตอนการทดสอบให้ครบถ้วนและแม่นยำ บันทึกผล จัดการผลการตรวจวิเคราะห์ และแปลผลด้วยระบบ AI"
-        actions={
-          <>
-            <Button variant="ghost" size="sm" onClick={() => openModal("generate-report")}>
-              <Icons.Doc className="h-[15px] w-[15px]" />
-              สร้างรายงาน
-            </Button>
-            <Button variant="teal" onClick={() => openModal("open-test-order")}>
-              <Icons.Plus className="h-[15px] w-[15px]" />
-              เปิดคำสั่งทดสอบ
-            </Button>
-          </>
-        }
+        primary={{
+          label: "เปิดคำสั่งทดสอบ",
+          icon: <Icons.Plus className="h-3.75 w-3.75" />,
+          onClick: () => openModal("open-test-order"),
+        }}
+        secondary={[
+          {
+            label: "สร้างรายงาน",
+            icon: <Icons.Doc className="h-3.75 w-3.75" />,
+            onClick: () => openModal("generate-report"),
+          },
+        ]}
       />
 
-      <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-5.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard accent="teal" label="ผลทดสอบทั้งหมด" value={String(kpi.total)} trend={`กำลังวิเคราะห์ ${kpi.analyzing} รายการ`} />
         <KpiCard accent="green" label="อนุมัติแล้ว" value={String(kpi.approved)} trend="ผ่านการทวนสอบ" />
         <KpiCard accent="amber" label="รอทวนสอบ" value={String(kpi.pending)} trend="รอผู้อนุมัติ" trendDown={kpi.pending > 0} />
@@ -102,7 +102,7 @@ function TestsPageInner() {
               <thead>
                 <tr>
                   {["รหัสทดสอบ", "รายการทดสอบ", "ตัวอย่าง", "ผู้วิเคราะห์", "ผล", "ช่วงอ้างอิง", "สถานะ", "การดำเนินการ"].map((h) => (
-                    <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
+                    <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                       {h}
                     </th>
                   ))}
@@ -127,7 +127,7 @@ function TestsPageInner() {
                           size="sm"
                           onClick={() => openModal("submit-test-result", { testResultId: t.id })}
                         >
-                          <Icons.Check className="h-[13px] w-[13px]" />
+                          <Icons.Check className="h-3.25 w-3.25" />
                           บันทึกผล
                         </Button>
                       )}
@@ -138,7 +138,7 @@ function TestsPageInner() {
                           onClick={() => handleApprove(t.id)}
                           disabled={approvingId === t.id}
                         >
-                          <Icons.Check className="h-[13px] w-[13px]" />
+                          <Icons.Check className="h-3.25 w-3.25" />
                           {approvingId === t.id ? "กำลังอนุมัติ…" : "อนุมัติ"}
                         </Button>
                       )}

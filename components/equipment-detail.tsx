@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/backend-mappers";
 import { VendorSelect } from "@/components/vendor-select";
 import { LocationField } from "@/components/location-field";
 import { useLims } from "@/components/lims-data-context";
+import { useRegisterPageActions } from "@/components/page-actions-context";
 import { apiErrorMessage } from "@/lib/api-client";
 import { useFullPath } from "@/lib/use-full-path";
 import {
@@ -63,10 +64,20 @@ export function EquipmentDetail({ id }: { id: string }) {
     };
   }, [id, fromList]);
 
+  useRegisterPageActions({
+    back: { label: "ทะเบียนเครื่องมือ", href: "/equipment" },
+    primary: eq
+      ? {
+          label: "บันทึกผลสอบเทียบ",
+          icon: <Icons.Check className="h-3.75 w-3.75" />,
+          onClick: () => openModal("record-calibration", { equipmentId: eq.id }),
+        }
+      : undefined,
+  });
+
   if (notFound) {
     return (
       <div className="animate-fade">
-        <BackLink />
         <Card className="mt-4">
           <div className="px-5 py-10 text-center text-[13px] text-muted">ไม่พบเครื่องมือรหัส {id}</div>
         </Card>
@@ -76,7 +87,6 @@ export function EquipmentDetail({ id }: { id: string }) {
   if (!eq) {
     return (
       <div className="animate-fade">
-        <BackLink />
         <div className="mt-4 px-5 py-10 text-center text-[13px] text-muted">กำลังโหลด…</div>
       </div>
     );
@@ -84,20 +94,10 @@ export function EquipmentDetail({ id }: { id: string }) {
 
   return (
     <div className="animate-fade">
-      <BackLink />
-      <div className="mt-3 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-[19px] font-semibold">{eq.name}</h1>
         <span className="font-mono text-[12.5px] text-muted">{eq.id}</span>
         <Tag {...eq.status} />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="ml-auto"
-          onClick={() => openModal("record-calibration", { equipmentId: eq.id })}
-        >
-          <Icons.Check className="h-[13px] w-[13px]" />
-          บันทึกผลสอบเทียบ
-        </Button>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -111,15 +111,6 @@ export function EquipmentDetail({ id }: { id: string }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function BackLink() {
-  return (
-    <Link href="/equipment" className="inline-flex items-center gap-1.5 text-[12.5px] text-muted hover:text-ink">
-      <Icons.Arrow className="h-3.5 w-3.5 rotate-180" />
-      กลับไปทะเบียนเครื่องมือ
-    </Link>
   );
 }
 
@@ -214,7 +205,7 @@ function AssetCard({
         }
       />
       {!editing ? (
-        <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-2.5 p-4 text-[13px] md:px-[18px] md:py-[15px]">
+        <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-2.5 p-4 text-[13px] md:px-4.5 md:py-3.75">
           <Row k="ชื่อเครื่องมือ" v={eq.name} />
           <Row k="Serial Number" v={eq.sn} mono />
           <Row k="ประเภท" v={eq.category} />
@@ -307,7 +298,7 @@ function DocumentsCard({ id, openModal }: { id: string; openModal: ReturnType<ty
               })
             }
           >
-            <Icons.Plus className="h-[13px] w-[13px]" />
+            <Icons.Plus className="h-3.25 w-3.25" />
             เพิ่มเอกสาร
           </Button>
         }
@@ -429,7 +420,7 @@ function CalibrationSchedulesCard({
         title="ตารางสอบเทียบ (Calibration Schedules)"
         right={
           <Button variant="ghost" size="sm" onClick={() => setEditing("new")}>
-            <Icons.Plus className="h-[13px] w-[13px]" />
+            <Icons.Plus className="h-3.25 w-3.25" />
             เพิ่มรอบ
           </Button>
         }

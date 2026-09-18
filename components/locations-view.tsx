@@ -232,7 +232,7 @@ export function LocationsView() {
         title={currentNode ? currentNode.name : `${rootLabel(kind)}ทั้งหมด`}
         right={currentNode && <span className="font-mono text-[11.5px] text-muted">{levelLabel(kind, currentNode.levelType)}</span>}
       />
-      {fullPathText && <div className="border-b border-line px-[18px] py-2 font-mono text-[11.5px] text-muted">{fullPathText}</div>}
+      {fullPathText && <div className="border-b border-line px-4.5 py-2 font-mono text-[11.5px] text-muted">{fullPathText}</div>}
 
       {box ? (
         <CardBody>
@@ -252,7 +252,7 @@ export function LocationsView() {
         </CardBody>
       ) : (
         <>
-          <div className="flex flex-col gap-3.5 border-b border-line px-4 py-3.5 md:px-[18px]">
+          <div className="flex flex-col gap-3.5 border-b border-line px-4 py-3.5 md:px-4.5">
             {!currentNode ? (
               <div className="flex flex-col gap-3.5 sm:flex-row sm:items-end">
                 <Field label={`สร้าง${rootLabel(kind)}ใหม่ (root)`}>
@@ -263,7 +263,7 @@ export function LocationsView() {
                   />
                 </Field>
                 <Button variant="teal" size="sm" onClick={handleCreateRoot} disabled={creating || !rootName.trim()}>
-                  <Icons.Plus className="h-[14px] w-[14px]" />
+                  <Icons.Plus className="h-3.5 w-3.5" />
                   {creating ? "กำลังสร้าง..." : `สร้าง${rootLabel(kind)}`}
                 </Button>
               </div>
@@ -278,7 +278,7 @@ export function LocationsView() {
                       <Input type="number" min={1} value={count} onChange={(e) => setCount(e.target.value)} className="w-24" />
                     </Field>
                     <Button variant="teal" size="sm" onClick={handleGenerateChildren} disabled={generating || !prefix.trim()}>
-                      <Icons.Plus className="h-[14px] w-[14px]" />
+                      <Icons.Plus className="h-3.5 w-3.5" />
                       {generating ? "กำลังสร้าง..." : "Generate"}
                     </Button>
                   </div>
@@ -298,7 +298,7 @@ export function LocationsView() {
                         <Input type="number" min={1} max={99} value={boxCols} onChange={(e) => setBoxCols(e.target.value)} className="w-20" />
                       </Field>
                       <Button variant="teal" size="sm" onClick={handleCreateBox} disabled={creatingBox || !boxName.trim()}>
-                        <Icons.Plus className="h-[14px] w-[14px]" />
+                        <Icons.Plus className="h-3.5 w-3.5" />
                         {creatingBox ? "กำลังสร้าง..." : "สร้างกล่อง"}
                       </Button>
                     </div>
@@ -329,25 +329,25 @@ export function LocationsView() {
           </div>
 
           <div>
-            {loading && <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
-            {error && <div className="px-[18px] py-6 text-center text-[12.5px] text-red">{error}</div>}
+            {loading && <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
+            {error && <div className="px-4.5 py-6 text-center text-[12.5px] text-red">{error}</div>}
             {!loading && !error && children.length === 0 && currentNode && (
-              <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">
+              <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">
                 {tracksOccupancy
                   ? `"${currentNode.name}" ไม่มีลูก — เป็นจุดจัดเก็บ (leaf) แล้ว`
                   : `"${currentNode.name}" ยังไม่ได้แบ่งย่อย`}
               </div>
             )}
             {!loading && !error && !currentNode && (
-              <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">เลือกโหนดจากต้นไม้ทางซ้าย</div>
+              <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">เลือกโหนดจากต้นไม้ทางซ้าย</div>
             )}
             {children.map((node) => {
               const isBox = node.levelType === "box";
               const occupant = tracksOccupancy && !isBox ? occupantOf(samples, node.id) : undefined;
               const cellsUsed = isBox ? boxOccupants(samples, node.id).size : 0;
               return (
-                <div key={node.id} className="flex items-center gap-2.5 border-b border-line px-[18px] py-3 last:border-b-0">
-                  <Icons.Loc className="h-[15px] w-[15px] flex-none text-teal-d" />
+                <div key={node.id} className="flex items-center gap-2.5 border-b border-line px-4.5 py-3 last:border-b-0">
+                  <Icons.Loc className="h-3.75 w-3.75 flex-none text-teal-d" />
                   <div className="flex-1">
                     <div className="text-[13px] font-medium">{node.name}</div>
                     <div className="font-mono text-[11px] text-muted">
@@ -366,7 +366,7 @@ export function LocationsView() {
                     disabled={deletingId !== null}
                     className="text-red hover:bg-red-bg"
                   >
-                    {deletingId === node.id ? "กำลังลบ..." : <Icons.Close className="h-[13px] w-[13px]" />}
+                    {deletingId === node.id ? "กำลังลบ..." : <Icons.Close className="h-3.25 w-3.25" />}
                   </Button>
                 </div>
               );
@@ -374,7 +374,7 @@ export function LocationsView() {
           </div>
 
           {isLeafView && currentNode && (
-            <div className="flex items-center justify-between gap-3 border-t border-line bg-bg px-[18px] py-3">
+            <div className="flex items-center justify-between gap-3 border-t border-line bg-bg px-4.5 py-3">
               <div className="text-[12.5px]">
                 <span className="font-medium">{currentNode.name}</span> เป็นจุดจัดเก็บ (leaf)
                 {occupantOf(samples, currentNode.id) ? (
@@ -385,7 +385,7 @@ export function LocationsView() {
               </div>
               {!occupantOf(samples, currentNode.id) && (
                 <Button variant="teal" size="sm" onClick={() => openAssign(currentNode)}>
-                  <Icons.Sample className="h-[13px] w-[13px]" />
+                  <Icons.Sample className="h-3.25 w-3.25" />
                   ผูก Sample
                 </Button>
               )}
@@ -437,8 +437,9 @@ export function LocationsView() {
       <PageHead
         title="ตำแหน่งจัดเก็บ"
         desc={KIND_DESC[kind]}
-        actions={
+        custom={
           <Seg
+            compact
             options={KIND_ORDER.map((k) => LOCATION_KINDS[k].label)}
             value={KIND_ORDER.indexOf(kind)}
             onChange={(i) => {

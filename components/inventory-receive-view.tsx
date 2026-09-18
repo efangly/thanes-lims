@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { InventoryItem, InventoryLot } from "@/lib/data";
 import { Icons } from "@/lib/icons";
@@ -104,11 +103,7 @@ export function InventoryReceiveView() {
       <PageHead
         title="รับของเข้าคลัง"
         desc="รับสินค้าเข้าสต็อกทีละรายการ ทีละล็อต"
-        actions={
-          <Link href="/inventory" className="text-[12.5px] text-muted hover:text-ink">
-            ← สินค้าคงคลัง
-          </Link>
-        }
+        back={{ label: "สินค้าคงคลัง", href: "/inventory" }}
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr]">
@@ -118,7 +113,7 @@ export function InventoryReceiveView() {
             {!item ? (
               <Field label="ค้นหา / สแกนรายการ (ชื่อ หรือ รหัส)">
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="พิมพ์เพื่อค้นหา" autoFocus />
-                <div className="mt-1.5 max-h-[220px] overflow-y-auto rounded-lg border border-line">
+                <div className="mt-1.5 max-h-55 overflow-y-auto rounded-lg border border-line">
                   {matches.map((i) => (
                     <button
                       key={i.id}
