@@ -153,12 +153,11 @@ function UsersPageInner() {
       <PageHead
         title="การจัดการผู้ใช้งาน"
         desc="เพิ่ม แก้ไข ระงับ หรือลบบัญชีผู้ใช้ และกำหนดบทบาท (Role) — สิทธิ์การเข้าถึงแต่ละเมนูมาจากบทบาทตาม RBAC"
-        actions={
-          <Button variant="teal" onClick={() => setEditing("new")}>
-            <Icons.Plus className="h-[15px] w-[15px]" />
-            เพิ่มผู้ใช้งาน
-          </Button>
-        }
+        primary={{
+          label: "เพิ่มผู้ใช้งาน",
+          icon: <Icons.Plus className="h-3.75 w-3.75" />,
+          onClick: () => setEditing("new"),
+        }}
       />
 
       <Card className="md:flex md:min-h-0 md:flex-1 md:flex-col">
@@ -167,7 +166,7 @@ function UsersPageInner() {
           title={`ผู้ใช้งานทั้งหมด${users.length > 0 ? ` (${users.length})` : ""}`}
           right={
             <div className="flex items-center gap-2">
-              <div className="w-[140px]">
+              <div className="w-35">
                 <Select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
@@ -177,7 +176,7 @@ function UsersPageInner() {
                   <option value="suspended">ถูกระงับ</option>
                 </Select>
               </div>
-              <div className="w-[240px]">
+              <div className="w-60">
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -188,10 +187,10 @@ function UsersPageInner() {
           }
         />
 
-        {loading && <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
-        {error && <div className="px-[18px] py-6 text-center text-[12.5px] text-red">{error}</div>}
+        {loading && <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">กำลังโหลด…</div>}
+        {error && <div className="px-4.5 py-6 text-center text-[12.5px] text-red">{error}</div>}
         {!loading && !error && filtered.length === 0 && (
-          <div className="px-[18px] py-6 text-center text-[12.5px] text-muted">
+          <div className="px-4.5 py-6 text-center text-[12.5px] text-muted">
             {users.length === 0 ? "ยังไม่มีผู้ใช้งาน" : "ไม่พบผู้ใช้งานที่ตรงกับเงื่อนไข"}
           </div>
         )}
@@ -205,7 +204,7 @@ function UsersPageInner() {
                     {["ชื่อ", "อีเมล", "บทบาท", "สถานะ", ""].map((h, i) => (
                       <th
                         key={i}
-                        className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-[11px] text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted"
+                        className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted"
                       >
                         {h}
                       </th>
@@ -236,40 +235,52 @@ function UsersPageInner() {
                         </td>
                         <td className="border-b border-line px-3.5 py-3">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => setEditing(u)}>
-                              แก้ไข
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => setResetting(u)}>
-                              รีเซ็ตรหัสผ่าน
-                            </Button>
+                            <button
+                              onClick={() => setEditing(u)}
+                              aria-label="แก้ไข"
+                              title="แก้ไข"
+                              className="grid h-7 w-7 place-items-center rounded text-muted transition hover:bg-bg hover:text-ink"
+                            >
+                              <Icons.Edit className="h-3.25 w-3.25" />
+                            </button>
+                            <button
+                              onClick={() => setResetting(u)}
+                              aria-label="รีเซ็ตรหัสผ่าน"
+                              title="รีเซ็ตรหัสผ่าน"
+                              className="grid h-7 w-7 place-items-center rounded text-muted transition hover:bg-bg hover:text-ink"
+                            >
+                              <Icons.Lock className="h-3.25 w-3.25" />
+                            </button>
                             {u.status === "active" ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
+                              <button
                                 disabled={isSelf || busyId === u.id}
                                 onClick={() => runAction(u, "suspend")}
+                                aria-label="ระงับ"
+                                title="ระงับ"
+                                className="grid h-7 w-7 place-items-center rounded text-muted transition hover:bg-bg hover:text-ink disabled:cursor-not-allowed disabled:opacity-45"
                               >
-                                ระงับ
-                              </Button>
+                                <Icons.Power className="h-3.25 w-3.25" />
+                              </button>
                             ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
+                              <button
                                 disabled={busyId === u.id}
                                 onClick={() => runAction(u, "reactivate")}
+                                aria-label="เปิดใช้งาน"
+                                title="เปิดใช้งาน"
+                                className="grid h-7 w-7 place-items-center rounded text-muted transition hover:bg-bg hover:text-ink disabled:cursor-not-allowed disabled:opacity-45"
                               >
-                                เปิดใช้งาน
-                              </Button>
+                                <Icons.Power className="h-3.25 w-3.25" />
+                              </button>
                             )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red"
+                            <button
                               disabled={isSelf || busyId === u.id}
                               onClick={() => runAction(u, "retire")}
+                              aria-label="ลบ"
+                              title="ลบ"
+                              className="grid h-7 w-7 place-items-center rounded text-red transition hover:bg-red-bg disabled:cursor-not-allowed disabled:opacity-45"
                             >
-                              ลบ
-                            </Button>
+                              <Icons.Trash className="h-3.25 w-3.25" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -368,7 +379,7 @@ function UserFormModal({
             ยกเลิก
           </Button>
           <Button variant="teal" size="sm" onClick={handleSubmit} disabled={!canSubmit}>
-            <Icons.Check className="h-[14px] w-[14px]" />
+            <Icons.Check className="h-3.5 w-3.5" />
             {submitting ? "กำลังบันทึก..." : "บันทึก"}
           </Button>
         </>
