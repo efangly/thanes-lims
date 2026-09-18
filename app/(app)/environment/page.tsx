@@ -22,6 +22,16 @@ import {
 const TIMESERIES_REFRESH_MS = 3 * 60 * 1000;
 
 /**
+ * `apiStream` only authenticates once, at connection open (a single
+ * 401-retry-with-refresh, same as `apiFetch`) - it never re-checks the
+ * bearer token for the life of a long-held SSE connection. Reopening on
+ * this timer forces a fresh `getAccessToken()`/refresh cycle well before a
+ * realistic access-token TTL, so a device left on this page for hours never
+ * ends up holding a stale token with no way back.
+ */
+const STREAM_RECONNECT_MS = 10 * 60 * 1000;
+
+/**
  * Only fetches `/environment/gauges` to know which Locations already have a
  * Gauge - the Add/Edit Partner Device forms may only target one of those
  * (backend never auto-creates a Gauge). Nothing about the gauges themselves
@@ -87,11 +97,19 @@ function usePartnerDevices(enabled: boolean) {
     if (!enabled) return;
     refetchDevices().catch(() => {});
 
-    const stream = streamPartnerDeviceSnapshots((snap) => {
+    let stream = streamPartnerDeviceSnapshots((snap) => {
       setSnapshots((prev) => ({ ...prev, [snap.serial]: snap }));
     });
 
+    const reconnectId = setInterval(() => {
+      stream.abort();
+      stream = streamPartnerDeviceSnapshots((snap) => {
+        setSnapshots((prev) => ({ ...prev, [snap.serial]: snap }));
+      });
+    }, STREAM_RECONNECT_MS);
+
     return () => {
+      clearInterval(reconnectId);
       stream.abort();
     };
   }, [enabled, refetchDevices]);
