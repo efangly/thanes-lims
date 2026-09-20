@@ -8,7 +8,9 @@ import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/lib/confirm-context";
 import { LogoMark } from "@/components/logo";
-import { version as APP_VERSION } from "@/package.json";
+
+// ฝังตอน build จากชื่อ tag (Dockerfile ARG / release.yml) — ไม่ import package.json เพราะจะถูกฝังทั้งไฟล์ใน JS ฝั่ง browser
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
 
 function initialsFor(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -194,7 +196,7 @@ export function Sidebar({
         </div>
         <div className="mt-2.5 flex items-center gap-1.75 px-0.75 font-mono text-[10.5px] text-sidebar-muted">
           <span className="h-1.75 w-1.75 rounded-full bg-teal animate-pulse-dot" />
-          CLOUD · SYNCED · v{APP_VERSION}
+          CLOUD · SYNCED · {APP_VERSION ? `v${APP_VERSION}` : "dev"}
         </div>
       </div>
       </aside>

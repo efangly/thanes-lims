@@ -28,6 +28,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_SITE_URL }}
+            NEXT_PUBLIC_APP_VERSION=${{ github.ref_name }}
           tags: |
             docker.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
             docker.io/${{ env.IMAGE_NAME }}:latest
