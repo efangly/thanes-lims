@@ -1,8 +1,14 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import { ApiError } from "@/lib/api-client";
+
+// devtools (devDependency) โหลดเฉพาะตอน dev — เงื่อนไข NODE_ENV คงที่ ทำให้ bundler ตัดทิ้งใน production build
+const ReactQueryDevtools =
+  process.env.NODE_ENV === "development"
+    ? lazy(() => import("@tanstack/react-query-devtools").then((m) => ({ default: m.ReactQueryDevtools })))
+    : null;
 
 function makeQueryClient() {
   return new QueryClient({
@@ -25,5 +31,14 @@ function makeQueryClient() {
 export function QueryProvider({ children }: { children: ReactNode }) {
   // สร้างครั้งเดียวต่อ client session (กัน cache รั่วข้ามคนตอน SSR)
   const [client] = useState(makeQueryClient);
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={client}>
+      {children}
+      {ReactQueryDevtools && (
+        <Suspense fallback={null}>
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
+        </Suspense>
+      )}
+    </QueryClientProvider>
+  );
 }
