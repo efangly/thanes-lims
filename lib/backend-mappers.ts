@@ -1,4 +1,4 @@
-import type { CoCStep, Document, DocHistory, DiscoverDevice, EnvAlert, Equipment, FeedItem, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, PartnerDevice, PartnerDeviceSnapshot, PartnerDeviceTimeseriesPoint, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
+import type { CoCStep, Document, DocHistory, DiscoverDevice, EnvAlert, Equipment, FeedItem, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, HistoryRange, PartnerDevice, PartnerDeviceHistory, PartnerDeviceSnapshot, PartnerDeviceTelemetryPage, PartnerDeviceTimeseriesPoint, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
@@ -362,6 +362,96 @@ export interface TimeseriesResponseDTO {
 }
 export function mapTimeseriesPoint(d: TimeseriesPointDTO): PartnerDeviceTimeseriesPoint {
   return { sendTime: d.send_time, tempDisplay: d.temp_display, humidityDisplay: d.humidity_display };
+}
+
+export interface HistoryBucketDTO {
+  bucket_start: string;
+  probe: string;
+  temp_avg: number;
+  temp_min: number;
+  temp_max: number;
+  humidity_avg: number;
+  humidity_min: number;
+  humidity_max: number;
+  battery_min: number;
+  door_open: boolean;
+  samples: number;
+}
+export interface HistoryResponseDTO {
+  serial: string;
+  range: HistoryRange;
+  bucket_interval: string;
+  buckets: HistoryBucketDTO[] | null;
+}
+export function mapHistory(d: HistoryResponseDTO): PartnerDeviceHistory {
+  return {
+    serial: d.serial,
+    range: d.range,
+    bucketInterval: d.bucket_interval,
+    buckets: (d.buckets ?? []).map((b) => ({
+      bucketStart: b.bucket_start,
+      probe: b.probe,
+      tempAvg: b.temp_avg,
+      tempMin: b.temp_min,
+      tempMax: b.temp_max,
+      humidityAvg: b.humidity_avg,
+      humidityMin: b.humidity_min,
+      humidityMax: b.humidity_max,
+      batteryMin: b.battery_min,
+      doorOpen: b.door_open,
+      samples: b.samples,
+    })),
+  };
+}
+
+export interface TelemetryPointDTO {
+  send_time: string;
+  probe: string;
+  temp: number;
+  temp_display: number;
+  humidity: number;
+  humidity_display: number;
+  temp_internal: number;
+  battery: number;
+  plug: boolean;
+  door1: boolean;
+  door2: boolean;
+  door3: boolean;
+  internet: boolean;
+  ext_memory: boolean;
+}
+export interface TelemetryResponseDTO {
+  serial: string;
+  range: HistoryRange;
+  points: TelemetryPointDTO[] | null;
+  total: number;
+  page: number;
+  limit: number;
+}
+export function mapTelemetryPage(d: TelemetryResponseDTO): PartnerDeviceTelemetryPage {
+  return {
+    serial: d.serial,
+    range: d.range,
+    total: d.total,
+    page: d.page,
+    limit: d.limit,
+    points: (d.points ?? []).map((p) => ({
+      sendTime: p.send_time,
+      probe: p.probe,
+      temp: p.temp,
+      tempDisplay: p.temp_display,
+      humidity: p.humidity,
+      humidityDisplay: p.humidity_display,
+      tempInternal: p.temp_internal,
+      battery: p.battery,
+      plug: p.plug,
+      door1: p.door1,
+      door2: p.door2,
+      door3: p.door3,
+      internet: p.internet,
+      extMemory: p.ext_memory,
+    })),
+  };
 }
 
 export interface DocHistoryDTO {

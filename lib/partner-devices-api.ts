@@ -1,15 +1,27 @@
 import { apiFetch, apiStream } from "@/lib/api-client";
 import {
   mapDiscoverDevice,
+  mapHistory,
+  mapTelemetryPage,
   mapPartnerDevice,
   mapPartnerDeviceSnapshot,
   mapTimeseriesPoint,
   type DiscoverDevicesResponseDTO,
+  type HistoryResponseDTO,
+  type TelemetryResponseDTO,
   type PartnerDeviceDTO,
   type PartnerDeviceSnapshotDTO,
   type TimeseriesResponseDTO,
 } from "@/lib/backend-mappers";
-import type { DiscoverDevice, PartnerDevice, PartnerDeviceSnapshot, PartnerDeviceTimeseriesPoint } from "@/lib/data";
+import type {
+  DiscoverDevice,
+  HistoryRange,
+  PartnerDevice,
+  PartnerDeviceHistory,
+  PartnerDeviceSnapshot,
+  PartnerDeviceTelemetryPage,
+  PartnerDeviceTimeseriesPoint,
+} from "@/lib/data";
 
 export async function listPartnerDevices(): Promise<PartnerDevice[]> {
   const rows = await apiFetch<PartnerDeviceDTO[]>("/partner-devices");
@@ -87,4 +99,30 @@ export function streamPartnerDeviceSnapshots(onSnapshot: (s: PartnerDeviceSnapsh
 export async function getPartnerDeviceTimeseries(serial: string): Promise<PartnerDeviceTimeseriesPoint[]> {
   const dto = await apiFetch<TimeseriesResponseDTO>(`/partner-devices/${encodeURIComponent(serial)}/timeseries`);
   return dto.points.map(mapTimeseriesPoint);
+}
+
+/**
+ * Bucketed aggregates for the 1d/7d/30d chart, oldest-first (do NOT reverse).
+ * One row per probe per bucket. Backend caches 60s and shares the 60 req/min
+ * rate limit - call on demand (range change), never on a fast timer.
+ */
+export async function getPartnerDeviceHistory(serial: string, range: HistoryRange): Promise<PartnerDeviceHistory> {
+  const dto = await apiFetch<HistoryResponseDTO>(
+    `/partner-devices/${encodeURIComponent(serial)}/history?range=${range}`
+  );
+  return mapHistory(dto);
+}
+
+/** Raw readings for the history table, newest-first. `limit` is clamped to 200 by the backend (default 50). */
+export async function getPartnerDeviceTelemetry(
+  serial: string,
+  range: HistoryRange,
+  page = 1,
+  limit = 50
+): Promise<PartnerDeviceTelemetryPage> {
+  const qs = new URLSearchParams({ range, page: String(page), limit: String(limit) });
+  const dto = await apiFetch<TelemetryResponseDTO>(
+    `/partner-devices/${encodeURIComponent(serial)}/telemetry?${qs.toString()}`
+  );
+  return mapTelemetryPage(dto);
 }

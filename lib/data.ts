@@ -166,6 +166,59 @@ export interface PartnerDeviceTimeseriesPoint {
   humidityDisplay: number;
 }
 
+/** Range accepted by `/partner-devices/:serial/history` and `/telemetry` - no arbitrary from/to. */
+export type HistoryRange = "1d" | "7d" | "30d";
+
+/** One probe's aggregate for one time bucket (15 min for 1d, 1 h for 7d, 3 h for 30d). Returned oldest-first. */
+export interface PartnerDeviceHistoryBucket {
+  bucketStart: string;
+  probe: string;
+  tempAvg: number;
+  tempMin: number;
+  tempMax: number;
+  humidityAvg: number;
+  humidityMin: number;
+  humidityMax: number;
+  batteryMin: number;
+  doorOpen: boolean;
+  samples: number;
+}
+
+export interface PartnerDeviceHistory {
+  serial: string;
+  range: HistoryRange;
+  bucketInterval: string;
+  buckets: PartnerDeviceHistoryBucket[];
+}
+
+/** One raw reading from `/partner-devices/:serial/telemetry`, newest-first. */
+export interface PartnerDeviceTelemetryPoint {
+  sendTime: string;
+  probe: string;
+  temp: number;
+  tempDisplay: number;
+  humidity: number;
+  humidityDisplay: number;
+  tempInternal: number;
+  battery: number;
+  plug: boolean;
+  door1: boolean;
+  door2: boolean;
+  door3: boolean;
+  internet: boolean;
+  extMemory: boolean;
+}
+
+/** Server-paginated page of raw readings. */
+export interface PartnerDeviceTelemetryPage {
+  serial: string;
+  range: HistoryRange;
+  points: PartnerDeviceTelemetryPoint[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface InventoryItem {
   id: string;
   name: string;

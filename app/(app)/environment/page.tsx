@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
 import type { PartnerDevice, PartnerDeviceSnapshot, PartnerDeviceTimeseriesPoint } from "@/lib/data";
 import { formatDateTime } from "@/lib/backend-mappers";
@@ -135,22 +136,6 @@ const levelStroke = {
   crit: "var(--color-red)",
 };
 
-const chipToneCls = {
-  ok: "text-teal",
-  warn: "text-red",
-  off: "text-muted-2",
-};
-
-/** Small icon + label for a boolean/percent status field (battery, plug, door, SD card). */
-function StatusChip({ icon, label, tone }: { icon: ReactNode; label: string; tone: keyof typeof chipToneCls }) {
-  return (
-    <span className={`inline-flex items-center gap-1 text-[11px] ${chipToneCls[tone]}`}>
-      <span className="h-3 w-3">{icon}</span>
-      {label}
-    </span>
-  );
-}
-
 function formatTimeShort(iso: string) {
   return new Date(iso).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
 }
@@ -231,6 +216,12 @@ export default function EnvironmentPage() {
                         {snap?.name ? ` · ${snap.name}` : ""}
                       </div>
                     </div>
+                    <Link
+                      href={`/environment/${encodeURIComponent(d.serial)}`}
+                      className="ml-auto whitespace-nowrap px-2 py-1 text-[12.5px] font-medium text-teal-d hover:underline"
+                    >
+                      ย้อนหลัง
+                    </Link>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -254,41 +245,37 @@ export default function EnvironmentPage() {
 
                   {snap ? (
                     <>
-                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <StatusChip
-                          icon={<Icons.Battery />}
-                          label={`${snap.battery}%`}
-                          tone={snap.battery > 0 && snap.battery < 20 ? "warn" : "ok"}
-                        />
-                      </div>
-
                       <div className={`mt-2.5 font-mono text-[26px] font-semibold leading-none ${levelValColor[level]}`}>
                         {snap.tempDisplay.toFixed(1)}
                         <span className="ml-0.5 text-[13px] font-normal text-muted">°C</span>
                         <span className="ml-2.5 text-[15px] text-muted">{snap.humidityDisplay.toFixed(0)}%</span>
                       </div>
                       {chartPoints === undefined ? (
-                        <div className="mt-2.5 h-7.5 text-[11px] text-muted-2">กำลังโหลดกราฟ…</div>
+                        <div className="mt-2.5 h-27.5 text-[11px] text-muted-2">กำลังโหลดกราฟ…</div>
                       ) : chartPoints.length > 1 ? (
                         <>
-                          <div className="flex items-center justify-between font-mono text-[9.5px] text-muted-2">
-                            <span>{Math.min(...chartPoints.map((p) => p.value)).toFixed(1)}°C</span>
-                            <span>{Math.max(...chartPoints.map((p) => p.value)).toFixed(1)}°C</span>
-                          </div>
                           <TimeseriesChart
                             points={chartPoints}
                             stroke={levelStroke[level]}
+                            height={110}
+                            showAxes
                             formatTick={formatTimeShort}
                             formatValue={(v) => `${v.toFixed(1)}°C`}
                           />
                         </>
                       ) : (
-                        <div className="mt-2.5 h-7.5 text-[11px] text-muted-2">
+                        <div className="mt-2.5 h-27.5 text-[11px] text-muted-2">
                           ไม่มีข้อมูลกราฟใน 1 ชม. ที่ผ่านมา
                         </div>
                       )}
                       <div className="mt-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-flex items-center gap-1 ${snap.battery > 0 && snap.battery < 20 ? "text-red" : "text-teal"}`}
+                          >
+                            <Icons.Battery className="h-5 w-5" />
+                            <span className="font-mono text-[11px]">{snap.battery}%</span>
+                          </span>
                           <Icons.Plug className={`h-5 w-5 ${snap.plug ? "text-teal" : "text-red"}`} />
                           <Icons.Door
                             className={`h-5 w-5 ${snap.door1 || snap.door2 || snap.door3 ? "text-red" : "text-teal"}`}
