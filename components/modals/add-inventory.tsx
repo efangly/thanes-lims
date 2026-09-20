@@ -9,6 +9,7 @@ import { Button, Field, Input, Select } from "@/components/ui";
 import { VendorSelect } from "@/components/vendor-select";
 import { LocationField } from "@/components/location-field";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import type { ItemInput } from "@/lib/inventory-api";
 import { useFullPath } from "@/lib/use-full-path";
@@ -22,8 +23,11 @@ const CATS = ["สารเคมี", "วัสดุสิ้นเปลื�
  * to jump to the receive page rather than firing a second, non-atomic request.
  */
 export function AddInventoryModal() {
-  const { activeModal, modalContext, closeModal, inventory, users, addInventoryItem, patchInventoryItem, pushToast } =
-    useLims();
+  const { inventory, users, addInventoryItem, patchInventoryItem } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const modalContext = useUiStore((s) => s.modalContext);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const open = activeModal === "add-inventory";
   const existing = modalContext.inventoryItemId
     ? inventory.find((i) => i.id === modalContext.inventoryItemId) ?? null

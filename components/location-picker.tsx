@@ -9,6 +9,7 @@ import { BoxGrid } from "@/components/box-grid";
 import { ScanInput } from "@/components/scan-input";
 import { useLocationBrowser } from "@/lib/use-location-browser";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { boxOccupants, occupantOf } from "@/lib/occupancy";
 import { apiErrorMessage } from "@/lib/api-client";
 import { lookupLocationByBarcode } from "@/lib/locations-api";
@@ -45,7 +46,8 @@ export function LocationPicker({
     undefined,
     kind
   );
-  const { samples, pushToast } = useLims();
+  const { samples } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [entering, setEntering] = useState<string | null>(null);
   const [boxTarget, setBoxTarget] = useState<Location | null>(null);
 

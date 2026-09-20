@@ -6,10 +6,12 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { LocationPicker } from "@/components/location-picker";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 
 export function PutAwaySampleModal({ sample, open, onClose }: { sample: Sample | null; open: boolean; onClose: () => void }) {
-  const { putAwaySample, pushToast } = useLims();
+  const { putAwaySample } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSelect = async (location: Location, position?: string) => {

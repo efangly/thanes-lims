@@ -6,6 +6,7 @@ import { Icons } from "@/lib/icons";
 import type { CoCStep, Sample } from "@/lib/data";
 import { Avatar, Button, Card, CardBody, CardHead, KpiCard, PageHead, Pagination, Seg, Select, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage, apiFetch } from "@/lib/api-client";
 import { mapCoCStep, SAMPLE_STATUS, type CoCStepDTO } from "@/lib/backend-mappers";
 import { useFullPath } from "@/lib/use-full-path";
@@ -151,7 +152,8 @@ function SampleDetailPanel({
 }) {
   const cocSteps = useCoC(sample?.id);
   const { path: fullPath, loading: pathLoading } = useFullPath(sample?.locationId);
-  const { updateSampleStatus, pushToast } = useLims();
+  const { updateSampleStatus } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [savingStatus, setSavingStatus] = useState(false);
 
@@ -354,7 +356,9 @@ export function SamplesView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedId = searchParams.get("s");
-  const { openModal, pushToast, users, samples: allSamples } = useLims();
+  const { users, samples: allSamples } = useLims();
+  const openModal = useUiStore((s) => s.openModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const [seg, setSeg] = useState(0);
   const [putAwayOpen, setPutAwayOpen] = useState(false);
 

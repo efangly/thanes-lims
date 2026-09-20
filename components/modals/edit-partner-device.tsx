@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select, Seg } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import { updatePartnerDevice } from "@/lib/partner-devices-api";
 
@@ -17,7 +17,10 @@ import { updatePartnerDevice } from "@/lib/partner-devices-api";
  * stop polling without losing the mapping.
  */
 export function EditPartnerDeviceModal() {
-  const { activeModal, closeModal, pushToast, modalContext } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const pushToast = useUiStore((s) => s.pushToast);
+  const modalContext = useUiStore((s) => s.modalContext);
   const open = activeModal === "edit-partner-device";
   const device = modalContext.editingPartnerDevice;
   const locations = modalContext.gaugeLocations ?? [];

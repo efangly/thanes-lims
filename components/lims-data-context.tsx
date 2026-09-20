@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   type Document,
   type Equipment,
@@ -24,48 +25,29 @@ import {
 } from "@/lib/equipment-api";
 import { createItem as createItemApi, updateItem as updateItemApi, type ItemInput } from "@/lib/inventory-api";
 import { useAuth } from "@/lib/auth-context";
+import { limsKeys } from "@/lib/queries/keys";
+import {
+  documentsQuery,
+  equipmentQuery,
+  inventoryQuery,
+  notificationsQuery,
+  samplesQuery,
+  testsQuery,
+  usersQuery,
+  type LimsUser,
+} from "@/lib/queries/lims";
 import {
   mapDocument,
-  mapEquipment,
   mapInventory,
-  mapNotification,
   mapSample,
   mapTestResult,
   type DocumentDTO,
-  type EquipmentDTO,
-  type InventoryDTO,
-  type NotificationDTO,
   type SampleDTO,
   type TestResultDTO,
-  type UserDTO,
 } from "@/lib/backend-mappers";
 
-export type ModalKey =
-  | "add-sample"
-  | "scan-barcode"
-  | "add-equipment"
-  | "export-audit-report"
-  | "add-partner-device"
-  | "edit-partner-device"
-  | "add-inventory"
-  | "order-history"
-  | "upload-document"
-  | "manage-access"
-  | "open-test-order"
-  | "generate-report"
-  | "record-calibration"
-  | "submit-test-result";
-
-interface Toast {
-  id: string;
-  tone: TagTone;
-  message: string;
-}
-
-export interface LimsUser {
-  id: number;
-  name: string;
-}
+export type { LimsUser };
+export type { ModalKey, ModalContext } from "@/lib/stores/ui-store";
 
 interface LimsContextValue {
   samples: Sample[];
@@ -108,92 +90,68 @@ interface LimsContextValue {
   approveTest: (id: string) => Promise<TestResult>;
   markNotificationRead: (id: string) => void;
   markAllRead: () => void;
-  toasts: Toast[];
-  pushToast: (message: string, tone?: TagTone) => void;
-  dismissToast: (id: string) => void;
-  activeModal: ModalKey | null;
-  modalContext: ModalContext;
-  openModal: (key: ModalKey, context?: ModalContext) => void;
-  closeModal: () => void;
 }
 
-/** Optional payload a caller can attach when opening a modal (e.g. preset the upload-document form). */
-export interface ModalContext {
-  /** upload-document: link the file to this equipment and preset type=warranty, hiding the type/access pickers. */
-  equipmentId?: string;
-  calibrationEventId?: number;
-  inventoryItemId?: string;
-  docType?: string;
-  docTypeLabel?: string;
-  /** submit-test-result: which TestResult the form is for. */
-  testResultId?: string;
-  /** add/edit-partner-device: Gauge Locations the Location select can offer (must be an existing Gauge - never auto-created). */
-  gaugeLocations?: string[];
-  /** add-partner-device: called after a successful create so the Environment page's list/snapshot panel refreshes without a full reload. */
-  onPartnerDeviceCreated?: () => void;
-  /** edit-partner-device: the mapping being edited, pre-fills the form. */
-  editingPartnerDevice?: PartnerDevice;
-  /** edit-partner-device: called after a successful update so the Environment page's list/snapshot panel refreshes without a full reload. */
-  onPartnerDeviceUpdated?: () => void;
-}
+const EMPTY_USERS: LimsUser[] = [];
+const EMPTY_SAMPLES: Sample[] = [];
+const EMPTY_EQUIPMENT: Equipment[] = [];
+const EMPTY_INVENTORY: InventoryItem[] = [];
+const EMPTY_DOCUMENTS: Document[] = [];
+const EMPTY_TESTS: TestResult[] = [];
+const EMPTY_NOTIFICATIONS: Notification[] = [];
 
 const LimsContext = createContext<LimsContextValue | null>(null);
 
 export function LimsDataProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [samples, setSamples] = useState<Sample[]>([]);
-  const [users, setUsers] = useState<LimsUser[]>([]);
-  const [equipment, setEquipment] = useState<Equipment[]>([]);
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [tests, setTests] = useState<TestResult[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const [activeModal, setActiveModal] = useState<ModalKey | null>(null);
-  const [modalContext, setModalContext] = useState<ModalContext>({});
+  const qc = useQueryClient();
+  const enabled = !!user;
 
-  const dismissToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-  const pushToast = useCallback(
-    (message: string, tone: TagTone = "teal") => {
-      const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      setToasts((prev) => [...prev, { id, tone, message }]);
-      setTimeout(() => dismissToast(id), 3500);
-    },
-    [dismissToast]
+  // server state = TanStack Query (cache กลาง; mutation เขียนกลับเข้า cache ด้วย setQueryData)
+  const usersQ = useQuery({ ...usersQuery(), enabled });
+  const samplesQ = useQuery({ ...samplesQuery(qc), enabled });
+  const equipmentQ = useQuery({ ...equipmentQuery(), enabled });
+  const inventoryQ = useQuery({ ...inventoryQuery(), enabled });
+  const documentsQ = useQuery({ ...documentsQuery(), enabled });
+  const testsQ = useQuery({ ...testsQuery(), enabled });
+  const notificationsQ = useQuery({ ...notificationsQuery(), enabled });
+
+  const users = usersQ.data ?? EMPTY_USERS;
+  const samples = samplesQ.data ?? EMPTY_SAMPLES;
+  const equipment = equipmentQ.data ?? EMPTY_EQUIPMENT;
+  const inventory = inventoryQ.data ?? EMPTY_INVENTORY;
+  const documents = documentsQ.data ?? EMPTY_DOCUMENTS;
+  const tests = testsQ.data ?? EMPTY_TESTS;
+  const notifications = notificationsQ.data ?? EMPTY_NOTIFICATIONS;
+  // เดิม loading = ยังไม่ครบทั้ง 7 (ล้มเหลวก็นับว่าจบ) — isPending เป็น false เมื่อสำเร็จหรือ error
+  const loading = [usersQ, samplesQ, equipmentQ, inventoryQ, documentsQ, testsQ, notificationsQ].some((q) => q.isPending);
+
+  const setSamples = useCallback(
+    (fn: (prev: Sample[]) => Sample[]) => qc.setQueryData<Sample[]>(limsKeys.samples, (p) => fn(p ?? [])),
+    [qc]
   );
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    setLoading(true);
-    Promise.allSettled([
-      apiFetch<UserDTO[]>("/users"),
-      apiFetch<SampleDTO[]>("/samples"),
-      apiFetch<EquipmentDTO[]>("/equipment").then((r) => r.map(mapEquipment)),
-      apiFetch<InventoryDTO[]>("/inventory").then((r) => r.map(mapInventory)),
-      apiFetch<DocumentDTO[]>("/documents").then((r) => r.map(mapDocument)),
-      apiFetch<TestResultDTO[]>("/tests").then((r) => r.map(mapTestResult)),
-      apiFetch<NotificationDTO[]>("/notifications").then((r) => r.map(mapNotification)),
-    ]).then(([u, s, e, i, d, t, n]) => {
-      if (cancelled) return;
-      const userList = u.status === "fulfilled" ? u.value : [];
-      const nameById = new Map(userList.map((x) => [x.id, x.name]));
-      if (u.status === "fulfilled") setUsers(userList.map((x) => ({ id: x.id, name: x.name })));
-      if (s.status === "fulfilled") setSamples(s.value.map((x) => mapSample(x, nameById)));
-      if (e.status === "fulfilled") setEquipment(e.value);
-      if (i.status === "fulfilled") setInventory(i.value);
-      if (d.status === "fulfilled") setDocuments(d.value);
-      if (t.status === "fulfilled") setTests(t.value);
-      if (n.status === "fulfilled") setNotifications(n.value);
-      setLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
+  const setEquipment = useCallback(
+    (fn: (prev: Equipment[]) => Equipment[]) => qc.setQueryData<Equipment[]>(limsKeys.equipment, (p) => fn(p ?? [])),
+    [qc]
+  );
+  const setInventory = useCallback(
+    (fn: (prev: InventoryItem[]) => InventoryItem[]) =>
+      qc.setQueryData<InventoryItem[]>(limsKeys.inventory, (p) => fn(p ?? [])),
+    [qc]
+  );
+  const setDocuments = useCallback(
+    (fn: (prev: Document[]) => Document[]) => qc.setQueryData<Document[]>(limsKeys.documents, (p) => fn(p ?? [])),
+    [qc]
+  );
+  const setTests = useCallback(
+    (fn: (prev: TestResult[]) => TestResult[]) => qc.setQueryData<TestResult[]>(limsKeys.tests, (p) => fn(p ?? [])),
+    [qc]
+  );
+  const setNotifications = useCallback(
+    (fn: (prev: Notification[]) => Notification[]) =>
+      qc.setQueryData<Notification[]>(limsKeys.notifications, (p) => fn(p ?? [])),
+    [qc]
+  );
 
   const addSample = useCallback(
     async (s: { name: string; type: string; custodianUserId: number; description?: string; barcodeId?: string }) => {
@@ -341,21 +299,16 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
 
   const markNotificationRead = useCallback((id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    apiFetch(`/notifications/${id}/read`, { method: "PATCH" }).catch(() => {});
-  }, []);
+    apiFetch(`/notifications/${id}/read`, { method: "PATCH" }).catch(() =>
+      qc.invalidateQueries({ queryKey: limsKeys.notifications })
+    );
+  }, [qc, setNotifications]);
   const markAllRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() => {});
-  }, []);
-
-  const openModal = useCallback((key: ModalKey, context: ModalContext = {}) => {
-    setModalContext(context);
-    setActiveModal(key);
-  }, []);
-  const closeModal = useCallback(() => {
-    setActiveModal(null);
-    setModalContext({});
-  }, []);
+    apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() =>
+      qc.invalidateQueries({ queryKey: limsKeys.notifications })
+    );
+  }, [qc, setNotifications]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -387,13 +340,6 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       approveTest,
       markNotificationRead,
       markAllRead,
-      toasts,
-      pushToast,
-      dismissToast,
-      activeModal,
-      modalContext,
-      openModal,
-      closeModal,
     }),
     [
       samples,
@@ -422,13 +368,6 @@ export function LimsDataProvider({ children }: { children: ReactNode }) {
       approveTest,
       markNotificationRead,
       markAllRead,
-      toasts,
-      pushToast,
-      dismissToast,
-      activeModal,
-      modalContext,
-      openModal,
-      closeModal,
     ]
   );
 

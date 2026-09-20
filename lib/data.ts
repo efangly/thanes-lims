@@ -303,7 +303,8 @@ export interface TestVolumePoint {
 export interface Notification {
   id: string;
   tone: TagTone;
-  icon: "Env" | "Sample" | "Equipment" | "Inventory" | "Doc" | "Test";
+  /** ชื่อไอคอนจาก backend (IconKey หรือชื่อแบบ lucide) — แปลงด้วย `resolveIcon` */
+  icon: string;
   title: string;
   message: string;
   time: string;

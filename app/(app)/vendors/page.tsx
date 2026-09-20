@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Card, CardHead, Field, Input, PageHead, Pagination, usePagination } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import { createVendor, listVendors, updateVendor, type Vendor, type VendorInput } from "@/lib/vendors-api";
 
@@ -23,7 +23,7 @@ export default function VendorsPage() {
 }
 
 function VendorsPageInner() {
-  const { pushToast } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

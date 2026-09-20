@@ -357,15 +357,18 @@ export function Pagination({
 /* ---------- Form field ---------- */
 export function Field({
   label,
+  error,
   children,
 }: {
   label: string;
+  error?: string;
   children: ReactNode;
 }) {
   return (
     <label className="flex flex-col gap-1.5">
       <span className="text-[12px] font-medium text-muted">{label}</span>
       {children}
+      {error && <span className="text-[11.5px] text-red">{error}</span>}
     </label>
   );
 }
@@ -386,7 +389,7 @@ export function Avatar({ initials, size = "sm" }: { initials: string; size?: "sm
   const s = size === "sm" ? "h-8 w-8 text-xs" : "h-6 w-6 text-[10px]";
   return (
     <span
-      className={`inline-grid place-items-center rounded-full bg-gradient-to-br from-[#3a6ea5] to-[#2b4d73] font-display font-semibold text-white ${s}`}
+      className={`inline-grid place-items-center rounded-full bg-linear-to-br from-[#3a6ea5] to-[#2b4d73] font-display font-semibold text-white ${s}`}
     >
       {initials}
     </span>

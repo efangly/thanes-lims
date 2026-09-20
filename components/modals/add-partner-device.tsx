@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select, Seg, Tag } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import { createPartnerDevice, discoverPartnerDevices } from "@/lib/partner-devices-api";
 import type { DiscoverDevice } from "@/lib/data";
@@ -18,7 +18,10 @@ const LIMIT = 5;
  * at create time, so a typo'd serial would just silently never get a reading.
  */
 export function AddPartnerDeviceModal() {
-  const { activeModal, closeModal, pushToast, modalContext } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const pushToast = useUiStore((s) => s.pushToast);
+  const modalContext = useUiStore((s) => s.modalContext);
   const open = activeModal === "add-partner-device";
   const locations = modalContext.gaugeLocations ?? [];
 

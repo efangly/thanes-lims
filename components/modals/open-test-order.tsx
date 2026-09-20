@@ -5,10 +5,14 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 
 export function OpenTestOrderModal() {
-  const { activeModal, closeModal, samples, addTest, pushToast } = useLims();
+  const { samples, addTest } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const open = activeModal === "open-test-order";
   const [sampleId, setSampleId] = useState("");
   const [test, setTest] = useState("");

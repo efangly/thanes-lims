@@ -6,6 +6,7 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Input, Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { useConfirm } from "@/lib/confirm-context";
 import { apiErrorMessage } from "@/lib/api-client";
 import { listLots } from "@/lib/inventory-api";
@@ -23,7 +24,8 @@ export function StockIssueModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const { issueStock, pushToast } = useLims();
+  const { issueStock } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const confirm = useConfirm();
 
   const [lots, setLots] = useState<InventoryLot[]>([]);

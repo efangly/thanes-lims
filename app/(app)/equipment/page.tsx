@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import { Card, CardHead, Input, KpiCard, PageHead, Pagination, Ring, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { useFullPath } from "@/lib/use-full-path";
 import { listAllSchedules, type CalibrationSchedule } from "@/lib/equipment-api";
 import { calibrationStanding, groupSchedules } from "@/lib/calibration-status";
@@ -31,7 +32,8 @@ export default function EquipmentPage() {
 
 function EquipmentPageInner() {
   const router = useRouter();
-  const { equipment, documents, openModal } = useLims();
+  const { equipment, documents } = useLims();
+  const openModal = useUiStore((s) => s.openModal);
   const [seg, setSeg] = useState(0);
   const [q, setQ] = useState("");
   const [schedules, setSchedules] = useState<CalibrationSchedule[]>([]);

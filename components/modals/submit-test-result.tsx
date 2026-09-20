@@ -5,6 +5,7 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import type { TestResult } from "@/lib/data";
 
@@ -16,7 +17,11 @@ const FLAGS: { value: TestResult["flag"]; label: string }[] = [
 
 /** บันทึกผลการทดสอบ — ย้ายสถานะจาก `analyzing` ไป `pending_verification` (PATCH /tests/{id}/result). */
 export function SubmitTestResultModal() {
-  const { activeModal, modalContext, closeModal, tests, submitTestResult, pushToast } = useLims();
+  const { tests, submitTestResult } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const modalContext = useUiStore((s) => s.modalContext);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const open = activeModal === "submit-test-result";
   const testResultId = modalContext.testResultId ?? null;
   const test = testResultId ? tests.find((t) => t.id === testResultId) ?? null : null;

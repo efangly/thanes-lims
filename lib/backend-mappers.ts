@@ -1,4 +1,8 @@
 import type { CoCStep, Document, DocHistory, DiscoverDevice, EnvAlert, Equipment, FeedItem, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, HistoryRange, PartnerDevice, PartnerDeviceHistory, PartnerDeviceSnapshot, PartnerDeviceTelemetryPage, PartnerDeviceTimeseriesPoint, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
+import type { UserDTO, SampleDTO, EquipmentDTO, InventoryDTO, DocumentDTO, TestResultDTO, NotificationDTO } from "@/lib/schemas";
+
+// DTO type มาจาก Zod schema ใน lib/schemas (single source of truth) — re-export ไว้ให้ import เดิมยังใช้ได้
+export type { UserDTO, SampleDTO, EquipmentDTO, InventoryDTO, DocumentDTO, TestResultDTO, NotificationDTO };
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "numeric" });
@@ -39,25 +43,7 @@ function statusTag(map: Record<string, Tag>, status: string): Tag {
   return map[status] ?? { tone: "grey", label: status };
 }
 
-export interface UserDTO {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
 
-export interface SampleDTO {
-  id: string;
-  name: string;
-  type: string;
-  custodian_user_id: number;
-  location_id: string | null;
-  status: string;
-  received_at: string;
-  barcode_id?: string | null;
-  description?: string;
-  position?: string | null;
-}
 export function mapSample(d: SampleDTO, userNames?: Map<number, string>): Sample {
   return {
     id: d.id,
@@ -96,23 +82,6 @@ export function mapLocation(d: LocationDTO): Location {
   };
 }
 
-export interface EquipmentDTO {
-  id: string;
-  name: string;
-  type_code: string;
-  last_calibrated_at: string;
-  next_calibration_due: string;
-  usage_hours: number;
-  calibration_pct: number;
-  status: string;
-  serial_number?: string;
-  category?: string;
-  manufacturer?: string;
-  model?: string;
-  installation_date?: string | null;
-  vendor_id?: string | null;
-  location_id?: string | null;
-}
 export function mapEquipment(d: EquipmentDTO): Equipment {
   return {
     id: d.id,
@@ -131,24 +100,6 @@ export function mapEquipment(d: EquipmentDTO): Equipment {
   };
 }
 
-export interface InventoryDTO {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  min: number;
-  max: number;
-  pct: number;
-  status: string;
-  default_vendor: string;
-  custodian_user_id?: number | null;
-  manufacturer?: string | null;
-  vendor_id?: string | null;
-  location_id?: string | null;
-  earliest_expire_date?: string | null;
-  lot_count?: number;
-}
 export function mapInventory(d: InventoryDTO): InventoryItem {
   return {
     id: d.id,
@@ -200,19 +151,6 @@ function mapAccessLevel(level: string): string {
   return ACCESS_LEVEL_LABEL[level.toLowerCase()] ?? level;
 }
 
-export interface DocumentDTO {
-  id: string;
-  name: string;
-  type: string;
-  version: string;
-  created_by: string;
-  issued_at: string;
-  access_level: string;
-  locked: boolean;
-  filename?: string;
-  equipment_id?: string | null;
-  calibration_event_id?: number | null;
-}
 export function mapDocument(d: DocumentDTO): Document {
   return {
     id: d.id,
@@ -229,16 +167,6 @@ export function mapDocument(d: DocumentDTO): Document {
   };
 }
 
-export interface TestResultDTO {
-  id: string;
-  sample_id: string;
-  test_name: string;
-  analyst: string;
-  result: string;
-  flag: "hi" | "lo" | "ok";
-  ref_range: string;
-  status: string;
-}
 export function mapTestResult(d: TestResultDTO): TestResult {
   return {
     id: d.id,
@@ -541,20 +469,11 @@ export function mapPurchaseOrder(d: PurchaseOrderDTO): PurchaseOrder {
   };
 }
 
-export interface NotificationDTO {
-  id: string;
-  tone: string;
-  icon: string;
-  title: string;
-  message: string;
-  created_at: string;
-  read: boolean;
-}
 export function mapNotification(d: NotificationDTO): Notification {
   return {
     id: d.id,
     tone: (d.tone as Notification["tone"]) ?? "grey",
-    icon: (d.icon as Notification["icon"]) ?? "Env",
+    icon: d.icon,
     title: d.title,
     message: d.message,
     time: formatDateTime(d.created_at),

@@ -6,6 +6,7 @@ import { Icons } from "@/lib/icons";
 import type { Document, DocHistory } from "@/lib/data";
 import { Card, CardHead, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiFetch } from "@/lib/api-client";
 import { mapDocHistory, type DocHistoryDTO } from "@/lib/backend-mappers";
 import { docTypeLabel } from "@/lib/documents-api";
@@ -50,7 +51,8 @@ export default function DocumentsPage() {
 }
 
 function DocumentsPageInner() {
-  const { documents, openModal } = useLims();
+  const { documents } = useLims();
+  const openModal = useUiStore((s) => s.openModal);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [seg, setSeg] = useState(0);

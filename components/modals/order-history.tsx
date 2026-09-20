@@ -5,11 +5,14 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Tag } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { listPurchaseOrders } from "@/lib/purchase-orders-api";
 import type { PurchaseOrder } from "@/lib/data";
 
 export function OrderHistoryModal() {
-  const { activeModal, closeModal, inventory } = useLims();
+  const { inventory } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
   const open = activeModal === "order-history";
 
   const [orders, setOrders] = useState<PurchaseOrder[] | null>(null);

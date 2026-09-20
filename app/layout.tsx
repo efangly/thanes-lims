@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
+import { QueryProvider } from "@/lib/query-client";
 
 const anuphan = localFont({
   src: [
@@ -74,7 +75,9 @@ export default function RootLayout({
     <html lang="th" suppressHydrationWarning className={anuphan.variable}>
       <body>
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <QueryProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

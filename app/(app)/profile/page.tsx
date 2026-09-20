@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import { Button, Card, CardBody, CardHead, Field, Input, PageHead } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/lib/confirm-context";
 import { apiErrorMessage, setAccessToken } from "@/lib/api-client";
@@ -17,7 +17,7 @@ import { ROLE_LABELS, changeOwnPassword, logoutOtherDevices, updateOwnProfile, t
  */
 export default function ProfilePage() {
   const { user, loading } = useAuth();
-  const { pushToast } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const router = useRouter();
   const confirm = useConfirm();
 

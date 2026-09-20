@@ -4,6 +4,7 @@ import { Suspense, useCallback, useMemo, useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Button, Card, CardBody, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 
 const flagColor = { hi: "text-red", lo: "text-amber", ok: "text-green" };
@@ -18,7 +19,9 @@ export default function TestsPage() {
 }
 
 function TestsPageInner() {
-  const { tests, openModal, approveTest, pushToast } = useLims();
+  const { tests, approveTest } = useLims();
+  const openModal = useUiStore((s) => s.openModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const [seg, setSeg] = useState(0);
   const [approvingId, setApprovingId] = useState<string | null>(null);
 

@@ -6,6 +6,7 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import { formatDate } from "@/lib/backend-mappers";
 import {
@@ -22,7 +23,12 @@ import {
  * Step 2: attach the certificate, handed off to the upload-document modal.
  */
 export function RecordCalibrationModal() {
-  const { activeModal, modalContext, closeModal, openModal, equipment, pushToast } = useLims();
+  const { equipment } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const modalContext = useUiStore((s) => s.modalContext);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const openModal = useUiStore((s) => s.openModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const open = activeModal === "record-calibration";
   const preset = modalContext.equipmentId ?? null;
 

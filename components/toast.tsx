@@ -1,7 +1,7 @@
 "use client";
 
 import { Icons } from "@/lib/icons";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 
 const toneCls = {
   teal: "bg-teal-bg text-teal-d",
@@ -13,7 +13,8 @@ const toneCls = {
 };
 
 export function ToastStack() {
-  const { toasts, dismissToast } = useLims();
+  const toasts = useUiStore((s) => s.toasts);
+  const dismissToast = useUiStore((s) => s.dismissToast);
   if (toasts.length === 0) return null;
   return (
     <div className="fixed bottom-5 right-5 z-[70] flex w-75 flex-col gap-2">

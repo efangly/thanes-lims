@@ -3,10 +3,11 @@
 import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 
 export function ExportAuditReportModal() {
-  const { activeModal, closeModal } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
   const open = activeModal === "export-audit-report";
 
   const handleClose = () => closeModal();

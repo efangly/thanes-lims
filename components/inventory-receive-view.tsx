@@ -6,6 +6,7 @@ import type { InventoryItem, InventoryLot } from "@/lib/data";
 import { Icons } from "@/lib/icons";
 import { Button, Card, CardBody, CardHead, Field, Input, PageHead } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import { listLots, receiveStock } from "@/lib/inventory-api";
 
@@ -26,7 +27,8 @@ interface ReceivedRow {
  */
 export function InventoryReceiveView() {
   const params = useSearchParams();
-  const { inventory, applyReceivedItem, pushToast } = useLims();
+  const { inventory, applyReceivedItem } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
 
   const [item, setItem] = useState<InventoryItem | null>(null);
   const [search, setSearch] = useState("");

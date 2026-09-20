@@ -6,6 +6,7 @@ import { Icons } from "@/lib/icons";
 import type { InventoryItem, PurchaseOrder } from "@/lib/data";
 import { Card, CardHead, Donut, KpiCard, PageHead, Pagination, Seg, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { listPurchaseOrders } from "@/lib/purchase-orders-api";
 import { StockIssueModal } from "@/components/modals/stock-issue";
 
@@ -58,7 +59,8 @@ export default function InventoryPage() {
 }
 
 function InventoryPageInner() {
-  const { inventory, openModal } = useLims();
+  const { inventory } = useLims();
+  const openModal = useUiStore((s) => s.openModal);
   const [seg, setSeg] = useState(0);
   const [issueItem, setIssueItem] = useState<InventoryItem | null>(null);
   const purchaseOrders = usePurchaseOrders();

@@ -5,7 +5,9 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
+import { addSampleFormSchema } from "@/lib/schemas";
 import {
   loadStickerPrefs,
   openStickerInNewTab,
@@ -26,7 +28,10 @@ const TYPES = ["Blood", "Urine", "Water", "Tissue", "Food", "Serum"];
  * ก่อนเข้าขั้น 2 — ปุ่ม "Gen" ในขั้น 2 เหลือไว้เป็น fallback กรณี auto-gen ล้มเหลว
  */
 export function AddSampleModal() {
-  const { activeModal, closeModal, addSample, genSampleBarcode, pushToast, users } = useLims();
+  const { addSample, genSampleBarcode, users } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const open = activeModal === "add-sample";
 
   const [step, setStep] = useState<1 | 2>(1);
@@ -36,6 +41,7 @@ export function AddSampleModal() {
   const [description, setDescription] = useState("");
   const [barcodeInput, setBarcodeInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [sampleId, setSampleId] = useState<string | null>(null);
   const [barcodeId, setBarcodeId] = useState<string | null>(null);
@@ -55,6 +61,7 @@ export function AddSampleModal() {
     setCustodianId("");
     setDescription("");
     setBarcodeInput("");
+    setErrors({});
     setSampleId(null);
     setBarcodeId(null);
   };
@@ -65,16 +72,26 @@ export function AddSampleModal() {
   };
 
   const handleCreate = async () => {
-    if (!name.trim() || !custodianId) return;
+    const parsed = addSampleFormSchema.safeParse({
+      name,
+      type,
+      custodianUserId: custodianId,
+      description,
+      barcodeId: barcodeInput,
+    });
+    if (!parsed.success) {
+      const next: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const key = String(issue.path[0]);
+        if (!next[key]) next[key] = issue.message;
+      }
+      setErrors(next);
+      return;
+    }
+    setErrors({});
     setSubmitting(true);
     try {
-      const created = await addSample({
-        name: name.trim(),
-        type,
-        custodianUserId: Number(custodianId),
-        description: description.trim(),
-        barcodeId: barcodeInput.trim() || undefined,
-      });
+      const created = await addSample(parsed.data);
       setSampleId(created.id);
       let generatedBarcodeId = created.barcodeId;
       if (!generatedBarcodeId) {
@@ -140,7 +157,7 @@ export function AddSampleModal() {
               variant="teal"
               size="sm"
               onClick={handleCreate}
-              disabled={submitting || !name.trim() || !custodianId}
+              disabled={submitting}
             >
               <Icons.Plus className="h-3.5 w-3.5" />
               {submitting ? "กำลังบันทึก..." : "บันทึก แล้วไปต่อ"}
@@ -156,7 +173,7 @@ export function AddSampleModal() {
     >
       {step === 1 ? (
         <div className="flex flex-col gap-3.5">
-          <Field label="ชื่อตัวอย่าง">
+          <Field label="ชื่อตัวอย่าง" error={errors.name}>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -182,7 +199,7 @@ export function AddSampleModal() {
               className="w-full resize-none rounded-lg border border-line bg-bg px-2.75 py-2 text-[13px] text-ink outline-none transition focus:border-teal"
             />
           </Field>
-          <Field label="ผู้ดูแลปัจจุบัน">
+          <Field label="ผู้ดูแลปัจจุบัน" error={errors.custodianUserId}>
             <Select value={custodianId} onChange={(e) => setCustodianId(e.target.value)}>
               <option value="" disabled>
                 เลือกผู้รับผิดชอบ

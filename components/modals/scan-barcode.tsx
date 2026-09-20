@@ -8,6 +8,7 @@ import { Tag } from "@/components/ui";
 import { ScanInput } from "@/components/scan-input";
 import { LocationPicker } from "@/components/location-picker";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import { searchSamples } from "@/lib/samples-api";
 
@@ -18,7 +19,10 @@ import { searchSamples } from "@/lib/samples-api";
  * Replaces the old fake "scanning…" animation that picked a random sample.
  */
 export function ScanBarcodeModal() {
-  const { activeModal, closeModal, users, putAwaySample, pushToast } = useLims();
+  const { users, putAwaySample } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const open = activeModal === "scan-barcode";
   const [sample, setSample] = useState<Sample | null>(null);
   const [submitting, setSubmitting] = useState(false);

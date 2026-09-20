@@ -3,10 +3,11 @@
 import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 
 export function ManageAccessModal() {
-  const { activeModal, closeModal } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
   const open = activeModal === "manage-access";
 
   const handleClose = () => closeModal();

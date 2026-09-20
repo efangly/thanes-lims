@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Button, Card, CardHead, PageHead, Tag } from "@/components/ui";
 import { Markdown } from "@/components/markdown";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import {
   askChatbot,
   ChatUnavailableError,
@@ -106,7 +106,7 @@ function AiAnswer({ msg }: { msg: AiMsg }) {
 
 /* ---------- หน้าหลัก ---------- */
 export default function AiChatPage() {
-  const { pushToast } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [draft, setDraft] = useState("");

@@ -5,6 +5,7 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Input, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 
 // value = the canonical document.Type the Go backend accepts (lowercase, see
@@ -19,7 +20,11 @@ const TYPES = [
 const ACCESS = ["ทั่วไป", "จำกัด – QA", "จำกัด – ผู้บริหาร"];
 
 export function UploadDocumentModal() {
-  const { activeModal, modalContext, closeModal, addDocument, pushToast } = useLims();
+  const { addDocument } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const modalContext = useUiStore((s) => s.modalContext);
+  const closeModal = useUiStore((s) => s.closeModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const open = activeModal === "upload-document";
   // When opened from an equipment detail page the type is fixed (e.g. warranty)
   // and the doc is linked to that equipment — the pickers below are hidden.

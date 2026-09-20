@@ -1,3 +1,5 @@
+import type { z } from "zod";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
 // The AI chatbot lives in a separate service (lims-chatbot-service) behind
@@ -70,6 +72,7 @@ const ERROR_MESSAGE: Record<string, string> = {
   unauthorized: "กรุณาเข้าสู่ระบบใหม่อีกครั้ง",
   forbidden: "คุณไม่มีสิทธิ์ทำรายการนี้",
   account_suspended: "บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ",
+  invalid_response: "ข้อมูลจากเซิร์ฟเวอร์อยู่ในรูปแบบที่ไม่คาดคิด กรุณาแจ้งผู้ดูแลระบบ",
   internal_error: "เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง",
 };
 
@@ -131,17 +134,31 @@ async function request<T>(
  * refresh always goes through the main API regardless, since that's the only
  * service that issues tokens - only the resource request itself moves.
  */
-export async function apiFetch<T>(path: string, options: RequestInit = {}, baseUrl?: string): Promise<T> {
-  return request<T>(
+export type ApiFetchOptions<T> = RequestInit & {
+  /** ถ้าระบุ จะ validate `data` ของ response ด้วย Zod ก่อนส่งคืน (ไม่ตรงรูปแบบ → ApiError "invalid_response") */
+  schema?: z.ZodType<T>;
+};
+
+export async function apiFetch<T>(path: string, options: ApiFetchOptions<T> = {}, baseUrl?: string): Promise<T> {
+  const { schema, ...init } = options;
+  const data = await request<unknown>(
     path,
-    options,
+    init,
     (token) => ({
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(init.body ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers as Record<string, string> | undefined),
+      ...(init.headers as Record<string, string> | undefined),
     }),
     baseUrl,
   );
+  if (!schema) return data as T;
+  const parsed = schema.safeParse(data);
+  if (!parsed.success) {
+    console.error(`[api] response ของ ${path} ไม่ตรงกับ schema`, parsed.error.issues);
+    const first = parsed.error.issues[0];
+    throw new ApiError(200, "invalid_response", `${path}: ${first?.path.join(".") || "(root)"} — ${first?.message ?? "invalid"}`);
+  }
+  return parsed.data;
 }
 
 export { CHATBOT_API_BASE };

@@ -13,6 +13,7 @@ import { LocationDetailPanel } from "@/components/location-detail-panel";
 import { ResizablePanels, type PanelDef } from "@/components/resizable-panels";
 import { AssignSampleToLocationModal } from "@/components/modals/assign-sample-to-location";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { useConfirm } from "@/lib/confirm-context";
 import { useLocationBrowser } from "@/lib/use-location-browser";
 import { useLocationTree } from "@/lib/use-location-tree";
@@ -56,7 +57,8 @@ export function LocationsView() {
     return `/locations?${q.toString()}`;
   };
 
-  const { samples, equipment, inventory, pushToast, moveWithinBox } = useLims();
+  const { samples, equipment, inventory, moveWithinBox } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const confirm = useConfirm();
   const { children, loading, error, ancestorLabel, path, refresh } = useLocationBrowser(currentId, kind);
   const tree = useLocationTree(kind);

@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/backend-mappers";
 import { VendorSelect } from "@/components/vendor-select";
 import { LocationField } from "@/components/location-field";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { useRegisterPageActions } from "@/components/page-actions-context";
 import { apiErrorMessage } from "@/lib/api-client";
 import { useFullPath } from "@/lib/use-full-path";
@@ -44,7 +45,9 @@ function useVendors(): Vendor[] {
 }
 
 export function EquipmentDetail({ id }: { id: string }) {
-  const { equipment, patchEquipmentFields, openModal, pushToast } = useLims();
+  const { equipment, patchEquipmentFields } = useLims();
+  const openModal = useUiStore((s) => s.openModal);
+  const pushToast = useUiStore((s) => s.pushToast);
   const fromList = equipment.find((e) => e.id === id) ?? null;
   const [eq, setEq] = useState(fromList);
   const [notFound, setNotFound] = useState(false);
@@ -266,7 +269,7 @@ function Row({ k, v, mono }: { k: string; v: string | null | undefined; mono?: b
   );
 }
 
-function DocumentsCard({ id, openModal }: { id: string; openModal: ReturnType<typeof useLims>["openModal"] }) {
+function DocumentsCard({ id, openModal }: { id: string; openModal: ReturnType<typeof useUiStore.getState>["openModal"] }) {
   const [docs, setDocs] = useState<Document[] | null>(null);
   const { documents } = useLims();
 

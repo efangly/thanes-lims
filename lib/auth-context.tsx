@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   apiErrorMessage,
   apiFetch,
@@ -35,6 +36,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSessionExpired(() => {
       setAccessToken(null);
       setUser(null);
+      queryClient.clear();
       router.push("/login");
     });
-  }, [router]);
+  }, [router, queryClient]);
 
   useEffect(() => {
     refreshAccessToken()
@@ -91,8 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setAccessToken(null);
     setUser(null);
+    queryClient.clear();
     router.push("/login");
-  }, [router]);
+  }, [router, queryClient]);
 
   return (
     <AuthContext.Provider value={{ user, loading, error, login, logout }}>

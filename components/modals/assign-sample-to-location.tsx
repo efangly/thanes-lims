@@ -6,6 +6,7 @@ import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Field, Select } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 
 /** The reverse direction of put-away: pick a sample to move into an already-selected leaf. */
@@ -23,7 +24,8 @@ export function AssignSampleToLocationModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const { putAwaySample, pushToast } = useLims();
+  const { putAwaySample } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [sampleId, setSampleId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 

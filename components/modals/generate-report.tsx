@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Icons } from "@/lib/icons";
 import { Modal } from "@/components/modal";
 import { Button, Select } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 
 const REPORT_TYPES = ["รายงานสรุปรายวัน", "รายงานผลผิดปกติ", "รายงาน QC"];
 
 export function GenerateReportModal() {
-  const { activeModal, closeModal } = useLims();
+  const activeModal = useUiStore((s) => s.activeModal);
+  const closeModal = useUiStore((s) => s.closeModal);
   const open = activeModal === "generate-report";
   const [type, setType] = useState(REPORT_TYPES[0]);
 

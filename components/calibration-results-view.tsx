@@ -6,13 +6,15 @@ import { useSearchParams } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import { Card, CardHead, Field, Input, PageHead, Pagination, Select, Tag, usePagination } from "@/components/ui";
 import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { apiErrorMessage } from "@/lib/api-client";
 import { searchCalibrationResults, type CalibrationEvent } from "@/lib/equipment-api";
 
 /** Flat, newest-first calibration results across every machine (requirement 2.2). */
 export function CalibrationResultsView() {
   const params = useSearchParams();
-  const { equipment, openModal } = useLims();
+  const { equipment } = useLims();
+  const openModal = useUiStore((s) => s.openModal);
   const equipmentIdParam = params.get("equipment_id") ?? "";
 
   const [q, setQ] = useState("");

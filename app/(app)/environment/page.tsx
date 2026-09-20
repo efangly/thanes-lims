@@ -6,7 +6,7 @@ import { Icons } from "@/lib/icons";
 import type { PartnerDevice, PartnerDeviceSnapshot, PartnerDeviceTimeseriesPoint } from "@/lib/data";
 import { formatDateTime } from "@/lib/backend-mappers";
 import { Button, Card, PageHead, Tag, TimeseriesChart } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api-client";
 import {
@@ -141,7 +141,7 @@ function formatTimeShort(iso: string) {
 }
 
 export default function EnvironmentPage() {
-  const { openModal } = useLims();
+  const openModal = useUiStore((s) => s.openModal);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const gaugeLocations = useGaugeLocations();

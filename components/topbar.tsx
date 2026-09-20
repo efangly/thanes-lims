@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Icons } from "@/lib/icons";
+import { Icons, resolveIcon } from "@/lib/icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MODULE_META, type ModuleId } from "@/lib/data";
 import { useLims } from "@/components/lims-data-context";
@@ -17,14 +17,10 @@ const toneCls = {
   grey: "bg-bg-2 text-muted",
 };
 
-const notifIcons = {
-  Env: <Icons.Env />,
-  Sample: <Icons.Sample />,
-  Equipment: <Icons.Equipment />,
-  Inventory: <Icons.Inventory />,
-  Doc: <Icons.Doc />,
-  Test: <Icons.Test />,
-};
+function NotificationIcon({ name, className }: { name: string; className?: string }) {
+  const Icon = resolveIcon(name);
+  return <Icon className={className} />;
+}
 
 export function Topbar({
   onMenuClick,
@@ -194,7 +190,7 @@ export function Topbar({
                     }`}
                   >
                     <span className={`grid h-8 w-8 flex-none place-items-center rounded-[9px] ${toneCls[n.tone]}`}>
-                      <span className="h-4 w-4">{notifIcons[n.icon]}</span>
+                      <NotificationIcon name={n.icon} className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 text-[12.5px] font-medium">

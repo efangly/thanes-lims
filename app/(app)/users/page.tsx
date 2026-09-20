@@ -16,7 +16,7 @@ import {
   Tag,
   usePagination,
 } from "@/components/ui";
-import { useLims } from "@/components/lims-data-context";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/lib/confirm-context";
 import { apiErrorMessage } from "@/lib/api-client";
@@ -52,7 +52,7 @@ export default function UsersPage() {
 function UsersPageInner() {
   const router = useRouter();
   const { user: me, loading: authLoading } = useAuth();
-  const { pushToast } = useLims();
+  const pushToast = useUiStore((s) => s.pushToast);
   const confirm = useConfirm();
 
   const [users, setUsers] = useState<User[]>([]);
