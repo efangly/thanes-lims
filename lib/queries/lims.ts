@@ -12,6 +12,7 @@ import {
 import {
   documentSchema,
   equipmentSchema,
+  equipmentSummarySchema,
   inventorySchema,
   notificationSchema,
   sampleSchema,
@@ -50,6 +51,13 @@ export const equipmentQuery = () =>
   queryOptions({
     queryKey: limsKeys.equipment,
     queryFn: async () => (await apiFetch("/equipment", { schema: z.array(equipmentSchema) })).map(mapEquipment),
+  });
+
+/** Dashboard equipment counts (overall / calibration / maintenance) in one request. */
+export const equipmentSummaryQuery = () =>
+  queryOptions({
+    queryKey: limsKeys.equipmentSummary,
+    queryFn: () => apiFetch("/equipment/summary", { schema: equipmentSummarySchema }),
   });
 
 export const inventoryQuery = () =>

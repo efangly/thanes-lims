@@ -3,6 +3,7 @@ export const limsKeys = {
   users: ["users"] as const,
   samples: ["samples"] as const,
   equipment: ["equipment"] as const,
+  equipmentSummary: ["equipment", "summary"] as const,
   inventory: ["inventory"] as const,
   documents: ["documents"] as const,
   tests: ["tests"] as const,

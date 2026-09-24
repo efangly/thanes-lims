@@ -7,6 +7,7 @@ import {
   apiErrorMessage,
   apiFetch,
   ApiError,
+  getAccessToken,
   onSessionExpired,
   refreshAccessToken,
   setAccessToken,
@@ -18,6 +19,27 @@ export interface AuthUser {
   email: string;
   role: string;
   status?: "active" | "suspended";
+  /** `module:action` keys from the access-token claims (e.g. "equipment:edit"). Cosmetic gating only (ADR-0014). */
+  permissions: string[];
+}
+
+/** Reads the `permissions` claim from the access token payload — no verification, the backend enforces. */
+function tokenPermissions(): string[] {
+  const token = getAccessToken();
+  const payload = token?.split(".")[1];
+  if (!payload) return [];
+  try {
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const perms = (JSON.parse(json) as { permissions?: unknown }).permissions;
+    return Array.isArray(perms) ? perms.filter((p): p is string => typeof p === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchMe(): Promise<AuthUser> {
+  const me = await apiFetch<Omit<AuthUser, "permissions">>("/users/me");
+  return { ...me, permissions: tokenPermissions() };
 }
 
 interface LoginResponse {
@@ -58,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refreshAccessToken()
-      .then(() => apiFetch<AuthUser>("/users/me"))
+      .then(fetchMe)
       .then((me) => setUser(me))
       .catch(() => setAccessToken(null))
       .finally(() => setLoading(false));
@@ -73,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
       setAccessToken(tokens.access_token);
-      const me = await apiFetch<AuthUser>("/users/me");
+      const me = await fetchMe();
       setUser(me);
     } catch (err) {
       if (err instanceof ApiError && err.code === "unauthorized") {
@@ -115,4 +137,10 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
+}
+
+/** Whether the signed-in user's role grants `perm` ("module:action"). Hides chrome only — the backend still 403s. */
+export function useCan(perm: string): boolean {
+  const { user } = useAuth();
+  return user?.permissions.includes(perm) ?? false;
 }

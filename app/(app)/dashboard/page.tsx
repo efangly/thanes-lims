@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Icons } from "@/lib/icons";
-import { type EnvAlert, type FeedItem, type ModuleId, type TagTone, type TestVolumePoint } from "@/lib/data";
+import { type DueStatus, type EnvAlert, type FeedItem, type ModuleId, type TagTone, type TestVolumePoint } from "@/lib/data";
+import { equipmentSummaryQuery } from "@/lib/queries/lims";
+import { useAuth } from "@/lib/auth-context";
+import type { EquipmentSummaryDTO } from "@/lib/schemas";
 import { Card, CardBody, CardHead, KpiCard, PageHead, Seg, Tag, BarChart } from "@/components/ui";
 import type { ReactNode } from "react";
 import { useLims } from "@/components/lims-data-context";
@@ -45,6 +49,50 @@ function useTestVolume() {
       .catch(() => setPoints([]));
   }, []);
   return points;
+}
+
+const STATUS_CHIPS: { status: DueStatus; label: string; cls: string }[] = [
+  { status: "overdue", label: "เลยกำหนด", cls: "bg-red-bg text-red" },
+  { status: "due_soon", label: "ใกล้ครบ", cls: "bg-amber-bg text-amber" },
+  { status: "ready", label: "พร้อม", cls: "bg-green-bg text-green" },
+  { status: "none", label: "ไม่มีแผน", cls: "bg-bg-2 text-muted" },
+];
+
+/** One side's counts from `GET /equipment/summary`; each tile opens the grid filtered to that status. */
+function EquipmentStatusCard({
+  title,
+  icon,
+  counts,
+  param,
+  onOpen,
+}: {
+  title: string;
+  icon: ReactNode;
+  counts: EquipmentSummaryDTO["calibration"] | undefined;
+  param: "calibration_status" | "maintenance_status";
+  onOpen: (param: string, status: DueStatus) => void;
+}) {
+  return (
+    <Card>
+      <CardHead icon={icon} title={title} />
+      {!counts ? (
+        <div className="px-4.5 py-4 text-[12.5px] text-muted">กำลังโหลด…</div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4 md:p-3.5">
+          {STATUS_CHIPS.map((c) => (
+            <button
+              key={c.status}
+              onClick={() => onOpen(param, c.status)}
+              className={`rounded-lg px-3 py-2.5 text-left transition hover:brightness-95 ${c.cls}`}
+            >
+              <div className="font-display text-[22px] font-semibold leading-none">{counts[c.status]}</div>
+              <div className="mt-1 text-[11.5px] font-medium">{c.label}</div>
+            </button>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
 }
 
 const feedIcons = {
@@ -105,12 +153,15 @@ export default function DashboardPage() {
   const onNavigate = (id: ModuleId) => router.push(`/${id}`);
   const { samples, equipment, tests, inventory, documents } = useLims();
   const alerts = useAlerts();
+  const { user } = useAuth();
+  const { data: eqSummary } = useQuery({ ...equipmentSummaryQuery(), enabled: !!user });
+  const openEquipment = (param: string, status: DueStatus) => router.push(`/equipment?${param}=${status}`);
   const feed = useActivity();
   const testVolume = useTestVolume();
 
   const activeSamples = samples.filter((s) => s.status.label !== "เสร็จสิ้น").length;
-  const equipmentDue = equipment.filter((e) => e.status.label !== "พร้อมใช้").length;
-  const equipmentOverdue = equipment.filter((e) => e.status.label === "เลยกำหนด").length;
+  const equipmentDue = eqSummary ? eqSummary.overall.due_soon + eqSummary.overall.overdue : 0;
+  const equipmentOverdue = eqSummary?.overall.overdue ?? 0;
   const critAlert = alerts.find((a) => a.level === "crit");
   const pendingTests = tests.filter((t) => t.status.label === "รอทวนสอบ").length;
   const inventoryLow = inventory.filter((i) => i.status.tone === "red" || i.status.tone === "amber").length;
@@ -128,11 +179,12 @@ export default function DashboardPage() {
         <KpiCard
           accent="amber"
           icon={<Icons.Equipment />}
-          label="เครื่องมือรอสอบเทียบ"
+          label="เครื่องมือต้องดำเนินการ (Cal/MA)"
           value={String(equipmentDue)}
           unit="เครื่อง"
           trend={equipmentOverdue > 0 ? `▼ ${equipmentOverdue} เลยกำหนด` : "ไม่มีรายการเลยกำหนด"}
           trendDown={equipmentOverdue > 0}
+          onClick={() => openEquipment("overall_status", equipmentOverdue > 0 ? "overdue" : "due_soon")}
         />
         <KpiCard
           accent="red"
@@ -144,6 +196,23 @@ export default function DashboardPage() {
           trendDown={Boolean(critAlert)}
         />
         <KpiCard accent="green" icon={<Icons.Test />} label="ผลทดสอบรออนุมัติ" value={String(pendingTests)} unit="รายการ" trend={`${tests.length} ผลทดสอบทั้งหมด`} />
+      </div>
+
+      <div className="mb-2 grid grid-cols-1 gap-2 lg:grid-cols-2">
+        <EquipmentStatusCard
+          title="สอบเทียบ (Cal)"
+          icon={<Icons.Check />}
+          counts={eqSummary?.calibration}
+          param="calibration_status"
+          onOpen={openEquipment}
+        />
+        <EquipmentStatusCard
+          title="บำรุงรักษา (MA)"
+          icon={<Icons.Equipment />}
+          counts={eqSummary?.maintenance}
+          param="maintenance_status"
+          onOpen={openEquipment}
+        />
       </div>
 
       <div className="mb-2 grid grid-cols-1 gap-2 lg:grid-cols-[1.55fr_1fr]">
@@ -193,7 +262,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         <ModuleCard onClick={() => onNavigate("samples")} tone="teal" icon={<Icons.Sample />} th="การจัดการตัวอย่าง" en="Sample Management" desc="บันทึก ติดตาม และรักษา Chain of Custody ตลอดวงจรของตัวอย่าง" stat={`${activeSamples} ตัวอย่างที่ใช้งาน`} />
-        <ModuleCard onClick={() => onNavigate("equipment")} tone="green" icon={<Icons.Equipment />} th="การจัดการเครื่องมือ" en="Equipment Management" desc="ประวัติการใช้งาน สอบเทียบ บำรุงรักษา และพร้อมรับการตรวจสอบ" stat={`${equipment.length} เครื่อง · ${equipmentDue} รอสอบเทียบ`} />
+        <ModuleCard onClick={() => onNavigate("equipment")} tone="green" icon={<Icons.Equipment />} th="การจัดการเครื่องมือ" en="Equipment Management" desc="ประวัติการใช้งาน สอบเทียบ บำรุงรักษา และพร้อมรับการตรวจสอบ" stat={`${eqSummary?.total ?? equipment.length} เครื่อง · ${equipmentDue} ต้องดำเนินการ`} />
         <ModuleCard onClick={() => onNavigate("environment")} tone="red" icon={<Icons.Env />} th="ควบคุมสภาพแวดล้อม" en="Environmental" desc="ติดตามอุณหภูมิ/ความชื้นเรียลไทม์ แจ้งเตือนเข้าสมาร์ตโฟนทันที" stat={`${alerts.length} การแจ้งเตือนที่ต้องดำเนินการ`} />
         <ModuleCard onClick={() => onNavigate("inventory")} tone="amber" icon={<Icons.Inventory />} th="สินค้าคงคลัง" en="Inventory" desc="บริหารสต็อกวัสดุ สารเคมี พร้อมสั่งซื้อซ้ำอัตโนมัติ" stat={`${inventoryLow} รายการถึงจุดสั่งซื้อ`} />
         <ModuleCard onClick={() => onNavigate("documents")} tone="violet" icon={<Icons.Doc />} th="การจัดการเอกสาร" en="Documents" desc="SOP คู่มือ นโยบาย พร้อมประวัติแก้ไขและสิทธิ์การเข้าถึง" stat={`${documents.length} เอกสาร`} />

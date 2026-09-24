@@ -78,12 +78,20 @@ export interface CoCStep {
   who: string;
 }
 
+/** Server-derived due status of an Equipment's Calibration / Maintenance side. `none` = no plan (≠ ready). */
+export type DueStatus = "ready" | "due_soon" | "overdue" | "none";
+
 export interface Equipment {
   id: string;
   name: string;
   cal: number;
   next: string;
+  /** Calibration status tag (from `calibration_status`). */
   status: Tag;
+  calStatus: DueStatus;
+  maStatus: DueStatus;
+  /** Worst of calStatus / maStatus. */
+  overallStatus: DueStatus;
   usage: string;
   /** Asset/nameplate fields (Phase 5). Empty string when unset. */
   sn: string;

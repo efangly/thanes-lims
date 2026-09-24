@@ -94,6 +94,7 @@ export function KpiCard({
   trend,
   trendDown,
   icon,
+  onClick,
 }: {
   accent?: keyof typeof kpiAccent;
   label: string;
@@ -102,10 +103,14 @@ export function KpiCard({
   trend?: string;
   trendDown?: boolean;
   icon?: ReactNode;
+  /** Makes the whole card a button (e.g. open a list pre-filtered to this count). */
+  onClick?: () => void;
 }) {
+  const El = onClick ? "button" : "div";
   return (
-    <div
-      className={`relative overflow-hidden rounded-[10px] border border-line bg-panel p-3 shadow-card before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.75 md:p-4 ${kpiAccent[accent]}`}
+    <El
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-[10px] border border-line bg-panel p-3 text-left shadow-card before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.75 md:p-4 ${kpiAccent[accent]} ${onClick ? "transition hover:border-teal" : ""}`}
     >
       <div className="flex items-center gap-1.5 text-[11.5px] text-muted">
         {icon && <span className="h-3.5 w-3.5">{icon}</span>}
@@ -120,7 +125,7 @@ export function KpiCard({
           {trend}
         </div>
       )}
-    </div>
+    </El>
   );
 }
 

@@ -87,6 +87,19 @@ A record that a calibration was actually performed: what type, what was measured
 **Calibration Certificate**:
 The document evidencing one Calibration Event, attached to that Event after it is logged. Belongs to exactly one Event.
 
+**Maintenance Schedule**:
+One standing maintenance (MA) commitment on a piece of Equipment — the same shape as a Calibration Schedule: a name (e.g. "PM ประจำปี"), the date it is next due, and optionally how often it repeats. A machine may carry several or none.
+_Avoid_: PM plan, MA due date
+
+**Maintenance Event**:
+A record that maintenance was actually performed: when, what type, the result (pass / fail / unstated), the outside Vendor if any, and notes. Append-only. When its type matches a repeating Maintenance Schedule's name (ignoring case and surrounding spaces) that Schedule's due date moves forward on its own; a type that matches nothing — a breakdown repair — is kept as history only.
+
+**Calibration Status / Maintenance Status**:
+How one side of a machine stands against its soonest-due Schedule, computed by the backend on every read: overdue, due soon (within 14 days), ready, or none. None means no Schedule on that side — no plan, which is not the same as ready.
+
+**Overall Status**:
+The worse of a machine's Calibration Status and Maintenance Status (overdue > due soon > ready > none). What the equipment grid sorts by and the Dashboard counts.
+
 ## Documents
 
 **Preview**:

@@ -1,4 +1,4 @@
-import type { CoCStep, Document, DocHistory, DiscoverDevice, EnvAlert, Equipment, FeedItem, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, HistoryRange, PartnerDevice, PartnerDeviceHistory, PartnerDeviceSnapshot, PartnerDeviceTelemetryPage, PartnerDeviceTimeseriesPoint, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
+import type { CoCStep, Document, DueStatus, DocHistory, DiscoverDevice, EnvAlert, Equipment, FeedItem, InventoryItem, InventoryLot, Location, LocationKind, LevelType, Notification, HistoryRange, PartnerDevice, PartnerDeviceHistory, PartnerDeviceSnapshot, PartnerDeviceTelemetryPage, PartnerDeviceTimeseriesPoint, PurchaseOrder, Sample, Tag, TestResult, TestVolumePoint } from "@/lib/data";
 import type { UserDTO, SampleDTO, EquipmentDTO, InventoryDTO, DocumentDTO, TestResultDTO, NotificationDTO } from "@/lib/schemas";
 
 // DTO type มาจาก Zod schema ใน lib/schemas (single source of truth) — re-export ไว้ให้ import เดิมยังใช้ได้
@@ -19,11 +19,28 @@ export const SAMPLE_STATUS: Record<string, Tag> = {
   transferred: { tone: "violet", label: "ส่งต่อแผนก" },
 };
 
-const EQUIPMENT_STATUS: Record<string, Tag> = {
-  ready: { tone: "green", label: "พร้อมใช้" },
-  due_soon: { tone: "amber", label: "ใกล้สอบเทียบ" },
-  overdue: { tone: "red", label: "เลยกำหนด" },
+const DUE_STATUS_TONE: Record<DueStatus, Tag["tone"]> = {
+  overdue: "red",
+  due_soon: "amber",
+  ready: "green",
+  none: "grey",
 };
+
+const DUE_STATUS_LABEL: Record<DueStatus, string> = {
+  overdue: "เลยกำหนด",
+  due_soon: "ใกล้ครบกำหนด",
+  ready: "พร้อม",
+  none: "ไม่มีแผน",
+};
+
+/** Badge for a server-derived Cal / MA / Overall status. `none` reads "ไม่มีแผน", never "พร้อม". */
+export function dueStatusTag(status: DueStatus, prefix?: string): Tag {
+  const label = DUE_STATUS_LABEL[status];
+  return { tone: DUE_STATUS_TONE[status], label: prefix ? `${prefix} ${label}` : label };
+}
+
+/** Severity order used to sort by overall status: overdue > due_soon > ready > none. */
+export const DUE_STATUS_RANK: Record<DueStatus, number> = { overdue: 3, due_soon: 2, ready: 1, none: 0 };
 
 const INVENTORY_STATUS: Record<string, Tag> = {
   ok: { tone: "green", label: "เพียงพอ" },
@@ -88,7 +105,10 @@ export function mapEquipment(d: EquipmentDTO): Equipment {
     name: d.name,
     cal: d.calibration_pct,
     next: formatDate(d.next_calibration_due),
-    status: statusTag(EQUIPMENT_STATUS, d.status),
+    status: dueStatusTag(d.calibration_status),
+    calStatus: d.calibration_status,
+    maStatus: d.maintenance_status,
+    overallStatus: d.overall_status,
     usage: `${d.usage_hours.toLocaleString()} ชม.`,
     sn: d.serial_number ?? "",
     category: d.category ?? "",

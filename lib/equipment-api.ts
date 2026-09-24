@@ -153,9 +153,15 @@ export async function searchCalibrationResults(f: CalibrationResultFilter): Prom
   return rows.map(mapCalibrationEvent);
 }
 
-/* ---------- Calibration Schedules (ADR-0006) ---------- */
+/* ---------- Calibration / Maintenance Schedules (ADR-0006) ---------- */
 
-export interface CalibrationSchedule {
+/**
+ * Calibration and Maintenance Schedules share one shape and one CRUD contract;
+ * only the path segment differs.
+ */
+export type ScheduleKind = "calibration" | "maintenance";
+
+export interface Schedule {
   id: number;
   equipmentId: string;
   label: string;
@@ -164,7 +170,10 @@ export interface CalibrationSchedule {
   intervalMonths: number | null;
 }
 
-interface CalibrationScheduleDTO {
+export type CalibrationSchedule = Schedule;
+export type MaintenanceSchedule = Schedule;
+
+interface ScheduleDTO {
   id: number;
   equipment_id: string;
   label: string;
@@ -172,7 +181,7 @@ interface CalibrationScheduleDTO {
   interval_months: number | null;
 }
 
-function mapSchedule(d: CalibrationScheduleDTO): CalibrationSchedule {
+function mapSchedule(d: ScheduleDTO): Schedule {
   return {
     id: d.id,
     equipmentId: d.equipment_id,
@@ -182,16 +191,20 @@ function mapSchedule(d: CalibrationScheduleDTO): CalibrationSchedule {
   };
 }
 
-/** Every equipment's schedules in one request — the equipment table needs them all up front (ADR-0006). */
-export async function listAllSchedules(): Promise<CalibrationSchedule[]> {
-  const rows = await apiFetch<CalibrationScheduleDTO[]>("/calibration-schedules");
+const schedulesPath = (kind: ScheduleKind, equipmentId: string) =>
+  `/equipment/${encodeURIComponent(equipmentId)}/${kind}-schedules`;
+
+/** Every equipment's schedules of one kind in one request — the equipment table needs them all up front (ADR-0006). */
+export async function listAllSchedules(kind: ScheduleKind = "calibration"): Promise<Schedule[]> {
+  const rows = await apiFetch<ScheduleDTO[]>(`/${kind}-schedules`);
   return rows.map(mapSchedule);
 }
 
-export async function listEquipmentSchedules(equipmentId: string): Promise<CalibrationSchedule[]> {
-  const rows = await apiFetch<CalibrationScheduleDTO[]>(
-    `/equipment/${encodeURIComponent(equipmentId)}/calibration-schedules`
-  );
+export async function listEquipmentSchedules(
+  equipmentId: string,
+  kind: ScheduleKind = "calibration"
+): Promise<Schedule[]> {
+  const rows = await apiFetch<ScheduleDTO[]>(schedulesPath(kind, equipmentId));
   return rows.map(mapSchedule);
 }
 
@@ -202,8 +215,12 @@ export interface ScheduleInput {
   intervalMonths: number | null;
 }
 
-export async function createSchedule(equipmentId: string, input: ScheduleInput): Promise<CalibrationSchedule> {
-  const dto = await apiFetch<CalibrationScheduleDTO>(`/equipment/${equipmentId}/calibration-schedules`, {
+export async function createSchedule(
+  equipmentId: string,
+  input: ScheduleInput,
+  kind: ScheduleKind = "calibration"
+): Promise<Schedule> {
+  const dto = await apiFetch<ScheduleDTO>(schedulesPath(kind, equipmentId), {
     method: "POST",
     body: JSON.stringify({
       label: input.label,
@@ -217,25 +234,114 @@ export async function createSchedule(equipmentId: string, input: ScheduleInput):
 export async function updateSchedule(
   equipmentId: string,
   scheduleId: number,
-  input: ScheduleInput
-): Promise<CalibrationSchedule> {
-  const dto = await apiFetch<CalibrationScheduleDTO>(
-    `/equipment/${equipmentId}/calibration-schedules/${scheduleId}`,
-    {
-      method: "PATCH",
-      body: JSON.stringify({
-        label: input.label,
-        next_due_date: new Date(input.nextDueDate).toISOString(),
-        interval_months: input.intervalMonths,
-        clear_interval: input.intervalMonths === null,
-      }),
-    }
-  );
+  input: ScheduleInput,
+  kind: ScheduleKind = "calibration"
+): Promise<Schedule> {
+  const dto = await apiFetch<ScheduleDTO>(`${schedulesPath(kind, equipmentId)}/${scheduleId}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      label: input.label,
+      next_due_date: new Date(input.nextDueDate).toISOString(),
+      interval_months: input.intervalMonths,
+      clear_interval: input.intervalMonths === null,
+    }),
+  });
   return mapSchedule(dto);
 }
 
-export async function deleteSchedule(equipmentId: string, scheduleId: number): Promise<void> {
-  await apiFetch<void>(`/equipment/${equipmentId}/calibration-schedules/${scheduleId}`, { method: "DELETE" });
+export async function deleteSchedule(
+  equipmentId: string,
+  scheduleId: number,
+  kind: ScheduleKind = "calibration"
+): Promise<void> {
+  await apiFetch<void>(`${schedulesPath(kind, equipmentId)}/${scheduleId}`, { method: "DELETE" });
+}
+
+/* ---------- Maintenance Events ---------- */
+
+export interface MaintenanceEvent {
+  id: number;
+  equipmentId: string;
+  performedAt: string;
+  /** raw RFC3339 */
+  performedAtRaw: string;
+  performedBy: string;
+  type: string;
+  notes: string;
+  result: "pass" | "fail" | "";
+  vendorId: string | null;
+}
+
+interface MaintenanceEventDTO {
+  id: number;
+  equipment_id: string;
+  performed_at: string;
+  performed_by: string;
+  maintenance_type: string;
+  notes: string;
+  result: string;
+  vendor_id: string | null;
+}
+
+function mapMaintenanceEvent(d: MaintenanceEventDTO): MaintenanceEvent {
+  return {
+    id: d.id,
+    equipmentId: d.equipment_id,
+    performedAt: formatDate(d.performed_at),
+    performedAtRaw: d.performed_at,
+    performedBy: d.performed_by,
+    type: d.maintenance_type,
+    notes: d.notes,
+    result: d.result === "pass" || d.result === "fail" ? d.result : "",
+    vendorId: d.vendor_id ?? null,
+  };
+}
+
+/** Newest first (unlike calibration-events, which is oldest first). */
+export async function listMaintenanceEvents(equipmentId: string): Promise<MaintenanceEvent[]> {
+  const rows = await apiFetch<MaintenanceEventDTO[]>(
+    `/equipment/${encodeURIComponent(equipmentId)}/maintenance-events`
+  );
+  return rows.map(mapMaintenanceEvent);
+}
+
+export interface RecordMaintenanceInput {
+  /** yyyy-mm-dd; omitted = now. Never in the future. */
+  performedAt?: string;
+  /** Matching a Maintenance Schedule label (case/space-insensitive) advances that schedule. */
+  maintenanceType: string;
+  notes?: string;
+  result?: "pass" | "fail";
+  vendorId?: string | null;
+}
+
+/**
+ * Logs a Maintenance Event (append-only). `performed_by` comes from the logged-in
+ * user on the backend.
+ */
+export async function recordMaintenance(equipmentId: string, input: RecordMaintenanceInput): Promise<MaintenanceEvent> {
+  const body: Record<string, unknown> = { maintenance_type: input.maintenanceType };
+  if (input.performedAt) body.performed_at = performedAtIso(input.performedAt);
+  if (input.notes) body.notes = input.notes;
+  if (input.result) body.result = input.result;
+  if (input.vendorId) body.vendor_id = input.vendorId;
+  const dto = await apiFetch<MaintenanceEventDTO>(`/equipment/${encodeURIComponent(equipmentId)}/maintenance`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  return mapMaintenanceEvent(dto);
+}
+
+/**
+ * A picked date means "that day": today → now (a midnight-UTC stamp could read as
+ * yesterday in ICT, and "now" can never be in the future); past days → local midnight.
+ */
+function performedAtIso(day: string): string {
+  const now = new Date();
+  const [y, m, d] = day.split("-").map(Number);
+  const local = new Date(y, m - 1, d);
+  const isToday = local.toDateString() === now.toDateString();
+  return (isToday ? now : local).toISOString();
 }
 
 export interface RecordCalibrationInput {

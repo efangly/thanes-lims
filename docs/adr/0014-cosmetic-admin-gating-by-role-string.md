@@ -24,3 +24,12 @@ every authenticated role.
   ADR-0002's note about that still applies.
 - This ADR does not supersede ADR-0002 — it narrows it: gating for *chrome*,
   never for *enforcement*.
+
+## Update — permission-based gating (equipment)
+
+Equipment needs finer gating than admin / not-admin: logging Maintenance needs `equipment:edit`,
+logging a Calibration result needs `equipment:approve`. The access token already carries the role's
+permissions as `module:action` strings (backend ADR 0002), so `AuthUser.permissions` is read from
+the token's payload and `useCan("equipment:edit")` hides the matching buttons. Same rule as above:
+this is chrome, not enforcement — the payload is decoded, never verified, and the backend still 403s.
+

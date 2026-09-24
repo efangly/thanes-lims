@@ -18,9 +18,9 @@ export interface CalibrationStanding {
 }
 
 /**
- * ADR-0006: the equipment table's due date, ring and status all come from the
- * soonest-due CalibrationSchedule — never from `Equipment.NextCalibrationDue`.
- * Equipment with no schedule has no status to derive.
+ * ADR-0006: the equipment table's due date and ring come from the soonest-due
+ * CalibrationSchedule. The status *badge* now comes from the backend's
+ * `calibration_status` (ADR-0020) — `status` here is kept for older callers.
  */
 export function calibrationStanding(schedules: CalibrationSchedule[], now: Date = new Date()): CalibrationStanding {
   if (schedules.length === 0) {
@@ -56,6 +56,13 @@ export function calibrationStanding(schedules: CalibrationSchedule[], now: Date 
   }
 
   return { status, nextDueLabel: formatDate(soonest.nextDueDate), pct, ringColor, hasSchedule: true };
+}
+
+/** Localised due date of the soonest schedule (Calibration or Maintenance), or null when there is none. */
+export function soonestDueLabel(schedules: CalibrationSchedule[]): string | null {
+  if (schedules.length === 0) return null;
+  const soonest = schedules.reduce((a, b) => (new Date(a.nextDueDate) <= new Date(b.nextDueDate) ? a : b));
+  return formatDate(soonest.nextDueDate);
 }
 
 /** Groups a flat schedule list by equipment id. */

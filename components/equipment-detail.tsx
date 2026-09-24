@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { limsKeys } from "@/lib/queries/keys";
 import { Icons } from "@/lib/icons";
 import { Button, Card, CardBody, CardHead, Field, Input, Tag } from "@/components/ui";
 import { Modal } from "@/components/modal";
 import { useConfirm } from "@/lib/confirm-context";
-import { formatDate } from "@/lib/backend-mappers";
+import { dueStatusTag, formatDate } from "@/lib/backend-mappers";
+import { useCan } from "@/lib/auth-context";
 import { VendorSelect } from "@/components/vendor-select";
 import { LocationField } from "@/components/location-field";
 import { useLims } from "@/components/lims-data-context";
@@ -19,13 +22,16 @@ import {
   listCalibrationEvents,
   listEquipmentDocuments,
   listEquipmentSchedules,
+  listMaintenanceEvents,
   createSchedule,
   updateSchedule,
   deleteSchedule,
   type CalibrationEvent,
-  type CalibrationSchedule,
   type EquipmentPatch,
+  type MaintenanceEvent,
+  type Schedule,
   type ScheduleInput,
+  type ScheduleKind,
 } from "@/lib/equipment-api";
 import { listVendors, type Vendor } from "@/lib/vendors-api";
 import type { Document } from "@/lib/data";
@@ -51,6 +57,10 @@ export function EquipmentDetail({ id }: { id: string }) {
   const fromList = equipment.find((e) => e.id === id) ?? null;
   const [eq, setEq] = useState(fromList);
   const [notFound, setNotFound] = useState(false);
+  // Bumped after a Maintenance Event is saved — the MA schedule / history cards refetch on it.
+  const [maVersion, setMaVersion] = useState(0);
+  const canEdit = useCan("equipment:edit");
+  const canApprove = useCan("equipment:approve");
 
   // The list in context may not be loaded yet (hard refresh onto this route).
   useEffect(() => {
@@ -67,15 +77,29 @@ export function EquipmentDetail({ id }: { id: string }) {
     };
   }, [id, fromList]);
 
-  useRegisterPageActions({
-    back: { label: "ทะเบียนเครื่องมือ", href: "/equipment" },
-    primary: eq
-      ? {
+  // บันทึก MA ใช้สิทธิ์ equipment:edit ส่วนบันทึกผลสอบเทียบใช้ equipment:approve
+  const actions = eq
+    ? [
+        canApprove && {
           label: "บันทึกผลสอบเทียบ",
           icon: <Icons.Check className="h-3.75 w-3.75" />,
           onClick: () => openModal("record-calibration", { equipmentId: eq.id }),
-        }
-      : undefined,
+        },
+        canEdit && {
+          label: "บันทึก MA",
+          icon: <Icons.Plus className="h-3.75 w-3.75" />,
+          onClick: () =>
+            openModal("record-maintenance", {
+              equipmentId: eq.id,
+              onMaintenanceRecorded: () => setMaVersion((v) => v + 1),
+            }),
+        },
+      ].filter((a) => a !== false)
+    : [];
+  useRegisterPageActions({
+    back: { label: "ทะเบียนเครื่องมือ", href: "/equipment" },
+    primary: actions[0],
+    secondary: actions.slice(1),
   });
 
   if (notFound) {
@@ -100,17 +124,21 @@ export function EquipmentDetail({ id }: { id: string }) {
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-[19px] font-semibold">{eq.name}</h1>
         <span className="font-mono text-[12.5px] text-muted">{eq.id}</span>
-        <Tag {...eq.status} />
+        <Tag {...dueStatusTag(eq.overallStatus)} />
+        <Tag {...dueStatusTag(eq.calStatus, "Cal")} />
+        <Tag {...dueStatusTag(eq.maStatus, "MA")} />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
           <AssetCard eq={eq} onSaved={setEq} save={patchEquipmentFields} pushToast={pushToast} />
-          <CalibrationSchedulesCard id={eq.id} pushToast={pushToast} />
+          <SchedulesCard kind="calibration" id={eq.id} canEdit={canEdit} pushToast={pushToast} />
+          <SchedulesCard kind="maintenance" id={eq.id} canEdit={canEdit} pushToast={pushToast} version={maVersion} />
         </div>
         <div className="flex flex-col gap-4">
           <DocumentsCard id={eq.id} openModal={openModal} />
           <CalibrationHistoryCard id={eq.id} />
+          <MaintenanceHistoryCard id={eq.id} version={maVersion} />
         </div>
       </div>
     </div>
@@ -373,32 +401,65 @@ function CalibrationHistoryCard({ id }: { id: string }) {
   );
 }
 
-function CalibrationSchedulesCard({
+const SCHEDULE_TEXT: Record<
+  ScheduleKind,
+  { noun: string; title: string; empty: string; labelPlaceholder: string }
+> = {
+  calibration: {
+    noun: "รอบสอบเทียบ",
+    title: "ตารางสอบเทียบ (Calibration Schedules)",
+    empty: "ยังไม่มีรอบสอบเทียบ — ระบบจะใช้วันสอบเทียบถัดไปของเครื่องแทนจนกว่าจะเพิ่ม",
+    labelPlaceholder: "เช่น สอบเทียบภายนอก",
+  },
+  maintenance: {
+    noun: "รอบบำรุงรักษา",
+    title: "ตารางบำรุงรักษา (Maintenance Schedules)",
+    empty: "ยังไม่มีรอบบำรุงรักษา — สถานะ MA จะเป็น \"ไม่มีแผน\" จนกว่าจะเพิ่ม",
+    labelPlaceholder: "เช่น PM ประจำปี",
+  },
+};
+
+function SchedulesCard({
+  kind,
   id,
+  canEdit,
   pushToast,
+  version = 0,
 }: {
+  kind: ScheduleKind;
   id: string;
+  canEdit: boolean;
   pushToast: (m: string, tone?: "red" | "teal") => void;
+  /** Refetch when this changes (e.g. a Maintenance Event just advanced a schedule). */
+  version?: number;
 }) {
   const confirm = useConfirm();
-  const [rows, setRows] = useState<CalibrationSchedule[] | null>(null);
-  const [editing, setEditing] = useState<CalibrationSchedule | "new" | null>(null);
+  const queryClient = useQueryClient();
+  const text = SCHEDULE_TEXT[kind];
+  const [rows, setRows] = useState<Schedule[] | null>(null);
+  const [editing, setEditing] = useState<Schedule | "new" | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const reload = () =>
-    listEquipmentSchedules(id)
+    listEquipmentSchedules(id, kind)
       .then(setRows)
       .catch(() => setRows([]));
+
+  // Schedules drive the server-derived Cal / MA status, so the equipment list + summary are stale after a change.
+  const changed = () => {
+    reload();
+    queryClient.invalidateQueries({ queryKey: limsKeys.equipment });
+  };
 
   useEffect(() => {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, kind, version]);
 
-  const remove = async (s: CalibrationSchedule) => {
+  const remove = async (s: Schedule) => {
     const ok = await confirm({
-      title: "ลบรอบสอบเทียบ",
-      message: `ลบ "${s.label}" ใช่หรือไม่? ระบบลบถาวร (hard delete) ย้อนกลับไม่ได้`,
+      title: `ลบ${text.noun}`,
+      message: `ลบ "${s.label}" ใช่หรือไม่?`,
       confirmText: "ลบ",
       cancelText: "ยกเลิก",
       variant: "danger",
@@ -406,9 +467,9 @@ function CalibrationSchedulesCard({
     if (!ok) return;
     setBusyId(s.id);
     try {
-      await deleteSchedule(id, s.id);
-      pushToast("ลบรอบสอบเทียบแล้ว");
-      reload();
+      await deleteSchedule(id, s.id, kind);
+      pushToast(`ลบ${text.noun}แล้ว`);
+      changed();
     } catch (err) {
       pushToast(apiErrorMessage(err), "red");
     } finally {
@@ -420,21 +481,19 @@ function CalibrationSchedulesCard({
     <Card>
       <CardHead
         icon={<Icons.Clock />}
-        title="ตารางสอบเทียบ (Calibration Schedules)"
+        title={text.title}
         right={
-          <Button variant="ghost" size="sm" onClick={() => setEditing("new")}>
-            <Icons.Plus className="h-3.25 w-3.25" />
-            เพิ่มรอบ
-          </Button>
+          canEdit ? (
+            <Button variant="ghost" size="sm" className="whitespace-nowrap" onClick={() => setEditing("new")}>
+              <Icons.Plus className="h-3.25 w-3.25" />
+              เพิ่มรอบ
+            </Button>
+          ) : undefined
         }
       />
       <div>
         {rows === null && <div className="px-5 py-4 text-[12.5px] text-muted">กำลังโหลด…</div>}
-        {rows?.length === 0 && (
-          <div className="px-5 py-4 text-[12.5px] text-muted">
-            ยังไม่มีรอบสอบเทียบ — ตารางทะเบียนจะขึ้น &quot;ยังไม่ตั้งรอบสอบเทียบ&quot; จนกว่าจะเพิ่ม
-          </div>
-        )}
+        {rows?.length === 0 && <div className="px-5 py-4 text-[12.5px] text-muted">{text.empty}</div>}
         {rows?.map((s) => (
           <div key={s.id} className="flex items-center gap-3 border-b border-line px-5 py-3 last:border-none">
             <div className="flex-1">
@@ -449,31 +508,36 @@ function CalibrationSchedulesCard({
                 </div>
               )}
             </div>
-            <button
-              onClick={() => setEditing(s)}
-              disabled={busyId === s.id}
-              className="text-[12px] text-teal-d hover:underline"
-            >
-              แก้ไข
-            </button>
-            <button
-              onClick={() => remove(s)}
-              disabled={busyId === s.id}
-              className="text-[12px] text-red hover:underline"
-            >
-              ลบ
-            </button>
+            {canEdit && (
+              <>
+                <button
+                  onClick={() => setEditing(s)}
+                  disabled={busyId === s.id}
+                  className="text-[12px] text-teal-d hover:underline"
+                >
+                  แก้ไข
+                </button>
+                <button
+                  onClick={() => remove(s)}
+                  disabled={busyId === s.id}
+                  className="text-[12px] text-red hover:underline"
+                >
+                  ลบ
+                </button>
+              </>
+            )}
           </div>
         ))}
       </div>
       {editing && (
         <ScheduleFormModal
+          kind={kind}
           equipmentId={id}
           schedule={editing === "new" ? null : editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
-            reload();
+            changed();
           }}
           pushToast={pushToast}
         />
@@ -483,18 +547,21 @@ function CalibrationSchedulesCard({
 }
 
 function ScheduleFormModal({
+  kind,
   equipmentId,
   schedule,
   onClose,
   onSaved,
   pushToast,
 }: {
+  kind: ScheduleKind;
   equipmentId: string;
-  schedule: CalibrationSchedule | null;
+  schedule: Schedule | null;
   onClose: () => void;
   onSaved: () => void;
   pushToast: (m: string, tone?: "red" | "teal") => void;
 }) {
+  const text = SCHEDULE_TEXT[kind];
   const [label, setLabel] = useState(schedule?.label ?? "");
   const [nextDue, setNextDue] = useState(schedule ? schedule.nextDueDate.slice(0, 10) : "");
   const [interval, setInterval] = useState(schedule?.intervalMonths ? String(schedule.intervalMonths) : "");
@@ -509,9 +576,9 @@ function ScheduleFormModal({
     };
     setBusy(true);
     try {
-      if (schedule) await updateSchedule(equipmentId, schedule.id, input);
-      else await createSchedule(equipmentId, input);
-      pushToast(schedule ? "แก้ไขรอบสอบเทียบแล้ว" : "เพิ่มรอบสอบเทียบแล้ว");
+      if (schedule) await updateSchedule(equipmentId, schedule.id, input, kind);
+      else await createSchedule(equipmentId, input, kind);
+      pushToast(schedule ? `แก้ไข${text.noun}แล้ว` : `เพิ่ม${text.noun}แล้ว`);
       onSaved();
     } catch (err) {
       pushToast(apiErrorMessage(err), "red");
@@ -524,7 +591,7 @@ function ScheduleFormModal({
     <Modal
       open
       onClose={onClose}
-      title={schedule ? "แก้ไขรอบสอบเทียบ" : "เพิ่มรอบสอบเทียบ"}
+      title={schedule ? `แก้ไข${text.noun}` : `เพิ่ม${text.noun}`}
       icon={<Icons.Clock />}
       size="sm"
       footer={
@@ -540,7 +607,7 @@ function ScheduleFormModal({
     >
       <div className="flex flex-col gap-3.5">
         <Field label="ชื่อรอบ (Label)">
-          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="เช่น สอบเทียบภายนอก" autoFocus />
+          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={text.labelPlaceholder} autoFocus />
         </Field>
         <Field label="วันครบกำหนดถัดไป">
           <Input type="date" value={nextDue} onChange={(e) => setNextDue(e.target.value)} />
@@ -556,8 +623,51 @@ function ScheduleFormModal({
         </Field>
         <p className="text-[11.5px] text-muted">
           ไม่ใส่รอบซ้ำ = หลังบันทึกผลแต่ละครั้งต้องกลับมาตั้งวันครบกำหนดถัดไปเอง
+          {kind === "maintenance" && " · บันทึก MA ที่ประเภทตรงกับชื่อรอบนี้จะเลื่อนวันครบกำหนดให้อัตโนมัติ"}
         </p>
       </div>
     </Modal>
+  );
+}
+
+function MaintenanceHistoryCard({ id, version }: { id: string; version: number }) {
+  const [events, setEvents] = useState<MaintenanceEvent[] | null>(null);
+  const vendors = useVendors();
+
+  useEffect(() => {
+    let cancelled = false;
+    listMaintenanceEvents(id)
+      .then((e) => !cancelled && setEvents(e))
+      .catch(() => !cancelled && setEvents([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [id, version]);
+
+  return (
+    <Card>
+      <CardHead icon={<Icons.Clock />} title="ประวัติ MA" />
+      <div>
+        {events === null && <div className="px-5 py-4 text-[12.5px] text-muted">กำลังโหลด…</div>}
+        {events?.length === 0 && <div className="px-5 py-4 text-[12.5px] text-muted">ยังไม่มีประวัติการบำรุงรักษา</div>}
+        {/* backend returns newest first */}
+        {events?.slice(0, 5).map((ev) => {
+          const vendor = ev.vendorId ? vendors.find((v) => v.id === ev.vendorId)?.name ?? ev.vendorId : null;
+          return (
+            <div key={ev.id} className="flex items-center gap-3 border-b border-line px-5 py-3 last:border-none">
+              <div className="flex-1">
+                <div className="text-[13px] font-medium">{ev.type || "บำรุงรักษา"}</div>
+                <div className="text-[11.5px] text-muted">
+                  {ev.performedAt} · โดย {ev.performedBy || "—"}
+                  {vendor && ` · ${vendor}`}
+                </div>
+                {ev.notes && <div className="mt-0.5 text-[11.5px] text-muted-2">{ev.notes}</div>}
+              </div>
+              {ev.result && <Tag tone={ev.result === "pass" ? "green" : "red"} label={ev.result === "pass" ? "ผ่าน" : "ไม่ผ่าน"} />}
+            </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 }

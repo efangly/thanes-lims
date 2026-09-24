@@ -1,5 +1,8 @@
 # Calibration Schedules drive the equipment table's due date and status, not `Equipment.NextCalibrationDue`
 
+> **Status**: the status-derivation part is superseded by ADR-0020 — the backend now computes
+> `calibration_status` / `maintenance_status` / `overall_status`.
+
 Phase 6 added `CalibrationSchedule` (many per Equipment, each with its own label, due date and
 optional interval) but left `Equipment.NextCalibrationDue` in place — it still backs
 `DerivedStatus()` (ready / due_soon / overdue) and `CalibrationPct()`, which is what the equipment
