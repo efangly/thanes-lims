@@ -1,3 +1,4 @@
+import { PDFDocument } from "pdf-lib";
 import { apiFetch, apiFetchBlob } from "@/lib/api-client";
 import { mapSample, type SampleDTO } from "@/lib/backend-mappers";
 import type { Sample } from "@/lib/data";
@@ -5,24 +6,20 @@ import type { Sample } from "@/lib/data";
 /**
  * Server-side sample search. The registry filter bar maps straight onto the
  * backend's `GET /samples` query params — barcode is an exact match (what a
- * physical scan resolves to), location is an ILIKE on the leaf Location name,
- * custodian is the User id.
+ * physical scan resolves to). Sample name is filtered client-side instead
+ * (no backend query param for it).
  */
 export interface SampleFilter {
   barcodeId?: string;
-  location?: string;
-  custodianUserId?: string;
 }
 
 export function hasSampleFilter(f: SampleFilter): boolean {
-  return Boolean(f.barcodeId?.trim() || f.location?.trim() || f.custodianUserId);
+  return Boolean(f.barcodeId?.trim());
 }
 
 export async function searchSamples(f: SampleFilter, nameById: Map<number, string>): Promise<Sample[]> {
   const qs = new URLSearchParams();
   if (f.barcodeId?.trim()) qs.set("barcode_id", f.barcodeId.trim());
-  if (f.location?.trim()) qs.set("location", f.location.trim());
-  if (f.custodianUserId) qs.set("custodian_user_id", f.custodianUserId);
   const rows = await apiFetch<SampleDTO[]>(`/samples?${qs.toString()}`);
   return rows.map((r) => mapSample(r, nameById));
 }
@@ -124,6 +121,37 @@ export async function openStickerInNewTab(sampleId: string, prefs: StickerPrefs)
       tab.location.href = url;
     } else {
       // popup blocked — fall back to a same-tab navigation
+      window.location.href = url;
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (err) {
+    tab?.close();
+    throw err;
+  }
+}
+
+/**
+ * Batch version of {@link openStickerInNewTab} — there is no batch sticker
+ * endpoint on the backend, so this fetches each sample's single-page sticker
+ * PDF and merges the pages client-side into one document before opening it,
+ * so the operator gets a single print job for the whole selection.
+ */
+export async function openStickersInNewTab(sampleIds: string[], prefs: StickerPrefs): Promise<void> {
+  const tab = window.open("", "_blank");
+  try {
+    const qs = new URLSearchParams({ template: prefs.template, symbology: prefs.symbology });
+    const blobs = await Promise.all(sampleIds.map((id) => apiFetchBlob(`/samples/${id}/sticker?${qs.toString()}`)));
+    const merged = await PDFDocument.create();
+    for (const blob of blobs) {
+      const src = await PDFDocument.load(await blob.arrayBuffer());
+      const pages = await merged.copyPages(src, src.getPageIndices());
+      pages.forEach((p) => merged.addPage(p));
+    }
+    const bytes = await merged.save();
+    const url = URL.createObjectURL(new Blob([bytes.slice().buffer], { type: "application/pdf" }));
+    if (tab) {
+      tab.location.href = url;
+    } else {
       window.location.href = url;
     }
     setTimeout(() => URL.revokeObjectURL(url), 60_000);

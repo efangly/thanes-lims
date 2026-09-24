@@ -15,7 +15,8 @@ export type ModalKey =
   | "open-test-order"
   | "generate-report"
   | "record-calibration"
-  | "submit-test-result";
+  | "submit-test-result"
+  | "print-samples";
 
 export interface Toast {
   id: string;
@@ -41,6 +42,10 @@ export interface ModalContext {
   editingPartnerDevice?: PartnerDevice;
   /** edit-partner-device: called after a successful update so the Environment page's list/snapshot panel refreshes without a full reload. */
   onPartnerDeviceUpdated?: () => void;
+  /** print-samples: the sample ids whose stickers should be printed together. */
+  sampleIds?: string[];
+  /** print-samples: called after a successful print so the caller can clear its selection. */
+  onPrinted?: () => void;
 }
 
 interface UiState {

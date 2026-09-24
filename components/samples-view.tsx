@@ -15,11 +15,11 @@ import { ScanInput } from "@/components/scan-input";
 import { hasSampleFilter, loadStickerPrefs, openStickerInNewTab, searchSamples, type SampleFilter } from "@/lib/samples-api";
 
 const cocIcons = {
-  Plus: <Icons.Plus />,
-  Loc: <Icons.Loc />,
-  Arrow: <Icons.Arrow />,
-  Test: <Icons.Test />,
-  Check: <Icons.Check />,
+  Plus: <Icons.Plus className="h-3.75 w-3.75" />,
+  Loc: <Icons.Loc className="h-3.75 w-3.75" />,
+  Arrow: <Icons.Arrow className="h-3.75 w-3.75" />,
+  Test: <Icons.Test className="h-3.75 w-3.75" />,
+  Check: <Icons.Check className="h-3.75 w-3.75" />,
 };
 
 const SEG_OPTIONS = ["ทั้งหมด", "กำลังทดสอบ", "รอตรวจ"];
@@ -52,17 +52,41 @@ const SampleTable = memo(function SampleTable({
   selectedId,
   onSelect,
   onReprint,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
 }: {
   samples: Sample[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onReprint: (id: string) => void;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onToggleSelectAll: () => void;
 }) {
+  const selectableIds = samples.filter((s) => s.barcodeId).map((s) => s.id);
+  const selectedOnPage = selectableIds.filter((id) => selectedIds.has(id));
+  const allSelected = selectableIds.length > 0 && selectedOnPage.length === selectableIds.length;
+  const someSelected = selectedOnPage.length > 0 && !allSelected;
+
   return (
     <div className="overflow-x-auto lg:min-h-0 lg:flex-1">
       <table className="w-full border-collapse text-[13px]">
         <thead>
           <tr>
+            <th className="w-9 whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                ref={(el) => {
+                  if (el) el.indeterminate = someSelected;
+                }}
+                onChange={onToggleSelectAll}
+                disabled={selectableIds.length === 0}
+                aria-label="เลือกทั้งหมดในหน้านี้"
+                className="h-3.75 w-3.75 accent-teal"
+              />
+            </th>
             {["รหัสตัวอย่าง", "Barcode ID", "ตัวอย่าง", "ผู้ดูแลปัจจุบัน", "สถานะ"].map((h) => (
               <th key={h} className="whitespace-nowrap border-b border-line bg-bg px-3.5 py-2.75 text-left text-[10.5px] font-semibold uppercase tracking-[0.7px] text-muted">
                 {h}
@@ -77,6 +101,18 @@ const SampleTable = memo(function SampleTable({
               onClick={() => onSelect(s.id)}
               className={`cursor-pointer transition hover:bg-bg/60 ${selectedId === s.id ? "bg-bg/60" : ""}`}
             >
+              <td className="border-b border-line px-3.5 py-3">
+                {s.barcodeId && (
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(s.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => onToggleSelect(s.id)}
+                    aria-label={`เลือกตัวอย่าง ${s.id}`}
+                    className="h-3.75 w-3.75 accent-teal"
+                  />
+                )}
+              </td>
               <td className="border-b border-line px-3.5 py-3">
                 <div className="font-mono text-[12.5px] font-medium text-ink">{s.id}</div>
                 <div className="text-[11.5px] text-muted">{s.recv}</div>
@@ -118,7 +154,7 @@ const SampleTable = memo(function SampleTable({
           ))}
           {samples.length === 0 && (
             <tr>
-              <td colSpan={5} className="border-b border-line px-3.5 py-8 text-center text-[12.5px] text-muted">
+              <td colSpan={6} className="border-b border-line px-3.5 py-8 text-center text-[12.5px] text-muted">
                 ไม่พบตัวอย่างที่ตรงกับเงื่อนไข
               </td>
             </tr>
@@ -268,7 +304,7 @@ function SampleDetailPanel({
               <div key={i} className="relative flex gap-3.5 py-3">
                 {!isLast && <span className="absolute left-3.75 top-8.5 -bottom-3 w-0.5 bg-line" />}
                 <div className={`z-10 grid h-8 w-8 flex-none place-items-center rounded-full border-2 ${dotCls}`}>
-                  <span className="h-3.75 w-3.75">{cocIcons[c.icon]}</span>
+                  {cocIcons[c.icon]}
                 </div>
                 <div>
                   <div className="text-[13px] font-medium">{c.title}</div>
@@ -294,9 +330,10 @@ function SampleDetailPanel({
 }
 
 /**
- * Server-side registry filter — barcode (exact scan), Location leaf name (ILIKE),
- * custodian. When any is set the list comes from `GET /samples?...`; otherwise the
- * shared context list is shown. The status segment filters whichever list on top.
+ * Server-side registry filter — barcode (exact scan). When set the list comes
+ * from `GET /samples?...`; otherwise the shared context list is shown. The
+ * status segment and sample-name search filter whichever list on top,
+ * client-side (no backend query param for name).
  */
 function useSampleRegistry(filter: SampleFilter) {
   const { samples, users, loading } = useLims();
@@ -306,7 +343,7 @@ function useSampleRegistry(filter: SampleFilter) {
   const nameById = useMemo(() => new Map(users.map((u) => [u.id, u.name])), [users]);
   const active = hasSampleFilter(filter);
   // stable key so the effect only re-runs when a filter value actually changes
-  const key = `${filter.barcodeId ?? ""}|${filter.location ?? ""}|${filter.custodianUserId ?? ""}`;
+  const key = filter.barcodeId ?? "";
 
   useEffect(() => {
     if (!active) {
@@ -356,20 +393,17 @@ export function SamplesView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedId = searchParams.get("s");
-  const { users, samples: allSamples } = useLims();
+  const { samples: allSamples } = useLims();
   const openModal = useUiStore((s) => s.openModal);
   const pushToast = useUiStore((s) => s.pushToast);
   const [seg, setSeg] = useState(0);
   const [putAwayOpen, setPutAwayOpen] = useState(false);
 
   const [barcode, setBarcode] = useState("");
-  const [location, setLocation] = useState("");
-  const [custodianUserId, setCustodianUserId] = useState("");
+  const [name, setName] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const filter = useMemo<SampleFilter>(
-    () => ({ barcodeId: barcode || undefined, location: location || undefined, custodianUserId: custodianUserId || undefined }),
-    [barcode, location, custodianUserId]
-  );
+  const filter = useMemo<SampleFilter>(() => ({ barcodeId: barcode || undefined }), [barcode]);
   const { list, loading, error } = useSampleRegistry(filter);
 
   useEffect(() => {
@@ -379,13 +413,49 @@ export function SamplesView() {
   const filtered = useMemo(
     () =>
       list.filter((s) => {
-        if (seg === 1) return s.status.label === "กำลังทดสอบ";
-        if (seg === 2) return s.status.label.includes("รอตรวจ");
+        if (seg === 1 && s.status.label !== "กำลังทดสอบ") return false;
+        if (seg === 2 && !s.status.label.includes("รอตรวจ")) return false;
+        if (name.trim() && !s.name.toLowerCase().includes(name.trim().toLowerCase())) return false;
         return true;
       }),
-    [list, seg]
+    [list, seg, name]
   );
-  const pager = usePagination(filtered, { resetKey: `${seg}|${barcode}|${location}|${custodianUserId}` });
+  const pager = usePagination(filtered, { resetKey: `${seg}|${barcode}|${name}` });
+
+  // ล้าง selection ที่หลุดจากรายการที่กรองไว้ (เช่น เปลี่ยนคำค้น/แท็บ) กันเลือกตัวอย่างที่มองไม่เห็นแล้ว
+  useEffect(() => {
+    const visibleIds = new Set(filtered.map((s) => s.id));
+    setSelectedIds((prev) => {
+      const next = new Set([...prev].filter((id) => visibleIds.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [filtered]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAllOnPage = useCallback(() => {
+    setSelectedIds((prev) => {
+      const pageIds = pager.pageItems.filter((s) => s.barcodeId).map((s) => s.id);
+      const allSelected = pageIds.length > 0 && pageIds.every((id) => prev.has(id));
+      const next = new Set(prev);
+      if (allSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [pager.pageItems]);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const printSelected = useCallback(() => {
+    openModal("print-samples", { sampleIds: [...selectedIds], onPrinted: clearSelection });
+  }, [openModal, selectedIds, clearSelection]);
 
   const kpi = useMemo(
     () => ({
@@ -436,10 +506,9 @@ export function SamplesView() {
 
   const clearFilters = () => {
     setBarcode("");
-    setLocation("");
-    setCustodianUserId("");
+    setName("");
   };
-  const anyFilter = Boolean(barcode || location || custodianUserId);
+  const anyFilter = Boolean(barcode || name);
 
   return (
     <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
@@ -480,35 +549,20 @@ export function SamplesView() {
             right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
           />
 
-          <div className="grid grid-cols-1 gap-3 border-b border-line px-5 py-3.5 sm:grid-cols-[1.2fr_1fr_1fr]">
+          <div className="grid grid-cols-1 gap-3 border-b border-line px-5 py-3.5 sm:grid-cols-[1.2fr_1fr]">
             <ScanInput
               onScan={scanResolve}
               placeholder="สแกน Barcode ID แล้วกด Enter"
               label="สแกนบาร์โค้ด"
             />
             <div className="flex flex-col gap-1.5">
-              <span className="text-[12px] font-medium text-muted">ชื่อตู้ / ตำแหน่งจัดเก็บ</span>
+              <span className="text-[12px] font-medium text-muted">ชื่อตัวอย่าง</span>
               <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="เช่น Fridge-A / Slot-4"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="ค้นหาชื่อตัวอย่าง"
                 className="w-full rounded-lg border border-line bg-bg px-2.75 py-2 text-[13px] text-ink outline-none transition focus:border-teal"
               />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[12px] font-medium text-muted">ผู้ดูแล</span>
-              <select
-                value={custodianUserId}
-                onChange={(e) => setCustodianUserId(e.target.value)}
-                className="w-full rounded-lg border border-line bg-bg px-2.75 py-2 text-[13px] text-ink outline-none transition focus:border-teal"
-              >
-                <option value="">ทั้งหมด</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
           {anyFilter && (
@@ -522,8 +576,30 @@ export function SamplesView() {
               </button>
             </div>
           )}
+          {selectedIds.size > 0 && (
+            <div className="flex items-center justify-between border-b border-line bg-teal-bg px-5 py-2 text-[11.5px] text-teal-d">
+              <span>เลือกแล้ว {selectedIds.size} ตัวอย่าง</span>
+              <div className="flex items-center gap-3">
+                <button onClick={clearSelection} className="font-medium hover:underline">
+                  ล้างการเลือก
+                </button>
+                <Button variant="teal" size="sm" onClick={printSelected}>
+                  <Icons.Printer className="h-3.25 w-3.25" />
+                  พิมพ์บาร์โค้ด ({selectedIds.size})
+                </Button>
+              </div>
+            </div>
+          )}
 
-          <SampleTable samples={pager.pageItems} selectedId={active?.id ?? null} onSelect={select} onReprint={reprint} />
+          <SampleTable
+            samples={pager.pageItems}
+            selectedId={active?.id ?? null}
+            onSelect={select}
+            onReprint={reprint}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAllOnPage}
+          />
           <Pagination
             page={pager.page}
             totalPages={pager.totalPages}

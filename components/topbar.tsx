@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Icons, resolveIcon } from "@/lib/icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MODULE_META, type ModuleId } from "@/lib/data";
 import { useLims } from "@/components/lims-data-context";
 import { usePageActionsSlot, type PageAction } from "@/components/page-actions-context";
+import { useAuth } from "@/lib/auth-context";
+import { useConfirm } from "@/lib/confirm-context";
 
 const toneCls = {
   teal: "bg-teal-bg text-teal-d",
@@ -22,6 +25,12 @@ function NotificationIcon({ name, className }: { name: string; className?: strin
   return <Icon className={className} />;
 }
 
+function initialsFor(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export function Topbar({
   onMenuClick,
 }: {
@@ -33,6 +42,8 @@ export function Topbar({
   const meta = MODULE_META[active];
   const { notifications, unreadCount, markNotificationRead, markAllRead } = useLims();
   const pageActions = usePageActionsSlot();
+  const { user, logout } = useAuth();
+  const confirm = useConfirm();
 
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -40,15 +51,20 @@ export function Topbar({
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
+  const [userOpen, setUserOpen] = useState(false);
+  const userRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       if (bellRef.current && !bellRef.current.contains(e.target as Node)) setBellOpen(false);
       if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+      if (userRef.current && !userRef.current.contains(e.target as Node)) setUserOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setBellOpen(false);
         setMoreOpen(false);
+        setUserOpen(false);
       }
     };
     document.addEventListener("mousedown", onDown);
@@ -62,6 +78,16 @@ export function Topbar({
   const runAction = (a: PageAction) => {
     if (a.onClick) a.onClick();
     if (a.href) router.push(a.href);
+  };
+
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: "ออกจากระบบ",
+      message: "คุณต้องการออกจากระบบใช่หรือไม่?",
+      confirmText: "ออกจากระบบ",
+      cancelText: "ยกเลิก",
+    });
+    if (ok) logout();
   };
 
   return (
@@ -204,6 +230,41 @@ export function Topbar({
                 ))
               )}
             </div>
+          </div>
+        )}
+      </div>
+
+      <div ref={userRef} className="relative flex-none">
+        <button
+          onClick={() => setUserOpen((v) => !v)}
+          aria-label="เมนูผู้ใช้"
+          className="flex h-11 w-11 items-center justify-center gap-1 rounded-lg border border-line pl-1 pr-1 text-muted transition hover:bg-bg md:h-9.5 md:w-auto md:pr-1.5"
+        >
+          <span className="grid h-8.5 w-8.5 flex-none place-items-center rounded-full bg-gradient-to-br from-[#3a6ea5] to-[#2b4d73] font-display text-xs font-semibold text-white md:h-7.5 md:w-7.5">
+            {user ? initialsFor(user.name) : "—"}
+          </span>
+          <Icons.Chevron className="hidden h-3.5 w-3.5 flex-none rotate-90 text-muted md:block" />
+        </button>
+        {userOpen && (
+          <div className="absolute right-0 top-11.5 z-50 w-52 overflow-hidden rounded-lg border border-line bg-panel shadow-card">
+            <Link
+              href="/profile"
+              onClick={() => setUserOpen(false)}
+              className="flex items-center gap-2.5 border-b border-line px-3.5 py-2.5 text-[12.5px] font-medium text-ink transition hover:bg-bg"
+            >
+              <Icons.User className="h-3.75 w-3.75 flex-none" />
+              โปรไฟล์ของฉัน
+            </Link>
+            <button
+              onClick={() => {
+                setUserOpen(false);
+                handleLogout();
+              }}
+              className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[12.5px] font-medium text-ink transition hover:bg-bg"
+            >
+              <Icons.Logout className="h-3.75 w-3.75 flex-none" />
+              ออกจากระบบ
+            </button>
           </div>
         )}
       </div>

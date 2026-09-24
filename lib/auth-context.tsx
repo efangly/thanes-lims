@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   apiErrorMessage,
@@ -36,17 +36,23 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
   const queryClient = useQueryClient();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
+  useEffect(() => {
     onSessionExpired(() => {
       setAccessToken(null);
       setUser(null);
       queryClient.clear();
-      router.push("/login");
+      router.push(`/login?redirect=${encodeURIComponent(pathnameRef.current)}`);
     });
   }, [router, queryClient]);
 

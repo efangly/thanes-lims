@@ -6,17 +6,10 @@ import { Icons } from "@/lib/icons";
 import type { ModuleId } from "@/lib/data";
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { useConfirm } from "@/lib/confirm-context";
 import { LogoMark } from "@/components/logo";
 
 // ฝังตอน build จากชื่อ tag (Dockerfile ARG / release.yml) — ไม่ import package.json เพราะจะถูกฝังทั้งไฟล์ใน JS ฝั่ง browser
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
-
-function initialsFor(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 interface NavEntry {
   id: ModuleId;
@@ -33,41 +26,52 @@ export function Sidebar({
   open: boolean;
   onClose: () => void;
 }) {
-  const { user, logout } = useAuth();
-  const confirm = useConfirm();
+  const { user } = useAuth();
   const pathname = usePathname();
   const active = (pathname?.split("/")[1] || "dashboard") as ModuleId;
-  const overview: NavEntry[] = [{ id: "dashboard", label: "แดชบอร์ด", icon: <Icons.Dashboard /> }];
+  const overview: NavEntry[] = [
+    { id: "dashboard", label: "แดชบอร์ด", icon: <Icons.Dashboard className="h-4.5 w-4.5" /> },
+  ];
   const assistant: NavEntry[] = [
-    { id: "ai-chat", label: "AI Assistant", icon: <Icons.Ai />, dot: true },
+    { id: "ai-chat", label: "AI Assistant", icon: <Icons.Ai className="h-4.5 w-4.5" />, dot: true },
   ];
   const modules: NavEntry[] = [
-    { id: "samples", label: "การจัดการตัวอย่าง", icon: <Icons.Sample />, num: "01" },
-    { id: "equipment", label: "การจัดการเครื่องมือ", icon: <Icons.Equipment />, num: "02", dot: true },
-    { id: "environment", label: "ควบคุมสภาพแวดล้อม", icon: <Icons.Env />, num: "03", dot: true },
-    { id: "inventory", label: "สินค้าคงคลัง", icon: <Icons.Inventory />, num: "04", dot: true },
-    { id: "documents", label: "การจัดการเอกสาร", icon: <Icons.Doc />, num: "05" },
-    { id: "tests", label: "ทดสอบ & วิเคราะห์", icon: <Icons.Test />, num: "06" },
+    { id: "samples", label: "การจัดการตัวอย่าง", icon: <Icons.Sample className="h-4.5 w-4.5" />, num: "01" },
+    {
+      id: "equipment",
+      label: "การจัดการเครื่องมือ",
+      icon: <Icons.Equipment className="h-4.5 w-4.5" />,
+      num: "02",
+      dot: true,
+    },
+    {
+      id: "environment",
+      label: "ควบคุมสภาพแวดล้อม",
+      icon: <Icons.Env className="h-4.5 w-4.5" />,
+      num: "03",
+      dot: true,
+    },
+    {
+      id: "inventory",
+      label: "สินค้าคงคลัง",
+      icon: <Icons.Inventory className="h-4.5 w-4.5" />,
+      num: "04",
+      dot: true,
+    },
+    { id: "documents", label: "การจัดการเอกสาร", icon: <Icons.Doc className="h-4.5 w-4.5" />, num: "05" },
+    { id: "tests", label: "ทดสอบ & วิเคราะห์", icon: <Icons.Test className="h-4.5 w-4.5" />, num: "06" },
   ];
   // Master data the modules point at rather than own. Kept out of the numbered
   // list so the 01-06 numbering keeps matching the requirement document.
   const masterData: NavEntry[] = [
-    { id: "locations", label: "ตำแหน่งจัดเก็บ", icon: <Icons.Loc /> },
-    { id: "vendors", label: "ผู้ขาย (Vendor)", icon: <Icons.Cart /> },
+    { id: "locations", label: "ตำแหน่งจัดเก็บ", icon: <Icons.Loc className="h-4.5 w-4.5" /> },
+    { id: "vendors", label: "ผู้ขาย (Vendor)", icon: <Icons.Cart className="h-4.5 w-4.5" /> },
   ];
   // Admin-only. Cosmetic gate (ADR-0014) — the backend still 403s every
   // /users write for non-admins regardless of what the sidebar shows.
-  const admin: NavEntry[] = [{ id: "users", label: "การจัดการผู้ใช้งาน", icon: <Icons.User /> }];
-
-  const handleLogout = async () => {
-    const ok = await confirm({
-      title: "ออกจากระบบ",
-      message: "คุณต้องการออกจากระบบใช่หรือไม่?",
-      confirmText: "ออกจากระบบ",
-      cancelText: "ยกเลิก",
-    });
-    if (ok) logout();
-  };
+  const admin: NavEntry[] = [
+    { id: "users", label: "การจัดการผู้ใช้งาน", icon: <Icons.User className="h-4.5 w-4.5" /> },
+  ];
 
   const renderItem = (e: NavEntry) => {
     const isActive = active === e.id;
@@ -82,7 +86,7 @@ export function Sidebar({
             : "text-sidebar-text hover:bg-[var(--color-sidebar-hover)] hover:text-ink"
         }`}
       >
-        <span className={`h-4.5 w-4.5 flex-none ${isActive ? "opacity-100" : "opacity-85"}`}>
+        <span className={`flex-none ${isActive ? "opacity-100" : "opacity-85"}`}>
           {e.icon}
         </span>
         {e.label}
@@ -169,32 +173,8 @@ export function Sidebar({
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-[var(--color-sidebar-line)] p-3">
-        <div className="flex items-center gap-2.5 rounded-lg bg-[var(--color-sidebar-hover)] px-2.25 py-2">
-          <Link
-            href="/profile"
-            onClick={onClose}
-            title="โปรไฟล์ของฉัน"
-            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md transition hover:opacity-80"
-          >
-            <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-gradient-to-br from-[#3a6ea5] to-[#2b4d73] font-display text-xs font-semibold text-white">
-              {user ? initialsFor(user.name) : "—"}
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[12.5px] font-medium leading-tight text-ink">{user?.name ?? "—"}</div>
-              <div className="truncate text-[10.5px] text-sidebar-muted">{user?.role ?? ""}</div>
-            </div>
-          </Link>
-          <button
-            onClick={handleLogout}
-            aria-label="ออกจากระบบ"
-            title="ออกจากระบบ"
-            className="grid h-7 w-7 flex-none place-items-center rounded-lg text-sidebar-muted transition hover:bg-[var(--color-sidebar-hover)] hover:text-ink"
-          >
-            <Icons.Logout className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="mt-2.5 flex items-center gap-1.75 px-0.75 font-mono text-[10.5px] text-sidebar-muted">
+      <div className="border-t border-[var(--color-sidebar-line)] px-3 py-3">
+        <div className="flex items-center gap-1.75 px-0.75 font-mono text-[10.5px] text-sidebar-muted">
           <span className="h-1.75 w-1.75 rounded-full bg-teal animate-pulse-dot" />
           CLOUD · SYNCED · {APP_VERSION ? `v${APP_VERSION}` : "dev"}
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 import { useAuth } from "@/lib/auth-context";
@@ -14,11 +14,12 @@ import { ToastStack } from "@/components/toast";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) router.replace("/login");
-  }, [loading, user, router]);
+    if (!loading && !user) router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+  }, [loading, user, pathname, router]);
 
   if (loading || !user) return <div className="grid h-screen place-items-center text-muted">กำลังโหลด...</div>;
 
