@@ -113,6 +113,8 @@ export function SearchSelect({
           setOpen(true);
           setActive(0);
         }}
+        // Still focused after a pick, so focus alone won't reopen the list on the next click.
+        onClick={() => setOpen(true)}
         onChange={(e) => {
           setQuery(e.target.value);
           setActive(0);
