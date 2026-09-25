@@ -12,6 +12,8 @@ import { mapCoCStep, SAMPLE_STATUS, type CoCStepDTO } from "@/lib/backend-mapper
 import { useFullPath } from "@/lib/use-full-path";
 import { PutAwaySampleModal } from "@/components/modals/put-away-sample";
 import { ScanInput } from "@/components/scan-input";
+import { SearchSelect, type SearchSelectOption } from "@/components/search-select";
+import { listLocations, naturalSort } from "@/lib/locations-api";
 import { hasSampleFilter, loadStickerPrefs, openStickerInNewTab, searchSamples, type SampleFilter } from "@/lib/samples-api";
 
 const cocIcons = {
@@ -330,8 +332,9 @@ function SampleDetailPanel({
 }
 
 /**
- * Server-side registry filter — barcode (exact scan). When set the list comes
- * from `GET /samples?...`; otherwise the shared context list is shown. The
+ * Server-side registry filter — barcode (exact scan) and cabinet (every sample
+ * under a root Location). When either is set the list comes from
+ * `GET /samples?...`; otherwise the shared context list is shown. The
  * status segment and sample-name search filter whichever list on top,
  * client-side (no backend query param for name).
  */
@@ -343,7 +346,7 @@ function useSampleRegistry(filter: SampleFilter) {
   const nameById = useMemo(() => new Map(users.map((u) => [u.id, u.name])), [users]);
   const active = hasSampleFilter(filter);
   // stable key so the effect only re-runs when a filter value actually changes
-  const key = filter.barcodeId ?? "";
+  const key = `${filter.barcodeId ?? ""}|${filter.rootLocationId ?? ""}`;
 
   useEffect(() => {
     if (!active) {
@@ -386,6 +389,27 @@ function useSampleRegistry(filter: SampleFilter) {
 }
 
 /**
+ * Root Cabinets of the sample tree for the cabinet filter. Null when they can't be
+ * loaded (e.g. no `location:view`) — the filter is hidden rather than shown broken.
+ */
+function useCabinetOptions(): SearchSelectOption[] | null {
+  const [options, setOptions] = useState<SearchSelectOption[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    listLocations()
+      .then((roots) => {
+        if (cancelled) return;
+        setOptions(naturalSort(roots).map((l) => ({ value: l.id, label: l.name, hint: l.barcodeCode })));
+      })
+      .catch(() => !cancelled && setOptions(null));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return options;
+}
+
+/**
  * หน้า `/samples` หน้าเดียว — ตัวอย่างที่เลือกเก็บใน query param `?s=<id>`
  * (แหล่งความจริงเดียว) ไม่ใช้ selection state ที่ sync กับ URL อีก จึงไม่ remount route ตอนสลับตัวอย่าง
  */
@@ -401,9 +425,14 @@ export function SamplesView() {
 
   const [barcode, setBarcode] = useState("");
   const [name, setName] = useState("");
+  const [cabinetId, setCabinetId] = useState<string | null>(null);
+  const cabinets = useCabinetOptions();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const filter = useMemo<SampleFilter>(() => ({ barcodeId: barcode || undefined }), [barcode]);
+  const filter = useMemo<SampleFilter>(
+    () => ({ barcodeId: barcode || undefined, rootLocationId: cabinetId ?? undefined }),
+    [barcode, cabinetId]
+  );
   const { list, loading, error } = useSampleRegistry(filter);
 
   useEffect(() => {
@@ -420,7 +449,7 @@ export function SamplesView() {
       }),
     [list, seg, name]
   );
-  const pager = usePagination(filtered, { resetKey: `${seg}|${barcode}|${name}` });
+  const pager = usePagination(filtered, { resetKey: `${seg}|${barcode}|${name}|${cabinetId ?? ""}` });
 
   // ล้าง selection ที่หลุดจากรายการที่กรองไว้ (เช่น เปลี่ยนคำค้น/แท็บ) กันเลือกตัวอย่างที่มองไม่เห็นแล้ว
   useEffect(() => {
@@ -507,8 +536,10 @@ export function SamplesView() {
   const clearFilters = () => {
     setBarcode("");
     setName("");
+    setCabinetId(null);
   };
-  const anyFilter = Boolean(barcode || name);
+  const anyFilter = Boolean(barcode || name || cabinetId);
+  const cabinetName = cabinetId ? cabinets?.find((c) => c.value === cabinetId)?.label ?? cabinetId : null;
 
   return (
     <div className="animate-fade lg:flex lg:h-full lg:flex-col lg:overflow-hidden">
@@ -549,7 +580,11 @@ export function SamplesView() {
             right={<Seg options={SEG_OPTIONS} value={seg} onChange={setSeg} />}
           />
 
-          <div className="grid grid-cols-1 gap-3 border-b border-line px-5 py-3.5 sm:grid-cols-[1.2fr_1fr]">
+          <div
+            className={`grid grid-cols-1 gap-3 border-b border-line px-5 py-3.5 ${
+              cabinets ? "sm:grid-cols-2 xl:grid-cols-[1.2fr_1fr_1fr]" : "sm:grid-cols-[1.2fr_1fr]"
+            }`}
+          >
             <ScanInput
               onScan={scanResolve}
               placeholder="สแกน Barcode ID แล้วกด Enter"
@@ -564,12 +599,26 @@ export function SamplesView() {
                 className="w-full rounded-lg border border-line bg-bg px-2.75 py-2 text-[13px] text-ink outline-none transition focus:border-teal"
               />
             </div>
+            {cabinets && (
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[12px] font-medium text-muted">ตู้</span>
+                <SearchSelect
+                  options={cabinets}
+                  value={cabinetId}
+                  onChange={setCabinetId}
+                  placeholder="พิมพ์ค้นหาชื่อตู้ (ทุกตู้)"
+                  emptyText="ไม่พบตู้ที่ตรงกับคำค้น"
+                  ariaLabel="กรองตามตู้"
+                />
+              </div>
+            )}
           </div>
           {anyFilter && (
             <div className="flex items-center justify-between border-b border-line bg-bg/40 px-5 py-2 text-[11.5px] text-muted">
               <span>
                 {loading ? "กำลังค้นหา…" : `พบ ${filtered.length} รายการ`}
                 {barcode && ` · บาร์โค้ด "${barcode}"`}
+                {cabinetName && ` · ตู้ ${cabinetName}`}
               </span>
               <button onClick={clearFilters} className="font-medium text-teal-d hover:underline">
                 ล้างตัวกรอง

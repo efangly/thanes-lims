@@ -6,20 +6,24 @@ import type { Sample } from "@/lib/data";
 /**
  * Server-side sample search. The registry filter bar maps straight onto the
  * backend's `GET /samples` query params — barcode is an exact match (what a
- * physical scan resolves to). Sample name is filtered client-side instead
- * (no backend query param for it).
+ * physical scan resolves to); cabinet is a root Location id and matches every
+ * sample anywhere beneath it, Boxes included. Sample name is filtered
+ * client-side instead (no backend query param for it).
  */
 export interface SampleFilter {
   barcodeId?: string;
+  /** A root (Cabinet) Location id — `root_location_id`. */
+  rootLocationId?: string;
 }
 
 export function hasSampleFilter(f: SampleFilter): boolean {
-  return Boolean(f.barcodeId?.trim());
+  return Boolean(f.barcodeId?.trim() || f.rootLocationId);
 }
 
 export async function searchSamples(f: SampleFilter, nameById: Map<number, string>): Promise<Sample[]> {
   const qs = new URLSearchParams();
   if (f.barcodeId?.trim()) qs.set("barcode_id", f.barcodeId.trim());
+  if (f.rootLocationId) qs.set("root_location_id", f.rootLocationId);
   const rows = await apiFetch<SampleDTO[]>(`/samples?${qs.toString()}`);
   return rows.map((r) => mapSample(r, nameById));
 }
