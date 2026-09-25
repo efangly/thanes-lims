@@ -20,8 +20,6 @@ export function deriveTypeCode(name: string): string {
 
 export interface EquipmentInput {
   name: string;
-  /** next calibration due — yyyy-mm-dd from the date input */
-  next: string;
   sn: string;
   category: string;
   manufacturer: string;
@@ -37,7 +35,7 @@ export async function createEquipment(input: EquipmentInput): Promise<Equipment>
     body: JSON.stringify({
       name: input.name,
       type_code: deriveTypeCode(input.name),
-      next_calibration_due: new Date(input.next).toISOString(),
+      next_calibration_due: null,
       serial_number: input.sn,
       category: input.category,
       manufacturer: input.manufacturer,

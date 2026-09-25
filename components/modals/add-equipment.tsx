@@ -18,7 +18,6 @@ export function AddEquipmentModal() {
   const pushToast = useUiStore((s) => s.pushToast);
   const open = activeModal === "add-equipment";
   const [name, setName] = useState("");
-  const [next, setNext] = useState("");
   const [sn, setSn] = useState("");
   const [category, setCategory] = useState("");
   const [manufacturer, setManufacturer] = useState("");
@@ -30,7 +29,6 @@ export function AddEquipmentModal() {
 
   const reset = () => {
     setName("");
-    setNext("");
     setSn("");
     setCategory("");
     setManufacturer("");
@@ -44,12 +42,11 @@ export function AddEquipmentModal() {
     closeModal();
   };
   const handleSubmit = async () => {
-    if (!name.trim() || !next.trim()) return;
+    if (!name.trim()) return;
     setSubmitting(true);
     try {
       await addEquipment({
         name: name.trim(),
-        next,
         sn: sn.trim(),
         category: category.trim(),
         manufacturer: manufacturer.trim(),
@@ -79,7 +76,7 @@ export function AddEquipmentModal() {
           <Button variant="ghost" size="sm" onClick={handleClose}>
             ยกเลิก
           </Button>
-          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !name.trim() || !next.trim()}>
+          <Button variant="teal" size="sm" onClick={handleSubmit} disabled={submitting || !name.trim()}>
             <Icons.Plus className="h-3.5 w-3.5" />
             {submitting ? "กำลังบันทึก..." : "เพิ่มเครื่องมือ"}
           </Button>
@@ -105,9 +102,6 @@ export function AddEquipmentModal() {
           </Field>
           <Field label="วันที่ติดตั้ง (Installation Date)">
             <Input type="date" value={installDate} onChange={(e) => setInstallDate(e.target.value)} />
-          </Field>
-          <Field label="วันสอบเทียบถัดไป">
-            <Input type="date" value={next} onChange={(e) => setNext(e.target.value)} />
           </Field>
         </div>
         <VendorSelect value={vendorId} onChange={setVendorId} onError={(m) => pushToast(m, "red")} />

@@ -149,6 +149,19 @@ CoC auto-log และ swagger docs อยู่แล้ว ไม่ต้อ�
 
 ---
 
+## 10. `next_calibration_due` เป็น optional ใน `POST /equipment` (2026-09-25)
+
+**ทำไม** — ADR-0006 (`docs/adr/0006-calibration-schedules-drive-equipment-status.md`) ตัดสินไปแล้วว่า
+"รอบสอบเทียบถัดไป" ที่ตารางทะเบียนเครื่องมือแสดง อ่านจาก Calibration Schedule ที่ due เร็วที่สุด ไม่ใช่
+`Equipment.NextCalibrationDue` แต่ modal "เพิ่มเครื่องมือ" ยังคงมีช่องกรอกวันที่นี้ตอนสร้างเครื่องมือใหม่
+อยู่ (ซึ่งขัดกับ ADR ที่บอกว่า scalar field นี้ไม่ควรถูกแก้ไขตรงๆ จาก UI) จึงเอาออกจาก modal
+
+**ที่ขอ** — ตอนนี้ frontend ส่ง `next_calibration_due: null` ใน `POST /equipment` เสมอ (เครื่องมือใหม่ยังไม่มี
+รอบสอบเทียบจนกว่าจะตั้ง Calibration Schedule แยกต่างหาก) ขอให้ backend รับค่า `null`/ไม่ส่ง field นี้ได้โดย
+ไม่ error — เดิม field นี้ถูกตั้งจาก `new Date(...).toISOString()` เสมอ (ไม่เคยเป็น null)
+
+---
+
 ## ที่ **ไม่ได้** ขอ (บันทึกไว้กันถามซ้ำ)
 
 - **ลบ Vendor** — ตกลงว่าไม่ทำ ทั้งฝั่ง UI และ backend (FK จาก equipment/inventory/PO ทำให้การลบจริง
