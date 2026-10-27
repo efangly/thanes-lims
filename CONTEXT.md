@@ -6,7 +6,7 @@ Laboratory Information Management System — tracks samples through intake, test
 
 ### Storage Location
 
-**Location**:
+**Location** (ไทย: ตำแหน่งจัดเก็บ):
 A node in the storage hierarchy where a sample can physically sit. In the sample tree it is one of Cabinet, Shelf, Slot, Sub-slot, or Box. The first four form a strict top-down chain (a node's children are exactly one level below it); a Box is different — it can hang off a Shelf, Slot, or Sub-slot, and it is where the chain stops.
 _Avoid_: Storage location (as a distinct term from Location), position, bin
 
@@ -16,11 +16,11 @@ A root-level Location (no parent). The top of a storage tree, e.g. a fridge or c
 **Shelf**, **Slot**, **Sub-slot**:
 Locations one, two, and three levels below a Cabinet respectively. Each level's children are generated in a batch via a "generate children" action (a name prefix + count), not created one at a time. The children of one parent may be mixed — some plain Locations, some Boxes.
 
-**Box**:
+**Box** (ไทย: กล่อง):
 A Location that holds many samples at once, each in its own addressable Cell, rather than one sample outright. A Box has a fixed Grid (rows × columns, set when it is created, only ever enlarged afterwards) and never has child Locations — it is always the bottom of its branch. It carries a Location Barcode like any node.
 _Avoid_: Compartment, container, rack, plate
 
-**Cell**:
+**Cell** (ไทย: ช่อง):
 One position inside a Box's Grid, named microplate-style — row letter A–Z, then column number (`A1`, `H12`), with `A1` at the top-left. A Cell is not a Location node; it is the `position` recorded on the sample. A Cell holds at most one active sample.
 _Avoid_: Well, slot (Slot is a tree level), position (that is the field name, Cell is the thing)
 
@@ -38,7 +38,7 @@ The human-readable chain from a Location's root Cabinet down to itself (e.g. "Fr
 A sample occupying a leaf, or a Box Cell, whose status is `pending`, `testing`, or `completed` — i.e. still physically present. A sample with status `transferred` has left the building and no longer occupies its leaf or Cell, even though the sample record still references it — the Cell shows empty.
 _Avoid_: Occupied, assigned (these don't distinguish active vs. transferred)
 
-**Put-away**:
+**Put-away** (ไทย: การจัดเก็บเข้าตำแหน่ง):
 The act of assigning a sample to a leaf Location, or to a specific Cell of a Box, distinct in time and intent from sample intake. A sample is always created first (unassigned), then put away separately. A sample in a Box always has a Cell — there is no "in the box but no position yet" state. Put-away can also mean *moving* a sample already at one spot to another.
 _Avoid_: Assign, store (use "put-away" for the workflow; "assigned to" is fine for the resulting state of a sample)
 
@@ -54,7 +54,7 @@ _Avoid_: Sample ID, code (the Sample ID `SMP-2569-00001` is the identifier the r
 **Sticker**:
 The printable label carrying a Sample's barcode, rendered as a PDF by the backend rather than laid out in the browser. Comes in several physical sizes and in either 1D or 2D symbology, because different label printers and different tube sizes are in use. A Sample with no Barcode ID still has a Sticker — it encodes the Sample ID instead, so nothing is ever unscannable.
 
-**Custodian**:
+**Custodian** (ไทย: ผู้ดูแล):
 The User responsible for a Sample, a piece of Equipment, or an Inventory Item. Always a User, chosen from a list — never a typed-in name.
 _Avoid_: Owner, responsible person
 
@@ -73,7 +73,7 @@ A scannable code carried by every Location node in both trees. Scanning it resol
 Who made a piece of Equipment or an Inventory Item — a plain descriptive name with no contact details behind it.
 _Avoid_: Vendor (a Vendor is a master record you can call; a Manufacturer is a word on a nameplate)
 
-**Vendor**:
+**Vendor** (ไทย: ผู้ขาย):
 The supplier you buy from or call for service — a master record with contact details, referenced from Equipment, Inventory Items and Purchase Orders. Never re-typed per form. Can be created without leaving the form that needed it, but what gets created is the same master record, not a local copy.
 _Avoid_: Supplier, Manufacturer
 
@@ -108,7 +108,7 @@ _Avoid_: View, render (Preview is the inline look that may degrade to a download
 
 ## Inventory
 
-**Inventory Lot**:
+**Inventory Lot** (ไทย: ล็อต):
 One batch of stock of an Inventory Item, with its own lot number, its own expiry, and its own quantity. An Item's on-hand quantity is the sum of its Lots and nothing else — stock enters only by receiving a Lot and leaves only by issuing from a Lot.
 _Avoid_: Stock, quantity (as something you can set directly — there is no such act)
 
